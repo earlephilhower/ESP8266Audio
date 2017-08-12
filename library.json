@@ -1,0 +1,23 @@
+{
+    "name": "ESP8266Audio",
+    "description": "Audio file format and I2S DAC library",
+    "keywords": "ESP8266, MP3, WAV, MOD, I2S, DAC, Delta-Sigma",
+    "authors": [
+        {
+            "name": "Earle F. Philhower, III",
+            "email": "earlephilhower@yahoo.com",
+            "url": "https://github.com/earlephilhower/ESP8266Audio",
+            "maintainer": true
+        }
+    ],
+    "repository": {
+        "type": "git",
+         "url": "https://github.com/earlephilhower/ESP8266Audio"
+    },
+    "version": "1.0",
+    "homepage": "https://github.com/earlephilhower/ESP8266Audio",
+    "frameworks": "Arduino",
+    "examples": [
+        "examples/*/*.ino"
+    ]
+}

@@ -1,0 +1,3 @@
+AudioFileSource	KEYWORD1
+AudioFileSourceSPIFFS	KEYWORD1
+AudioFileSourcePROGMEM	KEYWORD1
