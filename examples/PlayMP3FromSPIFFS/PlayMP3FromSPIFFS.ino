@@ -8,6 +8,8 @@
 // Use the "Tools->ESP8266 Sketch Data Upload" menu to write the MP3 to SPIFFS
 // Then upload the sketch normally.  
 
+// pno_cs from https://ccrma.stanford.edu/~jos/pasp/Sound_Examples.html
+
 AudioGeneratorMP3 *mp3;
 AudioFileSourceSPIFFS *file;
 AudioOutputI2SNoDAC *out;
