@@ -69,22 +69,26 @@ AudioOutputI2SNoDAC:  Abuses the I2S interface to play music without a DAC.  Tur
 
 AudioOutputSerialWAV:  Writes a binary WAV format with headers to the Serial port.  If you capture the serial output to a file you can play it back on your development system.
 
+AudioOutputNull:  Just dumps samples to /dev/null.  Used for speed testing as it doesn't artificially limit the AudioGenerator output speed since there are no buffers to fill/drain.
+
 ## Software I2S Delta-Sigma DAC (i.e. playing music with a single transistor and speaker)
 For the best fidelity, and stereo to boot, spend the money on a real I2S DAC.  Adafruit makes a great mono one with amplifier, and you can find stereo unamplified ones on eBay or elsewhere quite cheaply.  However, thanks to the software delta-sigma DAC with 32x oversampling (up to 128x if the audio rate is low enough) you can still have pretty good sound!
 
 Use the AudioOutputI2S*No*DAC object instead of the AudioOutputI2SDAC in your code, and the following schematic to drive a 2-3W speaker using a single $0.05 NPN 2N3904 transistor:
 
 ````
-ESP8266-I2SOUT (Rx) --+     2N3904 (NPN)
-                      |      +------+
-                      |      |      |     +-|
-                      |      |E B C |    / S|
-                      |      +|-|-|-+    | P|
-                      +-------|-+ +------+ E|
-                              |          | A|
-ESP8266-GND ---------------- GND     +---+ K| 
-                                     |   \ R|
-USB 5V ------------------------------+    +-|
+                            2N3904 (NPN)
+                            +---------+
+                            |         |     +-|
+                            | E  B  C |    / S|
+                            +-|--|--|-+    | P|
+                              |  |  +------+ E|
+                              |  |         | A|
+ESP8266-GND ------------------+  |  +------+ K| 
+                                 |  |      | E|
+ESP8266-I2SOUT (Rx) -------------+  |      \ R|
+                                    |       +-|
+USB 5V -----------------------------+
 
 You may also want to add a 220uF cap from USB5V to GND just to help filter out any voltage droop during high volume playback.
 ````
