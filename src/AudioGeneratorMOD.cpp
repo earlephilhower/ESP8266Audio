@@ -32,6 +32,8 @@
    moving constants to PROGMEM and minor tweaks to allow non pow2 buffer sizes.
 */
 
+#pragma GCC optimize ("O3")
+
 #define NOTE(r, c) (Player.currentPattern.note8[r][c]==NONOTE8?NONOTE:8*Player.currentPattern.note8[r][c])
 
 #ifndef min
