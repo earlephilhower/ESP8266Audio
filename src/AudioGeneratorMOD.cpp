@@ -45,6 +45,7 @@ AudioGeneratorMOD::AudioGeneratorMOD()
   sampleRate = 44100;
   fatBufferSize = 6 * 1024;
   stereoSeparation = 32;
+  mixerTick = 0;
   usePAL = false;
   UpdateAmiga();
   running = false;
@@ -74,32 +75,24 @@ bool AudioGeneratorMOD::stop()
 
 bool AudioGeneratorMOD::loop()
 {
-  static uint16_t i = 0; // Sample counter as we only periodically advance the player control
-  static uint32_t lastSample = 0; // when we block, store the samples we can't send here
-  int16_t sample[2];
-  
   if (!running) return false; // Easy-peasy
 
   // First, try and push in the stored sample.  If we can't, then punt and try later
-  sample[AudioOutput::LEFTCHANNEL] = lastSample & 0xffff;
-  sample[AudioOutput::RIGHTCHANNEL] = (lastSample>>16) & 0xffff;
-  if (!output->ConsumeSample(sample)) return true; // FIFO full, wait...
+  if (!output->ConsumeSample(lastSample)) return true; // FIFO full, wait...
 
   // Now advance enough times to fill the i2s buffer
   do {
-    if (i == 0) {
+    if (mixerTick == 0) {
       running = RunPlayer();
       if (!running) {
         stop();
         return false;
       }
-      i = Player.samplesPerTick;
+      mixerTick = Player.samplesPerTick;
     }
-    lastSample = GetSample();
-    sample[AudioOutput::LEFTCHANNEL] = lastSample & 0xffff;
-    sample[AudioOutput::RIGHTCHANNEL] = (lastSample>>16) & 0xffff;
-    i--;
-  } while (output->ConsumeSample(sample));
+    GetSample( lastSample );
+    mixerTick--;
+  } while (output->ConsumeSample(lastSample));
   // We'll be left with one sample still in our buffer because it couldn't fit in the FIFO
   return true;
 }
@@ -559,9 +552,9 @@ bool AudioGeneratorMOD::ProcessRow()
         break;
     }
 
-    if (note != NONOTE || Player.lastAmigaPeriod[channel] &&
+    if (note != NONOTE || (Player.lastAmigaPeriod[channel] &&
         effectNumber != VIBRATO && effectNumber != VIBRATOVOLUMESLIDE &&
-        !(effectNumber == 0xE && effectParameterX == NOTEDELAY))
+        !(effectNumber == 0xE && effectParameterX == NOTEDELAY)))
       Mixer.channelFrequency[channel] = Player.amiga / Player.lastAmigaPeriod[channel];
 
     if (note != NONOTE)
@@ -733,7 +726,7 @@ bool AudioGeneratorMOD::RunPlayer()
   return true;
 }
 
-uint32_t AudioGeneratorMOD::GetSample()
+void AudioGeneratorMOD::GetSample(int16_t sample[2])
 {
   int16_t sumL;
   int16_t sumR;
@@ -743,7 +736,7 @@ uint32_t AudioGeneratorMOD::GetSample()
   int8_t next;
   int16_t out;
 
-  if (!running) return 0;
+  if (!running) return;
 
   sumL = 0;
   sumR = 0;
@@ -784,11 +777,11 @@ uint32_t AudioGeneratorMOD::GetSample()
 
       if (!file->seek(samplePointer, SEEK_SET)) {
         stop();
-        return 0;
+        return;
       }
       if (toRead != file->read(FatBuffer.channels[channel], toRead)) {
         stop();
-        return 0;
+        return;
       }
 
       FatBuffer.samplePointer[channel] = samplePointer;
@@ -819,13 +812,8 @@ uint32_t AudioGeneratorMOD::GetSample()
   sumR /= Mod.numberOfChannels;
 
   // Fill the sound buffer with unsigned values
-  int16_t left = sumL + (1 << (BITDEPTH - 1));
-  int16_t right = sumR + (1 << (BITDEPTH - 1));
-
-  uint32_t sample = (right << 16) & 0xffff0000;
-  sample |= left & 0xffff;
-
-  return sample;
+  sample[AudioOutput::LEFTCHANNEL] = sumL + (1 << (BITDEPTH - 1));
+  sample[AudioOutput::RIGHTCHANNEL] = sumR + (1 << (BITDEPTH - 1));
 }
 
 bool AudioGeneratorMOD::LoadMOD()

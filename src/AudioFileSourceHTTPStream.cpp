@@ -53,7 +53,7 @@ uint32_t AudioFileSourceHTTPStream::read(void *data, uint32_t len)
   if (!http.connected()) return 0;
 
   WiFiClient *stream = http.getStreamPtr();
-  while (stream->available() < len) yield();
+  while (stream->available() < (int)len) yield();
 
   size_t avail = stream->available();
   if (!avail) return 0;

@@ -41,6 +41,10 @@ class AudioOutputI2SNoDAC : public AudioOutput
     static bool i2sOn; // One per machine, not per instance...
     int oversample;
     void DeltaSigma(int16_t sample[2], uint32_t dsBuff[4]);
+    typedef int32_t fixed24p8_t;
+    enum {fixedPosValue=0x007fff00}; /* 24.8 of max-signed-int */
+    fixed24p8_t lastSamp; // Last sample value
+    fixed24p8_t cumErr;   // Running cumulative error since time began
 };
 
 #endif

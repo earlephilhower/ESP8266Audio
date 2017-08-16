@@ -157,8 +157,6 @@ bool AudioGeneratorMP3::GetOneSample(int16_t sample[2])
 
 bool AudioGeneratorMP3::loop()
 {
-  static int16_t lastSample[2]= {0,0};
-  
   if (!running) return true; // Nothing to do here!
 
   // First, try and push in the stored sample.  If we can't, then punt and try later

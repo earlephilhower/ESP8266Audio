@@ -30,6 +30,8 @@ AudioOutputI2SNoDAC::AudioOutputI2SNoDAC()
   i2sOn = true;
   hertz = 44100;
   oversample = 32;
+  lastSamp = 0;
+  cumErr = 0;
 }
 
 AudioOutputI2SNoDAC::~AudioOutputI2SNoDAC()
@@ -75,13 +77,8 @@ bool AudioOutputI2SNoDAC::begin()
   return true;
 }
 
-typedef int32_t fixed24p8_t;
-#define fixedPosValue 0x007fff00 /* 24.8 of max-signed-int */
 void AudioOutputI2SNoDAC::DeltaSigma(int16_t sample[2], uint32_t dsBuff[4])
 {
-  static fixed24p8_t lastSamp = 0; // Last sample value
-  static fixed24p8_t cumErr = 0;   // Running cumulative error since time began
-
   // Not shift 8 because addition takes care of one mult x 2
   fixed24p8_t newSamp = ( ((int32_t)sample[0]) + ((int32_t)sample[1]) ) << 7;
 

@@ -73,16 +73,10 @@ bool AudioGeneratorWAV::GetBufferedData(int bytes, void *dest)
 
 bool AudioGeneratorWAV::loop()
 {
-  static int16_t lastLeft = 0;
-  static int16_t lastRight = 0;
-  int16_t sample[2];
-  
   if (!running) return true; // Nothing to do here!
 
   // First, try and push in the stored sample.  If we can't, then punt and try later
-  sample[AudioOutput::LEFTCHANNEL] = lastLeft;
-  sample[AudioOutput::RIGHTCHANNEL] = lastRight;
-  if (!output->ConsumeSample(sample)) return true; // Can't send, but no error detected
+  if (!output->ConsumeSample(lastSample)) return true; // Can't send, but no error detected
 
   // Try and stuff the buffer one sample at a time
   do
@@ -95,19 +89,17 @@ bool AudioGeneratorWAV::loop()
       } else {
         r = 0;
       }
-      lastLeft = l;
-      lastRight = r;
+      lastSample[AudioOutput::LEFTCHANNEL] = l;
+      lastSample[AudioOutput::RIGHTCHANNEL] = r;
     } else if (bitsPerSample == 16) {
-      if (!GetBufferedData(2, &lastLeft)) stop();
+      if (!GetBufferedData(2, &lastSample[AudioOutput::LEFTCHANNEL])) stop();
       if (channels == 2) {
-        if (!GetBufferedData(2, &lastRight)) stop();
+        if (!GetBufferedData(2, &lastSample[AudioOutput::RIGHTCHANNEL])) stop();
       } else {
-        lastRight = 0;
+        lastSample[AudioOutput::RIGHTCHANNEL] = 0;
       }
     }
-    sample[AudioOutput::LEFTCHANNEL] = lastLeft;
-    sample[AudioOutput::RIGHTCHANNEL] = lastRight;
-  } while (running && output->ConsumeSample(sample));
+  } while (running && output->ConsumeSample(lastSample));
 
   return running;
 }

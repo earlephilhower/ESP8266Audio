@@ -28,7 +28,7 @@
 class AudioGenerator
 {
   public:
-    AudioGenerator() {};
+    AudioGenerator() { lastSample[0] = 0; lastSample[1] = 0; };
     virtual ~AudioGenerator() {};
     virtual bool begin(AudioFileSource *source, AudioOutput *output) { (void)source; (void)output; return false; };
     virtual bool loop() { return false; };
@@ -39,6 +39,7 @@ class AudioGenerator
     bool running;
     AudioFileSource *file;
     AudioOutput *output;
+    int16_t lastSample[2];
 };
 
 

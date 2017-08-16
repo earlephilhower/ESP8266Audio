@@ -37,10 +37,10 @@ class AudioGeneratorMOD : AudioGenerator
     bool SetStereoSeparation(int sep) { if (running || (sep<0) || (sep>64)) return false; stereoSeparation = sep; return true; }
     bool SetPAL(bool use) { if (running) return false; usePAL = use; return true; }
 
-  private:
+  protected:
     bool LoadMOD();
     bool LoadHeader();
-    uint32_t GetSample();
+    void GetSample(int16_t sample[2]);
     bool RunPlayer();
     void LoadSamples();
     bool LoadPattern(uint8_t pattern);
@@ -52,10 +52,11 @@ class AudioGeneratorMOD : AudioGenerator
 
 
   protected:
-    static const int BITDEPTH = 16; 
+    int mixerTick;
+    enum {BITDEPTH = 16};
     int sampleRate; 
     int fatBufferSize; //(6*1024) // File system buffers per-CHANNEL (i.e. total mem required is 4 * FATBUFFERSIZE)
-    static const int DIVIDER= 10;             // Fixed-point mantissa used for integer arithmetic
+    enum {DIVIDER = 10};             // Fixed-point mantissa used for integer arithmetic
     int stereoSeparation; //STEREOSEPARATION = 32;    // 0 (max) to 64 (mono)
     bool usePAL;
     
@@ -64,10 +65,7 @@ class AudioGeneratorMOD : AudioGenerator
     int AMIGA;
     void UpdateAmiga() { AMIGA = ((usePAL?7159091:7093789) / 2 / sampleRate << DIVIDER); }
     
-    static const int ROWS = 64;
-    static const int SAMPLES = 31;
-    static const int CHANNELS = 4;
-    static const int NONOTE = 0xFFFF;
+    enum {ROWS = 64, SAMPLES = 31, CHANNELS = 4, NONOTE = 0xFFFF, NONOTE8 = 0xff };
 
     typedef struct Sample {
       uint16_t length;
@@ -92,7 +90,6 @@ class AudioGeneratorMOD : AudioGenerator
       uint8_t effectNumber[ROWS][CHANNELS];
       uint8_t effectParameter[ROWS][CHANNELS];
     } Pattern;
-    static const int NONOTE8 = 0xFF;
     
     typedef struct player {
       Pattern currentPattern;
