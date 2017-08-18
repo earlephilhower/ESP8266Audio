@@ -33,7 +33,7 @@
 #ifndef FLAC__STREAM_DECODER_H
 #define FLAC__STREAM_DECODER_H
 
-#include <stdio.h> /* for FILE */
+//#include <stdio.h> /* for FILE */
 #include "export.h"
 #include "format.h"
 
@@ -1201,6 +1201,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_stream(
  *    \c FLAC__STREAM_DECODER_INIT_STATUS_OK if initialization was successful;
  *    see FLAC__StreamDecoderInitStatus for the meanings of other return values.
  */
+#if 0
 FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_FILE(
 	FLAC__StreamDecoder *decoder,
 	FILE *file,
@@ -1209,7 +1210,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_FILE(
 	FLAC__StreamDecoderErrorCallback error_callback,
 	void *client_data
 );
-
+#endif
 /** Initialize the decoder instance to decode Ogg FLAC files.
  *
  *  This flavor of initialization sets up the decoder to decode from a
@@ -1251,6 +1252,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_FILE(
  *    \c FLAC__STREAM_DECODER_INIT_STATUS_OK if initialization was successful;
  *    see FLAC__StreamDecoderInitStatus for the meanings of other return values.
  */
+#if 0
 FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_FILE(
 	FLAC__StreamDecoder *decoder,
 	FILE *file,
@@ -1259,7 +1261,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_FILE(
 	FLAC__StreamDecoderErrorCallback error_callback,
 	void *client_data
 );
-
+#endif
 /** Initialize the decoder instance to decode native FLAC files.
  *
  *  This flavor of initialization sets up the decoder to decode from a plain
@@ -1293,6 +1295,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_FILE(
  *    \c FLAC__STREAM_DECODER_INIT_STATUS_OK if initialization was successful;
  *    see FLAC__StreamDecoderInitStatus for the meanings of other return values.
  */
+#if 0
 FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_file(
 	FLAC__StreamDecoder *decoder,
 	const char *filename,
@@ -1301,7 +1304,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_file(
 	FLAC__StreamDecoderErrorCallback error_callback,
 	void *client_data
 );
-
+#endif
 /** Initialize the decoder instance to decode Ogg FLAC files.
  *
  *  This flavor of initialization sets up the decoder to decode from a plain
@@ -1339,6 +1342,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_file(
  *    \c FLAC__STREAM_DECODER_INIT_STATUS_OK if initialization was successful;
  *    see FLAC__StreamDecoderInitStatus for the meanings of other return values.
  */
+#if 0
 FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_file(
 	FLAC__StreamDecoder *decoder,
 	const char *filename,
@@ -1347,7 +1351,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_file(
 	FLAC__StreamDecoderErrorCallback error_callback,
 	void *client_data
 );
-
+#endif
 /** Finish the decoding process.
  *  Flushes the decoding buffer, releases resources, resets the decoder
  *  settings to their defaults, and returns the decoder state to

@@ -294,7 +294,7 @@ FLAC__bool FLAC__bitreader_clear(FLAC__BitReader *br)
 	br->consumed_words = br->consumed_bits = 0;
 	return true;
 }
-
+#if 0
 void FLAC__bitreader_dump(const FLAC__BitReader *br, FILE *out)
 {
   stack(__FUNCTION__, __FILE__, __LINE__);
@@ -325,7 +325,7 @@ void FLAC__bitreader_dump(const FLAC__BitReader *br, FILE *out)
 		}
 	}
 }
-
+#endif
 void FLAC__bitreader_reset_read_crc16(FLAC__BitReader *br, FLAC__uint16 seed)
 {
 	  stack(__FUNCTION__, __FILE__, __LINE__);

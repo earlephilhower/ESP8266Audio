@@ -34,7 +34,7 @@
 #  include "config.h"
 //#endif
 
-#include <stdio.h>
+//#include <stdio.h>
 #include <stdlib.h> /* for qsort() */
 #include <string.h> /* for memset() */
 #include "FLAC/assert.h"

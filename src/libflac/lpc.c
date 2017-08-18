@@ -43,7 +43,7 @@
 #include "private/lpc.h"
 #include "private/macros.h"
 #if defined DEBUG || defined FLAC__OVERFLOW_DETECT || defined FLAC__OVERFLOW_DETECT_VERBOSE
-#include <stdio.h>
+//#include <stdio.h>
 #endif
 
 /* OPT: #undef'ing this may improve the speed on some architectures */
