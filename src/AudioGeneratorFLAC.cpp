@@ -64,7 +64,6 @@ bool AudioGeneratorFLAC::begin(AudioFileSource *source, AudioOutput *output)
   return true;
 }
 
-// TODO - convert 24bpp to 16bpp
 bool AudioGeneratorFLAC::loop()
 {
   FLAC__bool ret;
@@ -97,10 +96,19 @@ bool AudioGeneratorFLAC::loop()
     if (buffPtr == buffLen) {
       return true; // At some point the flac better error and we'll retudn 
     }
-
-    lastSample[AudioOutput::LEFTCHANNEL] = buff[0][buffPtr] & 0xffff; 
-    if (channels==2) lastSample[AudioOutput::RIGHTCHANNEL] = buff[1][buffPtr] & 0xffff; 
-    else lastSample[AudioOutput::RIGHTCHANNEL] = lastSample[AudioOutput::LEFTCHANNEL];
+    if (bitsPerSample <= 16) {
+      lastSample[AudioOutput::LEFTCHANNEL] = buff[0][buffPtr] & 0xffff; 
+      if (channels==2) lastSample[AudioOutput::RIGHTCHANNEL] = buff[1][buffPtr] & 0xffff; 
+      else lastSample[AudioOutput::RIGHTCHANNEL] = lastSample[AudioOutput::LEFTCHANNEL];
+    } else if (bitsPerSample <= 24) {
+      lastSample[AudioOutput::LEFTCHANNEL] = (buff[0][buffPtr]>>8) & 0xffff; 
+      if (channels==2) lastSample[AudioOutput::RIGHTCHANNEL] = (buff[1][buffPtr]>>8) & 0xffff; 
+      else lastSample[AudioOutput::RIGHTCHANNEL] = lastSample[AudioOutput::LEFTCHANNEL];
+    } else {
+      lastSample[AudioOutput::LEFTCHANNEL] = (buff[0][buffPtr]>>16) & 0xffff; 
+      if (channels==2) lastSample[AudioOutput::RIGHTCHANNEL] = (buff[1][buffPtr]>>16) & 0xffff; 
+      else lastSample[AudioOutput::RIGHTCHANNEL] = lastSample[AudioOutput::LEFTCHANNEL];
+    }
     buffPtr++;
   } while (running && output->ConsumeSample(lastSample));
 
