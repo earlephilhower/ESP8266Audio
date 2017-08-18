@@ -1,5 +1,5 @@
 # ESP8266Audio
-Arduino library for parsing and decoding MOD, WAV, and MP3 files and playing them on an I2S DAC or even using a software-simulated delta-sigma DAC with dynamic 32x oversampling
+Arduino library for parsing and decoding MOD, WAV, MP3, and FLAC files and playing them on an I2S DAC or even using a software-simulated delta-sigma DAC with dynamic 32x oversampling
 
 ## Disclaimer
 All this code is released under the GPL, and all of it is to be used at your own risk.  If you find any bugs, please let me know via the GitHub issue tracker or drop me an email.  The MOD and MP3 routines were taken from StellaPlayer and libMAD respectively.  The software I2S delta-sigma 32x oversampling DAC was my own creation, and sounds quite good if I do say so myself.
@@ -61,6 +61,8 @@ AudioGeneratorWAV:  Reads and plays Microsoft WAVE (.WAV) format files of 8 or 1
 AudioGeneratorMOD:  Reads and plays Amiga ModTracker files (.MOD).  Use a 160MHz clock as this requires tons of SPIFFS reads (which are painfully slow) to get raw instrument sample data for every output sample.  See https://modarchive.org for many free MOD files.
 
 AudioGeneratorMP3:  Reads and plays MP3 format files (.MP3) using a ported libMAD library.  Use a 160MHz clock to ensure enough compute power to decode 128KBit 44.1KHz without hiccups.  For complete porting history with the gory details, look at https://github.com/earlephilhower/libmad-8266
+
+AudioGeneratorFLAC:  Plays FLAC files via ported libflac-1.3.2.  On the order of 30KB heap and minimal stack required as-is.
 
 ## AudioOutput classes
 AudioOutput:  Base class for all output drivers.  Takes a sample at a time and returns true/false if there is buffer space for it.  If it returns false, it is the calling object's (AudioGenerator's) job to keep the data that didn't fit and try again later.
