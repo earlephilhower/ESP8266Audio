@@ -42,6 +42,8 @@
 #include "FLAC/assert.h"
 #include "share/alloc.h"
 
+#pragma GCC optimize ("O3")
+
 void *FLAC__memory_alloc_aligned(size_t bytes, void **aligned_address)
 {
 	void *x;

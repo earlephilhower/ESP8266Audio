@@ -46,6 +46,8 @@
 //#include <stdio.h>
 #endif
 
+#pragma GCC optimize ("O3")
+
 /* OPT: #undef'ing this may improve the speed on some architectures */
 #define FLAC__LPC_UNROLLED_FILTER_LOOPS
 

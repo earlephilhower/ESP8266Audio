@@ -40,6 +40,8 @@
 #include "FLAC/format.h"
 #include "private/window.h"
 
+#pragma GCC optimize ("O3")
+
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 
 

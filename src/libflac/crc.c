@@ -38,6 +38,8 @@
 
 #include "private/crc.h"
 
+#pragma GCC optimize ("O3")
+
 /* CRC-8, poly = x^8 + x^2 + x^1 + x^0, init = 0 */
 
 FLAC__byte const FLAC__crc8_table[256] PROGMEM = {

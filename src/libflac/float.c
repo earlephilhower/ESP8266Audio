@@ -38,6 +38,8 @@
 #include "share/compat.h"
 #include "private/float.h"
 
+#pragma GCC optimize ("O3")
+
 #ifdef FLAC__INTEGER_ONLY_LIBRARY
 
 const FLAC__fixedpoint FLAC__FP_ZERO = 0;

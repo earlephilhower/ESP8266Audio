@@ -9,6 +9,8 @@
 #include "share/alloc.h"
 #include "share/endswap.h"
 
+#pragma GCC optimize ("O3")
+
 /*
  * This code implements the MD5 message-digest algorithm.
  * The algorithm is due to Ron Rivest.  This code was

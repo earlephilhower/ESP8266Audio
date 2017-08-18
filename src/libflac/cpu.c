@@ -57,6 +57,7 @@
 #define dfprintf(file, format, ...)
 #endif
 
+#pragma GCC optimize ("O3")
 
 #if defined FLAC__CPU_IA32
 /* these are flags in EDX of CPUID AX=00000001 */

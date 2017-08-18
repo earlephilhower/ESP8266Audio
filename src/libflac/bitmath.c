@@ -34,6 +34,8 @@
 #  include "config.h"
 //#endif
 
+#pragma GCC optimize ("O3")
+
 #include "private/bitmath.h"
 
 /* An example of what FLAC__bitmath_silog2() computes:

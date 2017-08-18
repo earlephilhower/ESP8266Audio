@@ -44,6 +44,8 @@
 #include "private/format.h"
 #include "private/macros.h"
 
+#pragma GCC optimize ("O3")
+
 /* PACKAGE_VERSION should come from configure */
 FLAC_API const char *FLAC__VERSION_STRING = PACKAGE_VERSION;
 

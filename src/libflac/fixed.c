@@ -47,6 +47,8 @@
 #endif
 #define local_abs(x) ((unsigned)((x)<0? -(x) : (x)))
 
+#pragma GCC optimize ("O3")
+
 #ifdef FLAC__INTEGER_ONLY_LIBRARY
 /* rbps stands for residual bits per sample
  *

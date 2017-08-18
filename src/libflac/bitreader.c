@@ -44,6 +44,8 @@
 #include "share/compat.h"
 #include "share/endswap.h"
 
+#pragma GCC optimize ("O3")
+
 /* Things should be fastest when this matches the machine word size */
 /* WATCHOUT: if you change this you must also change the following #defines down to COUNT_ZERO_MSBS2 below to match */
 /* WATCHOUT: there are a few places where the code will not work unless brword is >= 32 bits wide */
