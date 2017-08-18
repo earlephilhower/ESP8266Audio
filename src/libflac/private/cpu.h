@@ -33,11 +33,11 @@
 #ifndef FLAC__PRIVATE__CPU_H
 #define FLAC__PRIVATE__CPU_H
 
-#include "FLAC/ordinals.h"
+#include "../FLAC/ordinals.h"
 
-#ifdef HAVE_CONFIG_H
+//#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
+//#endif
 
 #ifndef FLAC__CPU_X86_64
 

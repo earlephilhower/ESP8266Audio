@@ -37,7 +37,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/utime.h>
-#include "FLAC/ordinals.h"
+#include "../FLAC/ordinals.h"
 
 #ifdef __cplusplus
 extern "C" {

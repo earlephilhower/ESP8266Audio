@@ -33,9 +33,9 @@
 #ifndef FLAC__PRIVATE__STREAM_ENCODER_H
 #define FLAC__PRIVATE__STREAM_ENCODER_H
 
-#ifdef HAVE_CONFIG_H
+//#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
+//#endif
 
 /*
  * This is used to avoid overflow with unusual signals in 32-bit
@@ -45,7 +45,7 @@
 
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 #include "private/cpu.h"
-#include "FLAC/format.h"
+#include "../FLAC/format.h"
 
 #ifdef FLAC__SSE2_SUPPORTED
 extern void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[],

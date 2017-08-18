@@ -35,7 +35,7 @@
 
 #include <pgmspace.h>
 
-#include "FLAC/ordinals.h"
+#include "../FLAC/ordinals.h"
 
 /* 8 bit CRC generator, MSB shifted first
 ** polynomial = x^8 + x^2 + x^1 + x^0

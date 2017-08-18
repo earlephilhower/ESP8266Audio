@@ -33,9 +33,9 @@
 #ifndef FLAC__SHARE__ALLOC_H
 #define FLAC__SHARE__ALLOC_H
 
-#ifdef HAVE_CONFIG_H
+//#ifdef HAVE_CONFIG_H
 #  include <config.h>
-#endif
+//#endif
 
 /* WATCHOUT: for c++ you may have to #define __STDC_LIMIT_MACROS 1 real early
  * before #including this file,  otherwise SIZE_MAX might not be defined

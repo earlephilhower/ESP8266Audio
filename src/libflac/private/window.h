@@ -33,12 +33,12 @@
 #ifndef FLAC__PRIVATE__WINDOW_H
 #define FLAC__PRIVATE__WINDOW_H
 
-#ifdef HAVE_CONFIG_H
+//#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
+//#endif
 
 #include "float.h"
-#include "FLAC/format.h"
+#include "../FLAC/format.h"
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 

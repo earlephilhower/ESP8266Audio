@@ -33,14 +33,14 @@
 #ifndef FLAC__PRIVATE__MEMORY_H
 #define FLAC__PRIVATE__MEMORY_H
 
-#ifdef HAVE_CONFIG_H
+//#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
+//#endif
 
 #include <stdlib.h> /* for size_t */
 
 #include "float.h"
-#include "FLAC/ordinals.h" /* for FLAC__bool */
+#include "../FLAC/ordinals.h" /* for FLAC__bool */
 
 /* Returns the unaligned address returned by malloc.
  * Use free() on this address to deallocate.

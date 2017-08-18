@@ -33,13 +33,13 @@
 #ifndef FLAC__PRIVATE__LPC_H
 #define FLAC__PRIVATE__LPC_H
 
-#ifdef HAVE_CONFIG_H
+//#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
+//#endif
 
 #include "cpu.h"
 #include "float.h"
-#include "FLAC/format.h"
+#include "../FLAC/format.h"
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 
