@@ -1,3 +1,15 @@
 AudioFileSource	KEYWORD1
 AudioFileSourceSPIFFS	KEYWORD1
 AudioFileSourcePROGMEM	KEYWORD1
+AudioFileSourceHTTPStream	KEYWORD1
+AudioFileSourceSD	KEYWORD1
+AudioGenerator	KEYWORD1
+AudioGeneratorFLAC	KEYWORD1
+AudioGeneratorMOD	KEYWORD1
+AudioGeneratorMP3	KEYWORD1
+AudioGeneratorWAV	KEYWORD1
+AudioOutput		KEYWORD1
+AudioOutputI2SDAC	KEYWORD1
+AudioOutputI2SNoDAC	KEYWORD1
+AudioOutputNull	KEYWORD1
+AudioOutputSerialWAV	KEYWORD1
