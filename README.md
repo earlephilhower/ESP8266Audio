@@ -73,6 +73,8 @@ AudioOutputI2SNoDAC:  Abuses the I2S interface to play music without a DAC.  Tur
 
 AudioOutputSerialWAV:  Writes a binary WAV format with headers to the Serial port.  If you capture the serial output to a file you can play it back on your development system.
 
+AudioOutputSPIFFSWAV:  Writes a binary WAV format with headers to a SPIFFS filesystem.  Ensure the FS is mounted and SPIFFS is started before calling.  USe the SetFilename() call to pick the output file before starting.
+
 AudioOutputNull:  Just dumps samples to /dev/null.  Used for speed testing as it doesn't artificially limit the AudioGenerator output speed since there are no buffers to fill/drain.
 
 ## Software I2S Delta-Sigma DAC (i.e. playing music with a single transistor and speaker)
