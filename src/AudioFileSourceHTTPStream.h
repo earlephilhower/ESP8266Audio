@@ -43,7 +43,8 @@ class AudioFileSourceHTTPStream : public AudioFileSource
 
   private:
     HTTPClient http;
-    uint32_t pos;
+    int pos;
+    int size;
 };
 
 

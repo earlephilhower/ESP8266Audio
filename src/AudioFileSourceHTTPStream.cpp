@@ -40,6 +40,7 @@ bool AudioFileSourceHTTPStream::open(const char *url)
     http.end();
     return false;
   }
+  size = http.getSize();
   return true;
 }
 
@@ -51,9 +52,15 @@ AudioFileSourceHTTPStream::~AudioFileSourceHTTPStream()
 uint32_t AudioFileSourceHTTPStream::read(void *data, uint32_t len)
 {
   if (!http.connected()) return 0;
+  if ((size>0) && (pos >= size)) return 0;
 
   WiFiClient *stream = http.getStreamPtr();
-  while (stream->available() < (int)len) yield();
+
+  // Can't read past EOF...
+  if ( (size > 0) && (len > (uint32_t)(pos - size)) ) len = pos - size;
+
+  int start = millis();
+  while ((stream->available() < (int)len) && (millis() - start < 500)) yield();
 
   size_t avail = stream->available();
   if (!avail) return 0;
@@ -84,7 +91,7 @@ bool AudioFileSourceHTTPStream::isOpen()
 
 uint32_t AudioFileSourceHTTPStream::getSize()
 {
-  return 1L<<31;
+  return size;
 }
 
 uint32_t AudioFileSourceHTTPStream::getPos()
