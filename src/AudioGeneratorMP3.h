@@ -49,6 +49,7 @@ class AudioGeneratorMP3 : AudioGenerator
     struct mad_synth synth;
     int samplePtr;
     int nsCount;
+    int nsCountMax;
     bool inInnerDecode;
 
     // The internal helpers

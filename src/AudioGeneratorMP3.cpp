@@ -28,6 +28,7 @@ AudioGeneratorMP3::AudioGeneratorMP3()
   output = NULL;
   buffLen = 2048;
   buff = NULL;
+  nsCountMax = 1152/32;
 }
 
 AudioGeneratorMP3::~AudioGeneratorMP3()
@@ -106,6 +107,7 @@ bool AudioGeneratorMP3::DecodeNextFrame()
         ErrorToFlow(); // Always returns CONTINUE
         continue;
       }
+      nsCountMax  = MAD_NSBSAMPLES(&frame.header);
       return true;
     }
     inInnerDecode = false;
@@ -116,7 +118,7 @@ bool AudioGeneratorMP3::DecodeNextFrame()
 
 bool AudioGeneratorMP3::GetOneSample(int16_t sample[2])
 {
-  if ( (samplePtr >= synth.pcm.length) && (nsCount >= 1152/32) ) {
+  if ( (samplePtr >= synth.pcm.length) && (nsCount >= nsCountMax) ) {
     if (!DecodeNextFrame()) return false;
     samplePtr = 9999;
     nsCount = 0;
