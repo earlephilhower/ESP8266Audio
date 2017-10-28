@@ -1,5 +1,6 @@
 AudioFileSource	KEYWORD1
 AudioFileSourceSPIFFS	KEYWORD1
+AudioFileSourceFastROMFS	KEYWORD1
 AudioFileSourcePROGMEM	KEYWORD1
 AudioFileSourceHTTPStream	KEYWORD1
 AudioFileSourceSD	KEYWORD1
@@ -12,5 +13,6 @@ AudioOutput		KEYWORD1
 AudioOutputI2SDAC	KEYWORD1
 AudioOutputI2SNoDAC	KEYWORD1
 AudioOutputNull	KEYWORD1
+AudioOutputBuffer	KEYWORD1
 AudioOutputSerialWAV	KEYWORD1
 AudioOutputSPIFFSWAV	KEYWORD1
