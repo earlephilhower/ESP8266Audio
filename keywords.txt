@@ -7,6 +7,7 @@ AudioFileSourceSD	KEYWORD1
 AudioGenerator	KEYWORD1
 AudioGeneratorFLAC	KEYWORD1
 AudioGeneratorMOD	KEYWORD1
+AudioGeneratorMIDI	KEYWORD1
 AudioGeneratorMP3	KEYWORD1
 AudioGeneratorWAV	KEYWORD1
 AudioOutput		KEYWORD1
