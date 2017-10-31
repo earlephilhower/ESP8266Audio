@@ -213,7 +213,7 @@ void AudioGeneratorMIDI::find_note (int tracknum) {
     }
     if (event == 0xff) {      /* meta-event */
       meta_cmd = buffer_byte (t->trkptr++);
-      meta_length = buffer_byte (t->trkptr++);
+      meta_length = get_varlen(&t->trkptr);
       switch (meta_cmd) {
         case 0x00:
           break;
