@@ -575,6 +575,7 @@ play:
  
 bool AudioGeneratorMIDI::stop()
 {
+  StopMIDI();
   return true;
 }
 
