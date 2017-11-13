@@ -51,6 +51,16 @@ AudioFileSourceHTTPStream::~AudioFileSourceHTTPStream()
 
 uint32_t AudioFileSourceHTTPStream::read(void *data, uint32_t len)
 {
+  return readInternal(data, len, false);
+}
+
+uint32_t AudioFileSourceHTTPStream::readNonBlock(void *data, uint32_t len)
+{
+  return readInternal(data, len, true);
+}
+
+uint32_t AudioFileSourceHTTPStream::readInternal(void *data, uint32_t len, bool nonBlock)
+{
   if (!http.connected()) return 0;
   if ((size>0) && (pos >= size)) return 0;
 
@@ -59,8 +69,10 @@ uint32_t AudioFileSourceHTTPStream::read(void *data, uint32_t len)
   // Can't read past EOF...
   if ( (size > 0) && (len > (uint32_t)(pos - size)) ) len = pos - size;
 
-  int start = millis();
-  while ((stream->available() < (int)len) && (millis() - start < 500)) yield();
+  if (!nonBlock) {
+    int start = millis();
+    while ((stream->available() < (int)len) && (millis() - start < 500)) yield();
+  }
 
   size_t avail = stream->available();
   if (!avail) return 0;

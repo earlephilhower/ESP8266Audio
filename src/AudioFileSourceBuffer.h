@@ -1,6 +1,6 @@
 /*
-  AudioFileSourceHTTPStream
-  Connect to a HTTP based streaming service
+  AudioFileSourceBuffer
+  Double-buffered input file using system RAM
   
   Copyright (C) 2017  Earle F. Philhower, III
 
@@ -18,24 +18,19 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _AUDIOFILESOURCEHTTPSTREAM_H
-#define _AUDIOFILESOURCEHTTPSTREAM_H
-
-#include <Arduino.h>
-#include <ESP8266HTTPClient.h>
+#ifndef _AUDIOFILESOURCEBUFFER_H
+#define _AUDIOFILESOURCEBUFFER_H
 
 #include "AudioFileSource.h"
 
-class AudioFileSourceHTTPStream : public AudioFileSource
+
+class AudioFileSourceBuffer : public AudioFileSource
 {
   public:
-    AudioFileSourceHTTPStream();
-    AudioFileSourceHTTPStream(const char *url);
-    virtual ~AudioFileSourceHTTPStream() override;
+    AudioFileSourceBuffer(AudioFileSource *in, int bufferBytes);
+    virtual ~AudioFileSourceBuffer() override;
     
-    virtual bool open(const char *url) override;
     virtual uint32_t read(void *data, uint32_t len) override;
-    virtual uint32_t readNonBlock(void *data, uint32_t len) override;
     virtual bool seek(int32_t pos, int dir) override;
     virtual bool close() override;
     virtual bool isOpen() override;
@@ -43,10 +38,13 @@ class AudioFileSourceHTTPStream : public AudioFileSource
     virtual uint32_t getPos() override;
 
   private:
-    uint32_t readInternal(void *data, uint32_t len, bool nonBlock);
-    HTTPClient http;
-    int pos;
-    int size;
+    AudioFileSource *src;
+    int buffSize;
+    uint8_t *buffer;
+    int writePtr;
+    int readPtr;
+    int length;
+    bool filled;
 };
 
 
