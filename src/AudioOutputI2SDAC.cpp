@@ -28,6 +28,7 @@ AudioOutputI2SDAC::AudioOutputI2SDAC()
 {
   if (!i2sOn) i2s_begin();
   i2sOn = true;
+  mono = false;
 }
 
 AudioOutputI2SDAC::~AudioOutputI2SDAC()
