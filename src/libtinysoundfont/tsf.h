@@ -1521,7 +1521,13 @@ TSFDEF void tsf_note_on(tsf* f, int preset, int key, float vel)
 		if (!voice)
 		{
 			f->voiceNum += 4;
+			struct tsf_voice *saveVoice = f->voices;
 			f->voices = (struct tsf_voice*)TSF_REALLOC(f->voices, f->voiceNum * sizeof(struct tsf_voice));
+			if (!f->voices) {
+				f->voices = saveVoice;
+				printf("OOM, no room for new voice.  Ignoring note_on\n");
+				return;
+			}
 			voice = &f->voices[f->voiceNum - 4];
 			voice[1].playingPreset = voice[2].playingPreset = voice[3].playingPreset = -1;
 		}
