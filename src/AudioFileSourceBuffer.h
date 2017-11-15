@@ -39,11 +39,11 @@ class AudioFileSourceBuffer : public AudioFileSource
 
   private:
     AudioFileSource *src;
-    int buffSize;
+    uint16_t buffSize;
     uint8_t *buffer;
-    int writePtr;
-    int readPtr;
-    int length;
+    uint16_t writePtr;
+    uint16_t readPtr;
+    uint16_t length;
     bool filled;
 };
 

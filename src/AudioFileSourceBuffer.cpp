@@ -73,6 +73,7 @@ uint32_t AudioFileSourceBuffer::getPos()
 
 uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
 {
+//  Serial.printf("AudioFileSourceBuffer::read(%d)\n", len);
   if (!buffer) return src->read(data, len);
 
   uint32_t bytes = 0;
@@ -85,13 +86,27 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
 
   // Naively pull from buffer until we've got none left or we've satisfied the request
   uint8_t *ptr = reinterpret_cast<uint8_t*>(data);
-  while (len && length) {
-    *ptr = buffer[readPtr];
-    ptr++;
-    readPtr = (readPtr+1) % buffSize;
-    len--;
-    bytes++;
-    length--;
+  uint32_t toReadFromBuffer = (len < length) ? len : length;
+  if ( (toReadFromBuffer > 0) && (readPtr >= writePtr) ) {
+    uint32_t toReadToEnd = (toReadFromBuffer < (uint32_t)(buffSize - readPtr)) ? toReadFromBuffer : (buffSize - readPtr);
+//    Serial.printf("readend: toReadFromBuffer=%d, toReadToEnd=%d\n", toReadFromBuffer, toReadToEnd);
+    memcpy(ptr, &buffer[readPtr], toReadToEnd);
+    readPtr = (readPtr + toReadToEnd) % buffSize;
+    len -= toReadToEnd;
+    length -= toReadToEnd;
+    toReadFromBuffer -= toReadToEnd;
+    ptr += toReadToEnd;
+    bytes += toReadToEnd;
+  }
+  if (toReadFromBuffer > 0) { // We know RP < WP at this point
+//    Serial.printf("readhead: toReadFromBuffer=%d, rp=%d, wp=%d\n", toReadFromBuffer, readPtr, writePtr);
+    memcpy(ptr, &buffer[readPtr], toReadFromBuffer);
+    readPtr = (readPtr + toReadFromBuffer) % buffSize;
+    len -= toReadFromBuffer;
+    length -= toReadFromBuffer;
+    toReadFromBuffer -= toReadFromBuffer;
+    ptr += toReadFromBuffer;
+    bytes += toReadFromBuffer;
   }
 //  Serial.printf("read %d from buffer, %d avail in buff, %d remaining for request\n", bytes, length, len);
 
