@@ -21,6 +21,8 @@
 #include <Arduino.h>
 #include "AudioFileSourceBuffer.h"
 
+#pragma GCC optimize ("O3")
+
 AudioFileSourceBuffer::AudioFileSourceBuffer(AudioFileSource *source, int buffSizeBytes)
 {
   buffSize = buffSizeBytes;
