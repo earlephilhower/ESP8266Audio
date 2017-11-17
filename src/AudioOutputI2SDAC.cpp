@@ -29,6 +29,7 @@ AudioOutputI2SDAC::AudioOutputI2SDAC()
   if (!i2sOn) i2s_begin();
   i2sOn = true;
   mono = false;
+  SetGain(1.0);
 }
 
 AudioOutputI2SDAC::~AudioOutputI2SDAC()
@@ -74,6 +75,8 @@ bool AudioOutputI2SDAC::begin()
 bool AudioOutputI2SDAC::ConsumeSample(int16_t sample[2])
 {
   MakeSampleStereo16( sample );
+  sample[0] = Amplify(sample[0]);
+  sample[1] = Amplify(sample[1]);
 
   if (this->mono) {
     // Average the two samples and overwrite
