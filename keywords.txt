@@ -6,6 +6,7 @@ AudioFileSourceHTTPStream	KEYWORD1
 AudioFileSourceSD	KEYWORD1
 AudioFileSourceBuffer	KEYWORD1
 AudioGenerator	KEYWORD1
+AudioGeneratorAAC	KEYWORD1
 AudioGeneratorFLAC	KEYWORD1
 AudioGeneratorMOD	KEYWORD1
 AudioGeneratorMIDI	KEYWORD1
