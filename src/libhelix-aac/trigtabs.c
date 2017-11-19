@@ -625,7 +625,7 @@ const int kbdWindow[128 + 1024] PROGMEM = {
 
 const int bitrevtabOffset[NUM_IMDCT_SIZES] PROGMEM = {0, 17};
 
-const unsigned char bitrevtab[17 + 129] = {
+const unsigned char bitrevtab[17 + 129] PROGMEM = {
 /* nfft = 64 */
 0x01, 0x08, 0x02, 0x04, 0x03, 0x0c, 0x05, 0x0a, 0x07, 0x0e, 0x0b, 0x0d, 0x00, 0x06, 0x09, 0x0f,
 0x00,

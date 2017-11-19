@@ -77,8 +77,8 @@ static const int nfftlog2Tab[NUM_FFT_SIZES] PROGMEM = {6, 9};
 	part0 = inout;
     part1 = inout + (1 << nbits);
 	
-	while ((a = *tab++) != 0) {
-        b = *tab++;
+	while ((a = pgm_read_byte(tab++)) != 0) {
+        b = pgm_read_byte(tab++);
 
         swapcplx(part0[4*a+0], part0[4*b+0]);	/* 0xxx0 <-> 0yyy0 */
         swapcplx(part0[4*a+2], part1[4*b+0]);	/* 0xxx1 <-> 1yyy0 */
@@ -88,7 +88,7 @@ static const int nfftlog2Tab[NUM_FFT_SIZES] PROGMEM = {6, 9};
 
     do {
         swapcplx(part0[4*a+2], part1[4*a+0]);	/* 0xxx1 <-> 1xxx0 */
-    } while ((a = *tab++) != 0);
+    } while ((a = pgm_read_byte(tab++)) != 0);
 	
 	
 }
