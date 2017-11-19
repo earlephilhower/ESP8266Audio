@@ -159,7 +159,7 @@ const signed short huffTabSpec[1241] PROGMEM = {
 	0x23cf, 
 };
 
-const HuffInfo huffTabScaleFactInfo = 
+const HuffInfo huffTabScaleFactInfo PROGMEM =
 	{19, { 1,  0,  1,  3,  2,  4,  3,  5,  4,  6,  6,  6,  5,  8,  4,  7,  3,  7, 46,  0},   0};
 
 /* note - includes offset of -60 (4.6.2.3 in spec) */
