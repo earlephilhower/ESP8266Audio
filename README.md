@@ -2,7 +2,11 @@
 Arduino library for parsing and decoding MOD, WAV, MP3, FLAC, MIDI, and AAC files and playing them on an I2S DAC or even using a software-simulated delta-sigma DAC with dynamic 32x oversampling
 
 ## Disclaimer
-All this code is released under the GPL, and all of it is to be used at your own risk.  If you find any bugs, please let me know via the GitHub issue tracker or drop me an email.  The MOD and MP3 routines were taken from StellaPlayer and libMAD respectively.  The software I2S delta-sigma 32x oversampling DAC was my own creation, and sounds quite good if I do say so myself.  The AAC decode code is from the Helix project and licensed under RealNetwork's RSPL license.  Midi decoding comes from a highly ported MIDITUNED combined with TinySoundFount, see the respective source files for more information.
+All this code is released under the GPL, and all of it is to be used at your own risk.  If you find any bugs, please let me know via the GitHub issue tracker or drop me an email.  The MOD and MP3 routines were taken from StellaPlayer and libMAD respectively.  The software I2S delta-sigma 32x oversampling DAC was my own creation, and sounds quite good if I do say so myself.
+
+The AAC decode code is from the Helix project and licensed under RealNetwork's RSPL license.  For commercial use you're still going to need the usual AAC licensing from Via Licensing (http://www.via-corp.com/us/en/licensing/aac/overview.html).
+
+MIDI decoding comes from a highly ported MIDITONES (https://github.com/LenShustek/miditones) combined with a massively memory-optimized TinySoundFont (https://github.com/schellingb/TinySoundFont), see the respective source files for more information.
 
 ## Usage
 Create an AudioInputXXX source pointing to your input file, an AudioOutputXXX sink as either an I2SDAC, I2S-sw-DAC, or as a "SerialWAV" which simply writes a WAV file to the Serial port which can be dumped to a file on your development system, and an AudioGeneratorXXX to actually take that input and decode it and send to the output.
