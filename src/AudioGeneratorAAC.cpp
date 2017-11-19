@@ -104,15 +104,15 @@ bool AudioGeneratorAAC::loop()
     // buff[0] start of frame, decode it...
     unsigned char *inBuff = reinterpret_cast<unsigned char *>(buff);
     int bytesLeft = buffValid;
-    int ret;
-    if (ret = AACDecode(hAACDecoder, &inBuff, &bytesLeft, outSample)) {
+    int ret = AACDecode(hAACDecoder, &inBuff, &bytesLeft, outSample);
+    if (ret) {
       // Error, skip the frame...
       Serial.printf("AAC decode error %d\n", ret);
     } else {
       lastFrameEnd = buffValid - bytesLeft;
       AACFrameInfo fi;
       AACGetLastFrameInfo(hAACDecoder, &fi);
-      if (fi.sampRateOut != lastRate) {
+      if ((int)fi.sampRateOut != (int)lastRate) {
         output->SetRate(fi.sampRateOut);
         lastRate = fi.sampRateOut;
       }

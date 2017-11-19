@@ -366,6 +366,8 @@ int Dequantize(AACDecInfo *aacDecInfo, int ch)
  **************************************************************************************/
 int DeinterleaveShortBlocks(AACDecInfo *aacDecInfo, int ch)
 {
+	(void)aacDecInfo;
+	(void)ch;
 	/* not used for this implementation - short block deinterleaving performed during Huffman decoding */
 	return ERR_AAC_NONE;
 }
