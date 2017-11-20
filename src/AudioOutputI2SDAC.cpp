@@ -75,15 +75,13 @@ bool AudioOutputI2SDAC::begin()
 bool AudioOutputI2SDAC::ConsumeSample(int16_t sample[2])
 {
   MakeSampleStereo16( sample );
-  sample[0] = Amplify(sample[0]);
-  sample[1] = Amplify(sample[1]);
 
   if (this->mono) {
     // Average the two samples and overwrite
     uint32_t ttl = sample[LEFTCHANNEL] + sample[RIGHTCHANNEL];
     sample[LEFTCHANNEL] = sample[RIGHTCHANNEL] = (ttl>>1) & 0xffff;
   }
-  uint32_t s32 = ((sample[RIGHTCHANNEL])<<16) | (sample[LEFTCHANNEL] & 0xffff);
+  uint32_t s32 = ((Amplify(sample[RIGHTCHANNEL]))<<16) | (Amplify(sample[LEFTCHANNEL]) & 0xffff);
   return i2s_write_sample_nb(s32); // If we can't store it, return false.  OTW true
 }
 
