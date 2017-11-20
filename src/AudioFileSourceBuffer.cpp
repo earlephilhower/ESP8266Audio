@@ -94,9 +94,9 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
     readPtr = (readPtr + toReadToEnd) % buffSize;
     len -= toReadToEnd;
     length -= toReadToEnd;
-    toReadFromBuffer -= toReadToEnd;
     ptr += toReadToEnd;
     bytes += toReadToEnd;
+    toReadFromBuffer -= toReadToEnd;
   }
   if (toReadFromBuffer > 0) { // We know RP < WP at this point
 //    Serial.printf("readhead: toReadFromBuffer=%d, rp=%d, wp=%d\n", toReadFromBuffer, readPtr, writePtr);
@@ -104,9 +104,9 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
     readPtr = (readPtr + toReadFromBuffer) % buffSize;
     len -= toReadFromBuffer;
     length -= toReadFromBuffer;
-    toReadFromBuffer -= toReadFromBuffer;
     ptr += toReadFromBuffer;
     bytes += toReadFromBuffer;
+    toReadFromBuffer -= toReadFromBuffer;
   }
 //  Serial.printf("read %d from buffer, %d avail in buff, %d remaining for request\n", bytes, length, len);
 
@@ -128,8 +128,6 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
         }
       return bytes;
     }
-
-
 
     int bytesAvailEnd = buffSize - writePtr;
     if (bytesAvailEnd > 0) {
