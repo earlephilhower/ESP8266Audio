@@ -62,38 +62,22 @@ AudioFileSourceBuffer is an input source that simpy adds an additional RAM buffe
 
 Simply create your standard input file source, create the buffer with the original source as its input, and pass this buffer object to the generator.
 ````
-#include <Arduino.h>
-#include <ESP8266WiFi.h>
-#include "AudioFileSourceHTTPStream.h"
-#include "AudioFileSourceBuffer.h"
-#include "AudioGeneratorMP3.h"
-#include "AudioOutputI2SNoDAC.h"
-
+...
 AudioGeneratorMP3 *mp3;
 AudioFileSourceHTTPStream *file;
 AudioFileSourceBuffer *buff;
 AudioOutputI2SNoDAC *out;
-void setup()
-{
-  WiFi.forceSleepBegin();
-  Serial.begin(115200);
-  delay(1000);
-  file = new AudioFileSourceHTTPStream("http://mp3radio.com/playback");
+...
+  // Create the HTTP stream normally
+  file = new AudioFileSourceHTTPStream("http://your.url.here/mp3");
+  // Create a buffer using that stream
   buff = new AudioFileSourceBuffer(file, 2048);
   out = new AudioOutputI2SNoDAC();
   mp3 = new AudioGeneratorMP3();
+  // Pass in the *buffer*, not the *http stream* to enable buffering
   mp3->begin(buff, out);
-}
+...
 
-void loop()
-{
-  if (mp3->isRunning()) {
-    if (!mp3->loop()) mp3->stop();
-  } else {
-    Serial.printf("MP3 done\n");
-    delay(1000);
-  }
-}
 ````
 
 ## AudioGenerator classes
