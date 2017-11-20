@@ -41,12 +41,15 @@ class AudioFileSourceHTTPStream : public AudioFileSource
     virtual bool isOpen() override;
     virtual uint32_t getSize() override;
     virtual uint32_t getPos() override;
+    bool SetReconnect(bool val) { reconnect = val; return true; }
 
   private:
     uint32_t readInternal(void *data, uint32_t len, bool nonBlock);
     HTTPClient http;
     int pos;
     int size;
+    bool reconnect;
+    char *saveURL;
 };
 
 

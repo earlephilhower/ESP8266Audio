@@ -23,10 +23,14 @@
 AudioFileSourceHTTPStream::AudioFileSourceHTTPStream()
 {
   pos = 0;
+  reconnect = false;
+  saveURL = NULL;
 }
 
 AudioFileSourceHTTPStream::AudioFileSourceHTTPStream(const char *url)
 {
+  saveURL = NULL;
+  reconnect = false;
   open(url);
 }
 
@@ -41,6 +45,8 @@ bool AudioFileSourceHTTPStream::open(const char *url)
     return false;
   }
   size = http.getSize();
+  free(saveURL);
+  saveURL = strdup(url);
   return true;
 }
 
@@ -61,7 +67,19 @@ uint32_t AudioFileSourceHTTPStream::readNonBlock(void *data, uint32_t len)
 
 uint32_t AudioFileSourceHTTPStream::readInternal(void *data, uint32_t len, bool nonBlock)
 {
-  if (!http.connected()) return 0;
+  if (!http.connected()) {
+    http.end();
+    Serial.println("Stream disconnected\n");
+    if (reconnect) {
+      if (!open(saveURL)) {
+        return 0;
+      } else {
+        Serial.println("Reconnected to stream");
+      }
+    } else {
+      return 0;
+    }
+  }
   if ((size>0) && (pos >= size)) return 0;
 
   WiFiClient *stream = http.getStreamPtr();
