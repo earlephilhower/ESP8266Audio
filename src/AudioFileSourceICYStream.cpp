@@ -1,6 +1,6 @@
 /*
-  AudioFileSourceHTTPStream
-  Streaming HTTP source
+  AudioFileSourceICYStream
+  Streaming Shoutcast ICY source
   
   Copyright (C) 2017  Earle F. Philhower, III
 
@@ -18,54 +18,56 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "AudioFileSourceHTTPStream.h"
+#include "AudioFileSourceICYStream.h"
 
-AudioFileSourceHTTPStream::AudioFileSourceHTTPStream()
+AudioFileSourceICYStream::AudioFileSourceICYStream()
 {
   pos = 0;
   reconnect = false;
   saveURL = NULL;
 }
 
-AudioFileSourceHTTPStream::AudioFileSourceHTTPStream(const char *url)
+AudioFileSourceICYStream::AudioFileSourceICYStream(const char *url)
 {
   saveURL = NULL;
   reconnect = false;
   open(url);
 }
 
-bool AudioFileSourceHTTPStream::open(const char *url)
+bool AudioFileSourceICYStream::open(const char *url)
 {
+  static const char *hdr[] = { "icy-metaint" };
   pos = 0;
   http.begin(url);
+  http.addHeader("Icy-MetaData", "1");
+  http.collectHeaders( hdr, 1 );
   http.setReuse(true);
   int code = http.GET();
   if (code != HTTP_CODE_OK) {
     http.end();
     return false;
   }
+  if (http.hasHeader(hdr[0])) {
+    String ret = http.header(hdr[0]);
+    icyMetaInt = ret.toInt();
+    Serial.printf("ICY metaint = %d\n", icyMetaInt);
+  } else {
+    icyMetaInt = 0;
+  }
+  icyByteCount = 0;
   size = http.getSize();
+  Serial.printf("Stream size: %d\n", size);
   free(saveURL);
   saveURL = strdup(url);
   return true;
 }
 
-AudioFileSourceHTTPStream::~AudioFileSourceHTTPStream()
+AudioFileSourceICYStream::~AudioFileSourceICYStream()
 {
   http.end();
 }
 
-uint32_t AudioFileSourceHTTPStream::read(void *data, uint32_t len)
-{
-  return readInternal(data, len, false);
-}
-
-uint32_t AudioFileSourceHTTPStream::readNonBlock(void *data, uint32_t len)
-{
-  return readInternal(data, len, true);
-}
-
-uint32_t AudioFileSourceHTTPStream::readInternal(void *data, uint32_t len, bool nonBlock)
+uint32_t AudioFileSourceICYStream::readInternal(void *data, uint32_t len, bool nonBlock)
 {
   if (!http.connected()) {
     Serial.println("Stream disconnected\n");
@@ -97,35 +99,32 @@ uint32_t AudioFileSourceHTTPStream::readInternal(void *data, uint32_t len, bool 
   if (!avail) return 0;
   if (avail < len) len = avail;
 
-  int read = stream->readBytes(reinterpret_cast<uint8_t*>(data), len);
-  pos += read;
+  int read = 0;
+  // If the read would hit an ICY block, split it up...
+  if (((int)(icyByteCount + len) > (int)icyMetaInt) && (icyMetaInt > 0)) {
+    int beforeIcy = icyMetaInt - icyByteCount;
+    int ret = stream->readBytes(reinterpret_cast<uint8_t*>(data), beforeIcy);
+    read += ret;
+    pos += ret;
+    len -= ret;
+    icyByteCount += ret;
+    uint8_t mdSize;
+    int mdret = stream->readBytes(&mdSize, 1);
+    if ((mdret == 1) && (mdSize > 0)) {
+      char *mdBuff = (char*)malloc(mdSize * 16);
+      mdret = stream->readBytes(reinterpret_cast<uint8_t*>(mdBuff), mdSize * 16);
+      if (mdret == mdSize * 16) {
+        Serial.printf("ICY metadata:\n%s\n---end---\n", mdBuff);
+        free(mdBuff);
+      }
+    }
+    icyByteCount = 0;
+  }
+
+  int ret = stream->readBytes(reinterpret_cast<uint8_t*>(data), len);
+  read += ret;
+  pos += ret;
+  icyByteCount += ret;
   return read;
 }
 
-bool AudioFileSourceHTTPStream::seek(int32_t pos, int dir)
-{
-  (void) pos;
-  (void) dir;
-  return false;
-}
-
-bool AudioFileSourceHTTPStream::close()
-{
-  http.end();
-  return true;
-}
-
-bool AudioFileSourceHTTPStream::isOpen()
-{
-  return http.connected();
-}
-
-uint32_t AudioFileSourceHTTPStream::getSize()
-{
-  return size;
-}
-
-uint32_t AudioFileSourceHTTPStream::getPos()
-{
-  return pos;
-}

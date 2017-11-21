@@ -18,40 +18,35 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _AUDIOFILESOURCEHTTPSTREAM_H
-#define _AUDIOFILESOURCEHTTPSTREAM_H
+#ifndef _AUDIOFILESOURCEICYSTREAM_H
+#define _AUDIOFILESOURCEICYSTREAM_H
 
 #include <Arduino.h>
 #include <ESP8266HTTPClient.h>
 
-#include "AudioFileSource.h"
+#include "AudioFileSourceHTTPStream.h"
 
-class AudioFileSourceHTTPStream : public AudioFileSource
+class AudioFileSourceICYStream : public AudioFileSourceHTTPStream
 {
-  friend class AudioFileSourceICYStream;
-
   public:
-    AudioFileSourceHTTPStream();
-    AudioFileSourceHTTPStream(const char *url);
-    virtual ~AudioFileSourceHTTPStream() override;
+    AudioFileSourceICYStream();
+    AudioFileSourceICYStream(const char *url);
+    virtual ~AudioFileSourceICYStream() override;
     
     virtual bool open(const char *url) override;
-    virtual uint32_t read(void *data, uint32_t len) override;
-    virtual uint32_t readNonBlock(void *data, uint32_t len) override;
-    virtual bool seek(int32_t pos, int dir) override;
-    virtual bool close() override;
-    virtual bool isOpen() override;
-    virtual uint32_t getSize() override;
-    virtual uint32_t getPos() override;
-    bool SetReconnect(bool val) { reconnect = val; return true; }
+//    virtual uint32_t read(void *data, uint32_t len) override;
+//    virtual uint32_t readNonBlock(void *data, uint32_t len) override;
+//    virtual bool seek(int32_t pos, int dir) override;
+//    virtual bool close() override;
+//    virtual bool isOpen() override;
+//    virtual uint32_t getSize() override;
+//    virtual uint32_t getPos() override;
+//    bool SetReconnect(bool val) { reconnect = val; return true; }
 
   private:
-    virtual uint32_t readInternal(void *data, uint32_t len, bool nonBlock);
-    HTTPClient http;
-    int pos;
-    int size;
-    bool reconnect;
-    char *saveURL;
+    virtual uint32_t readInternal(void *data, uint32_t len, bool nonBlock) override;
+    int icyMetaInt;
+    int icyByteCount;
 };
 
 
