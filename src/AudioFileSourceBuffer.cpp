@@ -73,23 +73,22 @@ uint32_t AudioFileSourceBuffer::getPos()
 
 uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
 {
-//  Serial.printf("AudioFileSourceBuffer::read(%d)\n", len);
   if (!buffer) return src->read(data, len);
 
   uint32_t bytes = 0;
   if (!filled) {
     // Fill up completely before returning any data at all
+    Serial.println("Buffering...");
     length = src->read(buffer, buffSize);
     writePtr = length % buffSize;
     filled = true;
   }
 
-  // Naively pull from buffer until we've got none left or we've satisfied the request
+  // Pull from buffer until we've got none left or we've satisfied the request
   uint8_t *ptr = reinterpret_cast<uint8_t*>(data);
   uint32_t toReadFromBuffer = (len < length) ? len : length;
   if ( (toReadFromBuffer > 0) && (readPtr >= writePtr) ) {
     uint32_t toReadToEnd = (toReadFromBuffer < (uint32_t)(buffSize - readPtr)) ? toReadFromBuffer : (buffSize - readPtr);
-//    Serial.printf("readend: toReadFromBuffer=%d, toReadToEnd=%d\n", toReadFromBuffer, toReadToEnd);
     memcpy(ptr, &buffer[readPtr], toReadToEnd);
     readPtr = (readPtr + toReadToEnd) % buffSize;
     len -= toReadToEnd;
@@ -99,7 +98,6 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
     toReadFromBuffer -= toReadToEnd;
   }
   if (toReadFromBuffer > 0) { // We know RP < WP at this point
-//    Serial.printf("readhead: toReadFromBuffer=%d, rp=%d, wp=%d\n", toReadFromBuffer, readPtr, writePtr);
     memcpy(ptr, &buffer[readPtr], toReadFromBuffer);
     readPtr = (readPtr + toReadFromBuffer) % buffSize;
     len -= toReadFromBuffer;
@@ -108,11 +106,16 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
     bytes += toReadFromBuffer;
     toReadFromBuffer -= toReadFromBuffer;
   }
-//  Serial.printf("read %d from buffer, %d avail in buff, %d remaining for request\n", bytes, length, len);
 
   if (len) {
     // Still need more, try direct read from src
     bytes += src->read(ptr, len);
+    // We're out of buffered data, need to force a complete refill.  Thanks, @armSeb
+    readPtr = 0;
+    writePtr = 0;
+    length = 0;
+    filled = false;
+    return bytes; 
   }
 
   if (length < buffSize) {
@@ -120,9 +123,7 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
     if (readPtr > writePtr) {
         int bytesAvailMid = readPtr - writePtr - 1;
         if (bytesAvailMid > 0) {
-//Serial.print("at mid: ");
           int cnt = src->readNonBlock(&buffer[writePtr], bytesAvailMid);
-//Serial.printf("read %d\n", cnt);
           length += cnt;
           writePtr = (writePtr + cnt) % buffSize;
         }
@@ -131,18 +132,14 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
 
     int bytesAvailEnd = buffSize - writePtr;
     if (bytesAvailEnd > 0) {
-//Serial.print("at end: ");
       int cnt = src->readNonBlock(&buffer[writePtr], bytesAvailEnd);
-//Serial.printf("read %d\n", cnt);
       length += cnt;
       writePtr = (writePtr + cnt) % buffSize;
       if (cnt != bytesAvailEnd) return bytes; 
     }
     int bytesAvailStart = readPtr - 1;
     if (bytesAvailStart > 0) {
-//Serial.print("at begin: ");
       int cnt = src->readNonBlock(&buffer[writePtr], bytesAvailStart);
-//Serial.printf("read %d\n", cnt);
       length += cnt;
       writePtr = (writePtr + cnt) % buffSize;
     }
