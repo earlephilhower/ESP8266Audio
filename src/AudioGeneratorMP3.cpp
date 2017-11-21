@@ -26,7 +26,7 @@ AudioGeneratorMP3::AudioGeneratorMP3()
   running = false;
   file = NULL;
   output = NULL;
-  buffLen = 2048;
+  buffLen = 1500; // Max theoretical frame of 1441 + 8 guard bytes, with some fluff
   buff = NULL;
   nsCountMax = 1152/32;
 }
