@@ -23,14 +23,14 @@
 AudioFileSourceHTTPStream::AudioFileSourceHTTPStream()
 {
   pos = 0;
-  reconnect = false;
+  reconnectTries = 0;
   saveURL = NULL;
 }
 
 AudioFileSourceHTTPStream::AudioFileSourceHTTPStream(const char *url)
 {
   saveURL = NULL;
-  reconnect = false;
+  reconnectTries = 0;
   open(url);
 }
 
@@ -67,21 +67,27 @@ uint32_t AudioFileSourceHTTPStream::readNonBlock(void *data, uint32_t len)
 
 uint32_t AudioFileSourceHTTPStream::readInternal(void *data, uint32_t len, bool nonBlock)
 {
+retry:
   if (!http.connected()) {
     Serial.println("Stream disconnected\n");
     Serial.flush();
     http.end();
-    if (reconnect) {
-      if (!open(saveURL)) {
-        return 0;
-      } else {
+    for (int i = 0; i < reconnectTries; i++) {
+      Serial.printf("Attempting to reconnect, try %d\n", i);
+      Serial.flush();
+      delay(reconnectDelayMs);
+      if (open(saveURL)) {
         Serial.println("Reconnected to stream");
+        break;
       }
-    } else {
+    }
+    if (!http.connected()) {
+      Serial.printf("Unable to reconnect\n");
+      Serial.flush();
       return 0;
     }
   }
-  if ((size>0) && (pos >= size)) return 0;
+  if ((size > 0) && (pos >= size)) return 0;
 
   WiFiClient *stream = http.getStreamPtr();
 
@@ -94,7 +100,12 @@ uint32_t AudioFileSourceHTTPStream::readInternal(void *data, uint32_t len, bool 
   }
 
   size_t avail = stream->available();
-  if (!avail) return 0;
+  if (!nonBlock && !avail) {
+    Serial.printf("No stream data available\n");
+    http.end();
+    goto retry;
+  }
+  if (avail == 0) return 0;
   if (avail < len) len = avail;
 
   int read = stream->readBytes(reinterpret_cast<uint8_t*>(data), len);

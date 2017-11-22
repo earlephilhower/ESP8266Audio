@@ -23,14 +23,14 @@
 AudioFileSourceICYStream::AudioFileSourceICYStream()
 {
   pos = 0;
-  reconnect = false;
+  reconnectTries = 0;
   saveURL = NULL;
 }
 
 AudioFileSourceICYStream::AudioFileSourceICYStream(const char *url)
 {
   saveURL = NULL;
-  reconnect = false;
+  reconnectTries = 0;
   open(url);
 }
 
@@ -69,21 +69,27 @@ AudioFileSourceICYStream::~AudioFileSourceICYStream()
 
 uint32_t AudioFileSourceICYStream::readInternal(void *data, uint32_t len, bool nonBlock)
 {
+retry:
   if (!http.connected()) {
     Serial.println("Stream disconnected\n");
     Serial.flush();
     http.end();
-    if (reconnect) {
-      if (!open(saveURL)) {
-        return 0;
-      } else {
+    for (int i = 0; i < reconnectTries; i++) {
+      Serial.printf("Attempting to reconnect, try %d\n", i);
+      Serial.flush();
+      delay(reconnectDelayMs);
+      if (open(saveURL)) {
         Serial.println("Reconnected to stream");
+        break;
       }
-    } else {
+    }
+    if (!http.connected()) {
+      Serial.printf("Unable to reconnect\n");
+      Serial.flush();
       return 0;
     }
   }
-  if ((size>0) && (pos >= size)) return 0;
+  if ((size > 0) && (pos >= size)) return 0;
 
   WiFiClient *stream = http.getStreamPtr();
 
@@ -96,7 +102,13 @@ uint32_t AudioFileSourceICYStream::readInternal(void *data, uint32_t len, bool n
   }
 
   size_t avail = stream->available();
-  if (!avail) return 0;
+  if (!nonBlock && !avail) {
+    Serial.printf("No stream data available\n");
+    Serial.flush();
+    http.end();
+    goto retry;
+  }
+  if (avail == 0) return 0;
   if (avail < len) len = avail;
 
   int read = 0;
@@ -134,24 +146,3 @@ uint32_t AudioFileSourceICYStream::readInternal(void *data, uint32_t len, bool n
   icyByteCount += ret;
   return read;
 }
-extern "C" {
-void flush() { Serial.flush(); }
-extern "C" {
-  #include <cont.h>
-  extern cont_t g_cont;
-
-  void stack(const char *s, const char *t, int i) {
-    (void) t;
-    (void) i;
-    register uint32_t *sp asm("a1");
-    int freestack = 4 * (sp - g_cont.stack);
-    int freeheap = ESP.getFreeHeap();
-    static int laststack, lastheap;
-    if (laststack!=freestack|| lastheap !=freeheap)
-      Serial.printf("%s: FREESTACK=%d, FREEHEAP=%d\n", s, /*t, i,*/ freestack, /*cont_get_free_stack(&g_cont),*/ freeheap); Serial.flush();
-    if (freestack < 256) {Serial.printf("out of stack!\n"); while (1); }
-    if (freeheap < 1024) {Serial.printf("out of heap!\n"); while (1); }
-    laststack=freestack;lastheap=freeheap;
-  }
-}
-};
