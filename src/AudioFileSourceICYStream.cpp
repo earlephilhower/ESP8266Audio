@@ -107,16 +107,23 @@ uint32_t AudioFileSourceICYStream::readInternal(void *data, uint32_t len, bool n
     read += ret;
     pos += ret;
     len -= ret;
+    data = (void *)(reinterpret_cast<char*>(data) + ret);
     icyByteCount += ret;
+    if (ret != beforeIcy) return read; // Partial read
+
     uint8_t mdSize;
     int mdret = stream->readBytes(&mdSize, 1);
     if ((mdret == 1) && (mdSize > 0)) {
-      char *mdBuff = (char*)malloc(mdSize * 16);
-      mdret = stream->readBytes(reinterpret_cast<uint8_t*>(mdBuff), mdSize * 16);
-      if (mdret == mdSize * 16) {
-        Serial.printf("ICY metadata:\n%s\n---end---\n", mdBuff);
-        free(mdBuff);
+      char mdBuff[17];
+      mdBuff[16] = 0;
+      Serial.print("ICY MD: ");
+      for (int i=0; i<mdSize; i++) {
+        mdret = stream->readBytes(reinterpret_cast<uint8_t*>(mdBuff), 16);
+        if (mdret == 16) {
+          Serial.printf("%s", mdBuff);
+        }
       }
+      Serial.println("\n---end---");
     }
     icyByteCount = 0;
   }
@@ -127,4 +134,24 @@ uint32_t AudioFileSourceICYStream::readInternal(void *data, uint32_t len, bool n
   icyByteCount += ret;
   return read;
 }
+extern "C" {
+void flush() { Serial.flush(); }
+extern "C" {
+  #include <cont.h>
+  extern cont_t g_cont;
 
+  void stack(const char *s, const char *t, int i) {
+    (void) t;
+    (void) i;
+    register uint32_t *sp asm("a1");
+    int freestack = 4 * (sp - g_cont.stack);
+    int freeheap = ESP.getFreeHeap();
+    static int laststack, lastheap;
+    if (laststack!=freestack|| lastheap !=freeheap)
+      Serial.printf("%s: FREESTACK=%d, FREEHEAP=%d\n", s, /*t, i,*/ freestack, /*cont_get_free_stack(&g_cont),*/ freeheap); Serial.flush();
+    if (freestack < 256) {Serial.printf("out of stack!\n"); while (1); }
+    if (freeheap < 1024) {Serial.printf("out of heap!\n"); while (1); }
+    laststack=freestack;lastheap=freeheap;
+  }
+}
+};
