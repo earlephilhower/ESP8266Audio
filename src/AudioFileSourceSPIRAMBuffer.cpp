@@ -26,21 +26,22 @@
 AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source, uint32_t buffSizeBytes)
 {
   Spiram.begin();
-  Spiram.setSeqMode();
-  buffSize = buffSizeBytes;
-  buffer = (uint8_t*)malloc(sizeof(uint8_t) * 1024);
+  buffSize = 1024; //Size of temp buffer
+  ramSize = buffSizeBytes;
+  buffer = (uint8_t*)malloc(sizeof(uint8_t) * buffSize);
   writePtr = 0;
   readPtr = 0;
   src = source;
   length = 0;
   filled = false;
-  Serial.printf("buffer size %u\n", buffSize);
+  bytesAvailable = 0;
+  Serial.printf("RAM buffer size %u\n", ramSize);
 }
 
 AudioFileSourceSPIRAMBuffer::~AudioFileSourceSPIRAMBuffer()
 {
-  //free(buffer);
-  //buffer = NULL;
+  free(buffer);
+  buffer = NULL;
 }
 
 bool AudioFileSourceSPIRAMBuffer::seek(int32_t pos, int dir)
@@ -54,8 +55,8 @@ bool AudioFileSourceSPIRAMBuffer::seek(int32_t pos, int dir)
 
 bool AudioFileSourceSPIRAMBuffer::close()
 {
-  //free(buffer);
-  //buffer = NULL;
+  free(buffer);
+  buffer = NULL;
   return src->close();
 }
 
@@ -80,34 +81,46 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
 
   uint32_t bytes = 0;
   if (!filled) {
-    uint16_t toRead=1024;
+    writePtr = readPtr = 0;
+    uint16_t toRead=buffSize;
     // Fill up completely before returning any data at all
     Serial.println("Buffering...");
-    //Serial.printf("buffSize: %u\n", buffSize);
-    while (writePtr!=buffSize) {
+    while (bytesAvailable!=ramSize) {
       length = src->read(buffer, toRead);
       if(length>0) {
         Spiram.write(writePtr, buffer, length);
-        writePtr+=length;
-        //Serial.printf("WritePtr: %u, buffSize: %u\n", writePtr, buffSize);
-        if ((buffSize-writePtr)<toRead) {
-          toRead=buffSize-writePtr;
-	  //Serial.printf("toRead: %u\n");
+        bytesAvailable+=length;
+        writePtr = bytesAvailable % ramSize;
+        if ((ramSize-bytesAvailable)<toRead) {
+          toRead=ramSize-bytesAvailable;
         }
       }
       yield();
     }
-    writePtr = 0; //length % buffSize;
+    writePtr = bytesAvailable % ramSize;
     filled = true;
     Serial.println("Filling Done !");
   }
 
-  // Pull from buffer until we've got none left or we've satisfied the request
   uint8_t *ptr = reinterpret_cast<uint8_t*>(data);
-  //Serial.printf("Len: %u\n", len);
-  Spiram.read(readPtr, ptr, len);
-  readPtr = (readPtr+len) % buffSize;
-  return len;
+  uint32_t toReadFromBuffer = (len < bytesAvailable) ? len : bytesAvailable;
+  if (toReadFromBuffer>0) {
+     // Pull from buffer until we've got none left or we've satisfied the request
+    Spiram.read(readPtr, ptr, toReadFromBuffer);
+    readPtr = (readPtr+toReadFromBuffer) % ramSize;
+    bytes = toReadFromBuffer;
+    bytesAvailable-=toReadFromBuffer;
+    len-=toReadFromBuffer;
+    ptr += toReadFromBuffer;
+  }
+
+  if (len) {
+    bytes += src->read(ptr, len);
+    bytesAvailable = 0;
+    filled = false;
+  }
+
+return bytes;
 
 //  Serial.println("Read...OK");
 
