@@ -26,7 +26,7 @@
 AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source, uint32_t buffSizeBytes)
 {
   Spiram.begin();
-  buffSize = 1024; //Size of temp buffer
+  buffSize = 2048; //Size of temp buffer
   ramSize = buffSizeBytes;
   buffer = (uint8_t*)malloc(sizeof(uint8_t) * buffSize);
   writePtr = 0;
@@ -120,69 +120,20 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
     filled = false;
   }
 
+  yield();
+
+  // Now trying to refill SPI RAM Buffer
+  uint16_t toReadFromSrc = buffSize;
+  if ((ramSize - bytesAvailable)<buffSize) {
+	toReadFromSrc = ramSize - bytesAvailable;
+  }
+  uint16_t cnt = src->readNonBlock(buffer, toReadFromSrc);
+  Spiram.write(writePtr, buffer, cnt);
+  bytesAvailable+=cnt;
+  writePtr = (writePtr + cnt) % ramSize;
+
+
 return bytes;
 
-//  Serial.println("Read...OK");
-
-/*  uint32_t toReadFromBuffer = (len < length) ? len : length;
-  if ( (toReadFromBuffer > 0) && (readPtr >= writePtr) ) {
-    uint32_t toReadToEnd = (toReadFromBuffer < (uint32_t)(buffSize - readPtr)) ? toReadFromBuffer : (buffSize - readPtr);
-    memcpy(ptr, &buffer[readPtr], toReadToEnd);
-    readPtr = (readPtr + toReadToEnd) % buffSize;
-    len -= toReadToEnd;
-    length -= toReadToEnd;
-    ptr += toReadToEnd;
-    bytes += toReadToEnd;
-    toReadFromBuffer -= toReadToEnd;
-  }
-  if (toReadFromBuffer > 0) { // We know RP < WP at this point
-    memcpy(ptr, &buffer[readPtr], toReadFromBuffer);
-    readPtr = (readPtr + toReadFromBuffer) % buffSize;
-    len -= toReadFromBuffer;
-    length -= toReadFromBuffer;
-    ptr += toReadFromBuffer;
-    bytes += toReadFromBuffer;
-    toReadFromBuffer -= toReadFromBuffer;
-  }
-
-  if (len) {
-    // Still need more, try direct read from src
-    bytes += src->read(ptr, len);
-    // We're out of buffered data, need to force a complete refill.  Thanks, @armSeb
-    readPtr = 0;
-    writePtr = 0;
-    length = 0;
-    filled = false;
-    return bytes; 
-  }
-
-  if (length < buffSize) {
-    // Now try and opportunistically fill the buffer
-    if (readPtr > writePtr) {
-        int bytesAvailMid = readPtr - writePtr - 1;
-        if (bytesAvailMid > 0) {
-          int cnt = src->readNonBlock(&buffer[writePtr], bytesAvailMid);
-          length += cnt;
-          writePtr = (writePtr + cnt) % buffSize;
-        }
-      return bytes;
-    }
-
-    int bytesAvailEnd = buffSize - writePtr;
-    if (bytesAvailEnd > 0) {
-      int cnt = src->readNonBlock(&buffer[writePtr], bytesAvailEnd);
-      length += cnt;
-      writePtr = (writePtr + cnt) % buffSize;
-      if (cnt != bytesAvailEnd) return bytes; 
-    }
-    int bytesAvailStart = readPtr - 1;
-    if (bytesAvailStart > 0) {
-      int cnt = src->readNonBlock(&buffer[writePtr], bytesAvailStart);
-      length += cnt;
-      writePtr = (writePtr + cnt) % buffSize;
-    }
-  }
-
-  return bytes;*/
 }
 
