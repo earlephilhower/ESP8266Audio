@@ -130,16 +130,17 @@ return bytes;
 
 bool AudioFileSourceSPIRAMBuffer::bufferFill()
 {
-  if (!filled) return false; //Make sure the buffer is pre-filled before
+  if (!filled || bytesAvailable==ramSize) return false; //Make sure the buffer is pre-filled before
   // Now trying to refill SPI RAM Buffer
   uint16_t toReadFromSrc = buffSize;
   if ((ramSize - bytesAvailable)<buffSize) {
 	toReadFromSrc = ramSize - bytesAvailable;
   }
   uint16_t cnt = src->readNonBlock(buffer, toReadFromSrc);
-  Spiram.write(writePtr, buffer, cnt);
-  bytesAvailable+=cnt;
-  writePtr = (writePtr + cnt) % ramSize;
-//  Serial.printf("Cnt: %u | Avail: %u\n", cnt, bytesAvailable);
+  if (cnt) {
+    Spiram.write(writePtr, buffer, cnt);
+    bytesAvailable+=cnt;
+    writePtr = (writePtr + cnt) % ramSize;
+  }
   return true;
 }
