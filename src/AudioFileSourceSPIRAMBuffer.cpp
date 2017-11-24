@@ -27,7 +27,7 @@ AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source
 {
   Spiram.begin();
   Spiram.setSeqMode();
-  buffSize = 1600; //Size of temp buffer
+  buffSize = 256; //Size of temp buffer
   ramSize = buffSizeBytes;
   buffer = (uint8_t*)malloc(sizeof(uint8_t) * buffSize);
   writePtr = 0;
@@ -130,7 +130,7 @@ return bytes;
 
 bool AudioFileSourceSPIRAMBuffer::bufferFill()
 {
-  if (!filled || bytesAvailable==ramSize) return false; //Make sure the buffer is pre-filled before
+  if (!filled) return false; //Make sure the buffer is pre-filled before
   // Now trying to refill SPI RAM Buffer
   if ((ramSize - bytesAvailable)<buffSize) { //Just to avoid reading too little blocks
 	return false;
