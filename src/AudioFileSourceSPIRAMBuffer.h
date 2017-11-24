@@ -23,7 +23,7 @@
 
 #include "AudioFileSource.h"
 #include <SPI.h>
-#include <ESP8266Spiram.h>
+#include "libspiram/ESP8266Spiram.h"
 
 class AudioFileSourceSPIRAMBuffer : public AudioFileSource
 {
