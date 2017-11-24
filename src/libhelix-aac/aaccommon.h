@@ -187,17 +187,17 @@ extern const int sampRateTab[NUM_SAMPLE_RATES];
 extern const int predSFBMax[NUM_SAMPLE_RATES];
 extern const int channelMapTab[NUM_DEF_CHAN_MAPS];
 extern const int elementNumChans[NUM_ELEMENTS];
-extern const unsigned char sfBandTotalShort[NUM_SAMPLE_RATES];
-extern const unsigned char sfBandTotalLong[NUM_SAMPLE_RATES];
+extern const unsigned /*char*/ int sfBandTotalShort[NUM_SAMPLE_RATES];
+extern const unsigned /*char*/ int sfBandTotalLong[NUM_SAMPLE_RATES];
 extern const int sfBandTabShortOffset[NUM_SAMPLE_RATES];
 extern const /*short*/ int sfBandTabShort[76];
 extern const int sfBandTabLongOffset[NUM_SAMPLE_RATES];
 extern const /*short*/ int sfBandTabLong[325];
 extern const int tnsMaxBandsShortOffset[AAC_NUM_PROFILES];
-extern const unsigned char tnsMaxBandsShort[2*NUM_SAMPLE_RATES];
-extern const unsigned char tnsMaxOrderShort[AAC_NUM_PROFILES];
+extern const unsigned /*char*/ int tnsMaxBandsShort[2*NUM_SAMPLE_RATES];
+extern const unsigned /*char*/ int tnsMaxOrderShort[AAC_NUM_PROFILES];
 extern const int tnsMaxBandsLongOffset[AAC_NUM_PROFILES];
-extern const unsigned char tnsMaxBandsLong[2*NUM_SAMPLE_RATES];
-extern const unsigned char tnsMaxOrderLong[AAC_NUM_PROFILES];
+extern const unsigned /*char*/ int tnsMaxBandsLong[2*NUM_SAMPLE_RATES];
+extern const unsigned /*char*/ int tnsMaxOrderLong[AAC_NUM_PROFILES];
 
 #endif	/* _AACCOMMON_H */

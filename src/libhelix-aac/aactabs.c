@@ -69,11 +69,11 @@ const int elementNumChans[NUM_ELEMENTS] PROGMEM = {
 };
 
 /* total number of scale factor bands in one window */
-const unsigned char sfBandTotalShort[NUM_SAMPLE_RATES] = {
+const unsigned int /*char*/ sfBandTotalShort[NUM_SAMPLE_RATES] PROGMEM = {
     12, 12, 12, 14, 14, 14, 15, 15, 15, 15, 15, 15
 };
 
-const unsigned char sfBandTotalLong[NUM_SAMPLE_RATES] = {
+const unsigned int /*char*/ sfBandTotalLong[NUM_SAMPLE_RATES] PROGMEM = {
     41, 41, 47, 49, 49, 51, 47, 47, 43, 43, 43, 40
 };
 
@@ -140,18 +140,18 @@ const /*short*/ int sfBandTabLong[325] PROGMEM = {
 /* TNS max bands (table 4.139) and max order (table 4.138) */
 const int tnsMaxBandsShortOffset[AAC_NUM_PROFILES] PROGMEM = {0, 0, 12};
 
-const unsigned char tnsMaxBandsShort[2*NUM_SAMPLE_RATES] = {
+const unsigned /*char*/ int tnsMaxBandsShort[2*NUM_SAMPLE_RATES] PROGMEM = {
 	 9,  9, 10, 14, 14, 14, 14, 14, 14, 14, 14, 14,		/* short block, Main/LC */
 	 7,  7,  7,  6,  6,  6,  7,  7,  8,  8,  8,  7		/* short block, SSR */
 };
 
-const unsigned char tnsMaxOrderShort[AAC_NUM_PROFILES] = {7, 7, 7};
+const unsigned /*char*/ int tnsMaxOrderShort[AAC_NUM_PROFILES] PROGMEM = {7, 7, 7};
 
 const int tnsMaxBandsLongOffset[AAC_NUM_PROFILES] PROGMEM = {0, 0, 12};
 
-const unsigned char tnsMaxBandsLong[2*NUM_SAMPLE_RATES] = {
+const unsigned int /*char*/ tnsMaxBandsLong[2*NUM_SAMPLE_RATES] PROGMEM = {
 	31, 31, 34, 40, 42, 51, 46, 46, 42, 42, 42, 39,		/* long block, Main/LC */
 	28, 28, 27, 26, 26, 26, 29, 29, 23, 23, 23, 19,		/* long block, SSR */
 };
 
-const unsigned char tnsMaxOrderLong[AAC_NUM_PROFILES] = {20, 12, 12};
+const unsigned /*char*/ int tnsMaxOrderLong[AAC_NUM_PROFILES] PROGMEM = {20, 12, 12};

@@ -190,7 +190,7 @@ int TNSFilter(AACDecInfo *aacDecInfo, int ch)
 	int *audioCoef;
 	unsigned char *filtLength, *filtOrder, *filtRes, *filtDir; 
 	signed char *filtCoef;
-	const unsigned char *tnsMaxBandTab;
+	const unsigned /*char*/ int *tnsMaxBandTab;
 	const /*short*/ int *sfbTab;
 	ICSInfo *icsInfo;
 	TNSInfo *ti;
