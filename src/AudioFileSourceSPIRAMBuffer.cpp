@@ -1,7 +1,7 @@
 /*
   AudioFileSourceBuffer
   Double-buffered file source using system RAM
-  
+
   Copyright (C) 2017  Earle F. Philhower, III
 
   This program is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source
 {
   Spiram.begin();
   Spiram.setSeqMode();
-  buffSize = 2048; //Size of temp buffer
+  buffSize = 1600; //Size of temp buffer
   ramSize = buffSizeBytes;
   buffer = (uint8_t*)malloc(sizeof(uint8_t) * buffSize);
   writePtr = 0;
@@ -140,7 +140,7 @@ bool AudioFileSourceSPIRAMBuffer::bufferFill()
     Spiram.write(writePtr, buffer, cnt);
     bytesAvailable+=cnt;
     writePtr = (writePtr + cnt) % ramSize;
-    Serial.printf("SockRead: %u | RamAvail: %u\n", cnt, bytesAvailable);
+//    Serial.printf("SockRead: %u | RamAvail: %u\n", cnt, bytesAvailable);
   }
   return true;
 }
