@@ -26,6 +26,7 @@
 AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source, uint32_t buffSizeBytes)
 {
   Spiram.begin();
+  Spiram.setSeqMode();
   buffSize = 2048; //Size of temp buffer
   ramSize = buffSizeBytes;
   buffer = (uint8_t*)malloc(sizeof(uint8_t) * buffSize);
@@ -77,7 +78,7 @@ uint32_t AudioFileSourceSPIRAMBuffer::getPos()
 
 uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
 {
-  if (!buffer) return src->read(data, len);
+  //if (!buffer) return src->read(data, len);
 
   uint32_t bytes = 0;
   if (!filled) {
@@ -95,7 +96,6 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
           toRead=ramSize-bytesAvailable;
         }
       }
-      yield();
     }
     writePtr = bytesAvailable % ramSize;
     filled = true;
@@ -114,14 +114,23 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
     ptr += toReadFromBuffer;
   }
 
+  // If len>O there is no data left in buffer and we try to read more directly from source.
+  // Then, we trigger a complete buffer refill
   if (len) {
     bytes += src->read(ptr, len);
     bytesAvailable = 0;
     filled = false;
   }
 
-  yield();
 
+
+return bytes;
+
+}
+
+bool AudioFileSourceSPIRAMBuffer::bufferFill()
+{
+  if (!filled) return false; //Make sure the buffer is pre-filled before
   // Now trying to refill SPI RAM Buffer
   uint16_t toReadFromSrc = buffSize;
   if ((ramSize - bytesAvailable)<buffSize) {
@@ -131,9 +140,6 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
   Spiram.write(writePtr, buffer, cnt);
   bytesAvailable+=cnt;
   writePtr = (writePtr + cnt) % ramSize;
-
-
-return bytes;
-
+//  Serial.printf("Cnt: %u | Avail: %u\n", cnt, bytesAvailable);
+  return true;
 }
-
