@@ -4,7 +4,7 @@ Arduino library for parsing and decoding MOD, WAV, MP3, FLAC, MIDI, and AAC file
 ## Disclaimer
 All this code is released under the GPL, and all of it is to be used at your own risk.  If you find any bugs, please let me know via the GitHub issue tracker or drop me an email.  The MOD and MP3 routines were taken from StellaPlayer and libMAD respectively.  The software I2S delta-sigma 32x oversampling DAC was my own creation, and sounds quite good if I do say so myself.
 
-The AAC decode code is from the Helix project and licensed under RealNetwork's RSPL license.  For commercial use you're still going to need the usual AAC licensing from Via Licensing (http://www.via-corp.com/us/en/licensing/aac/overview.html).
+The AAC decode code is from the Helix project and licensed under RealNetwork's RSPL license.  For commercial use you're still going to need the usual AAC licensing from Via Licensing (http://www.via-corp.com/us/en/licensing/aac/overview.html).  Please note that AAC streams with SBR are not supported (many webradio stations use this to reduce bandwidth even further).  About 50KB additional RAM (above standard AAC needsz of ~25KB) is required, and there's simply not enough RAM on-chip to fit it.
 
 MIDI decoding comes from a highly ported MIDITONES (https://github.com/LenShustek/miditones) combined with a massively memory-optimized TinySoundFont (https://github.com/schellingb/TinySoundFont), see the respective source files for more information.
 
