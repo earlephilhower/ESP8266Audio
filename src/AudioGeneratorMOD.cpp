@@ -75,10 +75,10 @@ bool AudioGeneratorMOD::stop()
 
 bool AudioGeneratorMOD::loop()
 {
-  if (!running) return false; // Easy-peasy
+  if (!running) goto done; // Easy-peasy
 
   // First, try and push in the stored sample.  If we can't, then punt and try later
-  if (!output->ConsumeSample(lastSample)) return true; // FIFO full, wait...
+  if (!output->ConsumeSample(lastSample)) goto done; // FIFO full, wait...
 
   // Now advance enough times to fill the i2s buffer
   do {
@@ -86,15 +86,20 @@ bool AudioGeneratorMOD::loop()
       running = RunPlayer();
       if (!running) {
         stop();
-        return false;
+        goto done;
       }
       mixerTick = Player.samplesPerTick;
     }
     GetSample( lastSample );
     mixerTick--;
   } while (output->ConsumeSample(lastSample));
+
+done:
+  file->loop();
+  output->loop();
+
   // We'll be left with one sample still in our buffer because it couldn't fit in the FIFO
-  return true;
+  return running;
 }
 
 bool AudioGeneratorMOD::begin(AudioFileSource *source, AudioOutput *out)

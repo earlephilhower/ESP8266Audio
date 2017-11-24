@@ -530,10 +530,11 @@ bool AudioGeneratorMIDI::begin(AudioFileSource *src, AudioOutput *out)
 bool AudioGeneratorMIDI::loop()
 {
   static int c = 0;
-  if (!running) return true; // Nothing to do here!
+
+  if (!running) goto done; // Nothing to do here!
 
   // First, try and push in the stored sample.  If we can't, then punt and try later
-  if (!output->ConsumeSample(lastSample)) return true; // Can't send, but no error detected
+  if (!output->ConsumeSample(lastSample)) goto done; // Can't send, but no error detected
 
   // Try and stuff the buffer one sample at a time
   do {
@@ -569,6 +570,10 @@ play:
       }
     }
   } while (running && output->ConsumeSample(lastSample));
+
+done:
+  file->loop();
+  output->loop();
 
   return running;
 }

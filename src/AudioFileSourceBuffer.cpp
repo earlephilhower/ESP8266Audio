@@ -115,8 +115,16 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
     writePtr = 0;
     length = 0;
     filled = false;
-    return bytes; 
   }
+
+  fill();
+
+  return bytes;
+}
+
+void AudioFileSourceBuffer::fill()
+{
+  if (!buffer) return;
 
   if (length < buffSize) {
     // Now try and opportunistically fill the buffer
@@ -127,7 +135,7 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
           length += cnt;
           writePtr = (writePtr + cnt) % buffSize;
         }
-      return bytes;
+      return;
     }
 
     int bytesAvailEnd = buffSize - writePtr;
@@ -135,7 +143,7 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
       int cnt = src->readNonBlock(&buffer[writePtr], bytesAvailEnd);
       length += cnt;
       writePtr = (writePtr + cnt) % buffSize;
-      if (cnt != bytesAvailEnd) return bytes; 
+      if (cnt != bytesAvailEnd) return;
     }
     int bytesAvailStart = readPtr - 1;
     if (bytesAvailStart > 0) {
@@ -144,7 +152,14 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
       writePtr = (writePtr + cnt) % buffSize;
     }
   }
-
-  return bytes;
 }
+
+
+
+bool AudioFileSourceBuffer::loop()
+{
+  if (!src->loop()) return false;
+  fill();
+  return true;
+}  
 

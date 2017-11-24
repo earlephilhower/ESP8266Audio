@@ -167,19 +167,24 @@ bool AudioGeneratorMP3::GetOneSample(int16_t sample[2])
 
 bool AudioGeneratorMP3::loop()
 {
-  if (!running) return true; // Nothing to do here!
+  if (!running) goto done; // Nothing to do here!
 
   // First, try and push in the stored sample.  If we can't, then punt and try later
-  if (!output->ConsumeSample(lastSample)) return true; // Can't send, but no error detected
+  if (!output->ConsumeSample(lastSample)) goto done; // Can't send, but no error detected
+
   // Try and stuff the buffer one sample at a time
   do
   {
     if (!GetOneSample(lastSample)) {
       Serial.println("G1S failed\n");
       running = false;
-      return false;
+      goto done;
     }
   } while (running && output->ConsumeSample(lastSample));
+
+done:
+  file->loop();
+  output->loop();
 
   return running;
 }

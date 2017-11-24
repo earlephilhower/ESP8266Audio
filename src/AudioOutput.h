@@ -36,6 +36,7 @@ class AudioOutput
     typedef enum { LEFTCHANNEL=0, RIGHTCHANNEL=1 } SampleIndex;
     virtual bool ConsumeSample(int16_t sample[2]) { (void)sample; return false; };
     virtual bool stop() { return false; };
+    virtual bool loop() { return true; };
 
     void MakeSampleStereo16(int16_t sample[2]) {
       // Mono to "stereo" conversion
