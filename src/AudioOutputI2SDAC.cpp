@@ -28,6 +28,8 @@ AudioOutputI2SDAC::AudioOutputI2SDAC()
 {
   if (!i2sOn) i2s_begin();
   i2sOn = true;
+  mono = false;
+  SetGain(1.0);
 }
 
 AudioOutputI2SDAC::~AudioOutputI2SDAC()
@@ -79,7 +81,7 @@ bool AudioOutputI2SDAC::ConsumeSample(int16_t sample[2])
     uint32_t ttl = sample[LEFTCHANNEL] + sample[RIGHTCHANNEL];
     sample[LEFTCHANNEL] = sample[RIGHTCHANNEL] = (ttl>>1) & 0xffff;
   }
-  uint32_t s32 = ((sample[RIGHTCHANNEL])<<16) | (sample[LEFTCHANNEL] & 0xffff);
+  uint32_t s32 = ((Amplify(sample[RIGHTCHANNEL]))<<16) | (Amplify(sample[LEFTCHANNEL]) & 0xffff);
   return i2s_write_sample_nb(s32); // If we can't store it, return false.  OTW true
 }
 

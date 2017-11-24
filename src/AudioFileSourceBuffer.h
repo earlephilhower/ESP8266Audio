@@ -1,6 +1,6 @@
 /*
-  AudioFileSourceFastROMFS
-  Input FastROMFS "file" to be used by AudioGenerator
+  AudioFileSourceBuffer
+  Double-buffered input file using system RAM
   
   Copyright (C) 2017  Earle F. Philhower, III
 
@@ -18,32 +18,35 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _AUDIOFILESOURCEFASTROMFS_H
-#define _AUDIOFILESOURCEFASTROMFS_H
-
-#include <Arduino.h>
-#include <ESP8266FastROMFS.h>
+#ifndef _AUDIOFILESOURCEBUFFER_H
+#define _AUDIOFILESOURCEBUFFER_H
 
 #include "AudioFileSource.h"
 
-class AudioFileSourceFastROMFS : public AudioFileSource
+
+class AudioFileSourceBuffer : public AudioFileSource
 {
   public:
-    AudioFileSourceFastROMFS();
-    AudioFileSourceFastROMFS(FastROMFilesystem *fs, const char *filename);
-    virtual ~AudioFileSourceFastROMFS() override;
+    AudioFileSourceBuffer(AudioFileSource *in, int bufferBytes);
+    virtual ~AudioFileSourceBuffer() override;
     
-    virtual bool open(const char *filename) override;
     virtual uint32_t read(void *data, uint32_t len) override;
     virtual bool seek(int32_t pos, int dir) override;
     virtual bool close() override;
     virtual bool isOpen() override;
     virtual uint32_t getSize() override;
-    virtual uint32_t getPos() override { if (!f) return 0; else return f->position(); };
+    virtual uint32_t getPos() override;
 
   private:
-    FastROMFilesystem *fs;
-    FastROMFile *f;
+    AudioFileSource *src;
+    uint16_t buffSize;
+    uint8_t *buffer;
+    uint16_t writePtr;
+    uint16_t readPtr;
+    uint16_t length;
+    bool filled;
 };
 
+
 #endif
+

@@ -26,7 +26,7 @@ AudioGeneratorMP3::AudioGeneratorMP3()
   running = false;
   file = NULL;
   output = NULL;
-  buffLen = 2048;
+  buffLen = 1500; // Max theoretical frame of 1441 + 8 guard bytes, with some fluff
   buff = NULL;
   nsCountMax = 1152/32;
 }
@@ -80,13 +80,18 @@ enum mad_flow AudioGeneratorMP3::Input()
     unused = buffLen - (stream.next_frame - buff);
     memmove(buff, stream.next_frame, unused);
   }
-  if (unused == buffLen) 
-    return MAD_FLOW_STOP;
+  if (unused == buffLen) {
+    // Something wicked this way came, throw it all out and try again
+    unused = 0;
+  }
 
   lastReadPos = file->getPos() - unused;
   int len = buffLen - unused;
   len = file->read(buff + unused, len);
-  if (len == 0) return MAD_FLOW_STOP;
+  if (len == 0) {
+    Serial.println("MP3 stop, len==0");
+    return MAD_FLOW_STOP;
+  }
 
   mad_stream_buffer(&stream, buff, len + unused);
 
@@ -112,14 +117,17 @@ bool AudioGeneratorMP3::DecodeNextFrame()
     }
     inInnerDecode = false;
   } while (stream.error == MAD_ERROR_BUFLEN);
-
+  Serial.println("stream.error != mad_Err_bufflen");
   return false;
 }
 
 bool AudioGeneratorMP3::GetOneSample(int16_t sample[2])
 {
   if ( (samplePtr >= synth.pcm.length) && (nsCount >= nsCountMax) ) {
-    if (!DecodeNextFrame()) return false;
+    if (!DecodeNextFrame()) {
+      Serial.println("DNF failed");
+      return false;
+    }
     samplePtr = 9999;
     nsCount = 0;
   }
@@ -143,7 +151,7 @@ bool AudioGeneratorMP3::GetOneSample(int16_t sample[2])
     
     switch ( mad_synth_frame_onens(&synth, &frame, nsCount++) ) {
         case MAD_FLOW_STOP:
-        case MAD_FLOW_BREAK:
+        case MAD_FLOW_BREAK: Serial.println("msf1ns failed\n");
           return false; // Either way we're done
         default:
           break; // Do nothing
@@ -167,6 +175,7 @@ bool AudioGeneratorMP3::loop()
   do
   {
     if (!GetOneSample(lastSample)) {
+      Serial.println("G1S failed\n");
       running = false;
       return false;
     }

@@ -32,6 +32,7 @@ AudioOutputI2SNoDAC::AudioOutputI2SNoDAC()
   oversample = 32;
   lastSamp = 0;
   cumErr = 0;
+  SetGain(1.0);
 }
 
 AudioOutputI2SNoDAC::~AudioOutputI2SNoDAC()
@@ -79,8 +80,10 @@ bool AudioOutputI2SNoDAC::begin()
 
 void AudioOutputI2SNoDAC::DeltaSigma(int16_t sample[2], uint32_t dsBuff[4])
 {
-  // Not shift 8 because addition takes care of one mult x 2
-  fixed24p8_t newSamp = ( ((int32_t)sample[0]) + ((int32_t)sample[1]) ) << 7;
+//  // Not shift 8 because addition takes care of one mult x 2
+//  fixed24p8_t newSamp = ( ((int32_t)sample[0]) + ((int32_t)sample[1]) ) << 7;
+  int32_t sum = (((int32_t)sample[0]) + ((int32_t)sample[1])) >> 1;
+  fixed24p8_t newSamp = ( (int32_t)Amplify(sum) ) << 8;
 
   int oversample32 = oversample / 32;
   // How much the comparison signal changes each oversample step

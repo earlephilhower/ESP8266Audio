@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include "AudioFileSourceHTTPStream.h"
+#include "AudioFileSourceBuffer.h"
 #include "AudioGeneratorMP3.h"
 #include "AudioOutputI2SNoDAC.h"
 
@@ -15,6 +16,7 @@ const char *URL="http://streaming.shoutcast.com/80sPlanet?lang=en-US";
 
 AudioGeneratorMP3 *mp3;
 AudioFileSourceHTTPStream *file;
+AudioFileSourceBuffer *buff;
 AudioOutputI2SNoDAC *out;
 
 void setup()
@@ -41,9 +43,10 @@ void setup()
   }
 
   file = new AudioFileSourceHTTPStream(URL);
+  buff = new AudioFileSourceBuffer(file, 2048);
   out = new AudioOutputI2SNoDAC();
   mp3 = new AudioGeneratorMP3();
-  mp3->begin(file, out);
+  mp3->begin(buff, out);
 }
 
 void loop()

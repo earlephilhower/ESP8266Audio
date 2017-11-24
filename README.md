@@ -1,11 +1,15 @@
 # ESP8266Audio
-Arduino library for parsing and decoding MOD, WAV, MP3, and FLAC files and playing them on an I2S DAC or even using a software-simulated delta-sigma DAC with dynamic 32x oversampling
+Arduino library for parsing and decoding MOD, WAV, MP3, FLAC, MIDI, and AAC files and playing them on an I2S DAC or even using a software-simulated delta-sigma DAC with dynamic 32x oversampling
 
 ## Disclaimer
 All this code is released under the GPL, and all of it is to be used at your own risk.  If you find any bugs, please let me know via the GitHub issue tracker or drop me an email.  The MOD and MP3 routines were taken from StellaPlayer and libMAD respectively.  The software I2S delta-sigma 32x oversampling DAC was my own creation, and sounds quite good if I do say so myself.
 
+The AAC decode code is from the Helix project and licensed under RealNetwork's RSPL license.  For commercial use you're still going to need the usual AAC licensing from Via Licensing (http://www.via-corp.com/us/en/licensing/aac/overview.html).  Please note that AAC streams with SBR are not supported (many webradio stations use this to reduce bandwidth even further).  About 50KB additional RAM (above standard AAC needsz of ~25KB) is required, and there's simply not enough RAM on-chip to fit it.
+
+MIDI decoding comes from a highly ported MIDITONES (https://github.com/LenShustek/miditones) combined with a massively memory-optimized TinySoundFont (https://github.com/schellingb/TinySoundFont), see the respective source files for more information.
+
 ## Usage
-Create an AudioInputXXX source pointing to your input file, an AudioOutputXXX sink as either an I2SDAC, I2S-sw-DAC, or as a "SerialWAV" which simply writes a mostly-correct WAV file to the Serial port which can be dumped to a file on your development system, and an AudioGeneratorXXX to actually take that input and decode it and send to the output.
+Create an AudioInputXXX source pointing to your input file, an AudioOutputXXX sink as either an I2SDAC, I2S-sw-DAC, or as a "SerialWAV" which simply writes a WAV file to the Serial port which can be dumped to a file on your development system, and an AudioGeneratorXXX to actually take that input and decode it and send to the output.
 
 After creation, you need to call the AudioGeneratorXXX::loop() routine from inside your own main loop() one or more times.  This will automatically read as much of the file as needed and fill up the I2S buffers and immediately return.  Since this is not interrupt driven, if you have large delay()s in your code, you may end up with hiccups in playback.  Either break large delays into very small ones with calls to AudioGenerator::loop(), or reduce the sampling rate to require fewer samples per second.
 
@@ -53,6 +57,29 @@ AudioFileSourcePROGMEM:  Reads a file from a PROGMEM array.  Under UNIX you can 
 
 AudioFileSourceHTTPStream:  Simple implementation of a streaming HTTP reader for ShoutCast-type MP3 streaming.  Not yet resilient, and at 44.1khz 128bit stutters due to CPU limitations, but it works more or less.
 
+## AudioFileSourceBuffer - Double buffering, useful for HTTP streams
+AudioFileSourceBuffer is an input source that simpy adds an additional RAM buffer of the output of any other AudioFileSource.  This is particularly useful for web streaming where you need to have 1-2 packets in memory to ensure hiccup-free playback.
+
+Simply create your standard input file source, create the buffer with the original source as its input, and pass this buffer object to the generator.
+````
+...
+AudioGeneratorMP3 *mp3;
+AudioFileSourceHTTPStream *file;
+AudioFileSourceBuffer *buff;
+AudioOutputI2SNoDAC *out;
+...
+  // Create the HTTP stream normally
+  file = new AudioFileSourceHTTPStream("http://your.url.here/mp3");
+  // Create a buffer using that stream
+  buff = new AudioFileSourceBuffer(file, 2048);
+  out = new AudioOutputI2SNoDAC();
+  mp3 = new AudioGeneratorMP3();
+  // Pass in the *buffer*, not the *http stream* to enable buffering
+  mp3->begin(buff, out);
+...
+
+````
+
 ## AudioGenerator classes
 AudioGenerator:  Base class for all file decoders.  Takes a AudioFileSource and an AudioOutput object to get the data from and to write decoded samples to.  Call its loop() function as often as you can to ensure the buffers are always kept full and your music won't skip.
 
@@ -63,6 +90,10 @@ AudioGeneratorMOD:  Reads and plays Amiga ModTracker files (.MOD).  Use a 160MHz
 AudioGeneratorMP3:  Reads and plays MP3 format files (.MP3) using a ported libMAD library.  Use a 160MHz clock to ensure enough compute power to decode 128KBit 44.1KHz without hiccups.  For complete porting history with the gory details, look at https://github.com/earlephilhower/libmad-8266
 
 AudioGeneratorFLAC:  Plays FLAC files via ported libflac-1.3.2.  On the order of 30KB heap and minimal stack required as-is.
+
+AudioGeneratorMIDI:  Plays a MIDI file using a wavetable synthesizer and a SoundFont2 wavetable input.  Theoretically up to 16 simultaneous notes available, but depending on the memory needed for the SF2 structures you may not be able to get that many before hitting OOM.
+
+AudioGeneratorAAC:  Requires about 30KB of heap and plays a mono or stereo AAC file using the Helix fixed-point AAC decoder.
 
 ## AudioOutput classes
 AudioOutput:  Base class for all output drivers.  Takes a sample at a time and returns true/false if there is buffer space for it.  If it returns false, it is the calling object's (AudioGenerator's) job to keep the data that didn't fit and try again later.
