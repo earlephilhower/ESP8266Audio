@@ -42,8 +42,6 @@ class AudioFileSourceSPIRAMBuffer : public AudioFileSource
   private:
     AudioFileSource *src;
     uint32_t ramSize;
-    uint32_t buffSize;
-    uint8_t *buffer;
     uint32_t writePtr;
     uint32_t readPtr;
     uint16_t length;
