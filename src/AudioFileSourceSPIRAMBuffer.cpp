@@ -132,15 +132,15 @@ bool AudioFileSourceSPIRAMBuffer::bufferFill()
 {
   if (!filled || bytesAvailable==ramSize) return false; //Make sure the buffer is pre-filled before
   // Now trying to refill SPI RAM Buffer
-  uint16_t toReadFromSrc = buffSize;
-  if ((ramSize - bytesAvailable)<buffSize) {
-	toReadFromSrc = ramSize - bytesAvailable;
+  if ((ramSize - bytesAvailable)<buffSize) { //Just to avoid reading too little blocks
+	return false;
   }
-  uint16_t cnt = src->readNonBlock(buffer, toReadFromSrc);
+  uint16_t cnt = src->readNonBlock(buffer, buffSize);
   if (cnt) {
     Spiram.write(writePtr, buffer, cnt);
     bytesAvailable+=cnt;
     writePtr = (writePtr + cnt) % ramSize;
+    Serial.printf("SockRead: %u | RamAvail: %u\n", cnt, bytesAvailable);
   }
   return true;
 }
