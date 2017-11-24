@@ -49,6 +49,9 @@
 #include <Arduino.h>
 #include <pgmspace.h>
 
+// Can't fit in ESP8266 RAM
+// #define AAC_ENABLE_SBR 1 
+
 #pragma GCC optimize ("O3")
 
 #include "aacdec.h"
