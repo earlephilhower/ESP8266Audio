@@ -37,7 +37,10 @@ class AudioFileSourceSPIRAMBuffer : public AudioFileSource
     virtual bool isOpen() override;
     virtual uint32_t getSize() override;
     virtual uint32_t getPos() override;
-    virtual bool bufferFill();
+    virtual bool loop() override;
+
+  private:
+    virtual void fill();
 
   private:
     AudioFileSource *src;

@@ -72,9 +72,8 @@ uint32_t AudioFileSourceSPIRAMBuffer::getPos()
 
 uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
 {
-  //if (!buffer) return src->read(data, len);
-
   uint32_t bytes = 0;
+  // Check if the buffer isn't empty, otherwise we try to fill completely
   if (!filled) {
     uint8_t buffer[256];
     writePtr = readPtr = 0;
@@ -116,19 +115,18 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
     bytesAvailable = 0;
     filled = false;
   }
-
-
-
-return bytes;
-
+  return bytes;
 }
 
-bool AudioFileSourceSPIRAMBuffer::bufferFill()
+void AudioFileSourceSPIRAMBuffer::fill()
 {
-  if (!filled) return false; //Make sure the buffer is pre-filled before
+  // Make sure the buffer is pre-filled before make partial fill.
+  if (!filled) return;
+
   // Now trying to refill SPI RAM Buffer
   uint8_t buffer[256];
-  if ((ramSize - bytesAvailable)<sizeof(buffer)) { //Just to avoid reading too little blocks
+  // Make sure there is at least buffer size free in RAM
+  if ((ramSize - bytesAvailable)<sizeof(buffer)) {
 	return false;
   }
   uint16_t cnt = src->readNonBlock(buffer, sizeof(buffer));
@@ -138,5 +136,12 @@ bool AudioFileSourceSPIRAMBuffer::bufferFill()
     writePtr = (writePtr + cnt) % ramSize;
 //    Serial.printf("SockRead: %u | RamAvail: %u\n", cnt, bytesAvailable);
   }
+  return;
+}
+
+bool AudioFileSourceBuffer::loop()
+{
+  if (!src->loop()) return false;
+  fill();
   return true;
 }
