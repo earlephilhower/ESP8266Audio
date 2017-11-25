@@ -36,6 +36,7 @@ class AudioFileSource
     virtual bool isOpen() { return false; };
     virtual uint32_t getSize() { return 0; };
     virtual uint32_t getPos() { return 0; };
+    virtual bool loop() { return true; };
 };
 
 #endif

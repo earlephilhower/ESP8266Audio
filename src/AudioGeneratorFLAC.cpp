@@ -67,21 +67,22 @@ bool AudioGeneratorFLAC::begin(AudioFileSource *source, AudioOutput *output)
 bool AudioGeneratorFLAC::loop()
 {
   FLAC__bool ret;
-  if (!running) return false;
 
-  if (!output->ConsumeSample(lastSample)) return true; // Try and send last buffered sample
+  if (!running) goto done;
+
+  if (!output->ConsumeSample(lastSample)) goto done; // Try and send last buffered sample
 
   do {
     if (buffPtr == buffLen) {
       ret = FLAC__stream_decoder_process_single(flac);
       if (!ret) {
         running = false;
-        return false;
+        goto done;
       } else {
         // We might be done...
         if (FLAC__stream_decoder_get_state(flac)==FLAC__STREAM_DECODER_END_OF_STREAM) {
           running = false;
-          return false;
+          goto done;
         }
         unsigned newsr = FLAC__stream_decoder_get_sample_rate(flac);
         unsigned newch = FLAC__stream_decoder_get_channels(flac);
@@ -94,7 +95,7 @@ bool AudioGeneratorFLAC::loop()
 
     // Check for some weird case where above didn't give any data
     if (buffPtr == buffLen) {
-      return true; // At some point the flac better error and we'll retudn 
+      goto done; // At some point the flac better error and we'll retudn 
     }
     if (bitsPerSample <= 16) {
       lastSample[AudioOutput::LEFTCHANNEL] = buff[0][buffPtr] & 0xffff; 
@@ -111,6 +112,10 @@ bool AudioGeneratorFLAC::loop()
     }
     buffPtr++;
   } while (running && output->ConsumeSample(lastSample));
+
+done:
+  file->loop();
+  output->loop();
 
   return running;
 }
