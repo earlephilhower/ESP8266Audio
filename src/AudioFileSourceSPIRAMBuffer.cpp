@@ -34,7 +34,7 @@ AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source
   length = 0;
   filled = false;
   bytesAvailable = 0;
-  Serial.printf("RAM buffer size %u\n", ramSize);
+  Serial.printf("SPI RAM buffer size: %u Bytes\n", ramSize);
 }
 
 AudioFileSourceSPIRAMBuffer::~AudioFileSourceSPIRAMBuffer()
@@ -127,7 +127,7 @@ void AudioFileSourceSPIRAMBuffer::fill()
   uint8_t buffer[256];
   // Make sure there is at least buffer size free in RAM
   if ((ramSize - bytesAvailable)<sizeof(buffer)) {
-	return false;
+	return;
   }
   uint16_t cnt = src->readNonBlock(buffer, sizeof(buffer));
   if (cnt) {
@@ -139,7 +139,7 @@ void AudioFileSourceSPIRAMBuffer::fill()
   return;
 }
 
-bool AudioFileSourceBuffer::loop()
+bool AudioFileSourceSPIRAMBuffer::loop()
 {
   if (!src->loop()) return false;
   fill();
