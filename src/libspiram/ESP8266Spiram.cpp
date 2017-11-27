@@ -24,19 +24,22 @@
 
 #include "ESP8266Spiram.h"
 
-ESP8266Spiram Spiram;
 
 // setup of C/S line as per HSPI default
 ESP8266Spiram::ESP8266Spiram() {
-      Cs=4; // default value
-      SPI.begin();
-      pinMode (Cs, OUTPUT);
-      digitalWrite(Cs, HIGH);
+      Cs=15; // default value
 }
 
 
-// Activate the library setting up ByteMode of operation (see 2.2 pg.5)
-void ESP8266Spiram::begin(void)	{
+// Activate the library setting up SequentialMode of operation (see 2.2 pg.5)
+void ESP8266Spiram::begin(uint8_t csPin)	{
+
+      if (csPin<16) Cs=csPin;
+
+      SPI.begin();
+      pinMode (Cs, OUTPUT);
+      digitalWrite(Cs, HIGH);
+
       digitalWrite(Cs, HIGH);
       delay(50);
       digitalWrite(Cs, LOW);

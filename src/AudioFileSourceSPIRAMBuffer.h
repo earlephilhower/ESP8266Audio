@@ -1,7 +1,7 @@
 /*
-  AudioFileSourceBuffer
-  Double-buffered input file using system RAM
-  
+  AudioFileSourceSPIRAMBuffer
+  Buffered file source in external SPI RAM
+
   Copyright (C) 2017  Earle F. Philhower, III
 
   This program is free software: you can redistribute it and/or modify
@@ -25,12 +25,14 @@
 #include <SPI.h>
 #include "libspiram/ESP8266Spiram.h"
 
+// #define SPIBUF_DEBUG
+
 class AudioFileSourceSPIRAMBuffer : public AudioFileSource
 {
   public:
-    AudioFileSourceSPIRAMBuffer(AudioFileSource *in, uint32_t bufferBytes);
+    AudioFileSourceSPIRAMBuffer(AudioFileSource *in, uint8_t csPin, uint32_t bufferBytes);
     virtual ~AudioFileSourceSPIRAMBuffer() override;
-    
+
     virtual uint32_t read(void *data, uint32_t len) override;
     virtual bool seek(int32_t pos, int dir) override;
     virtual bool close() override;
@@ -44,6 +46,7 @@ class AudioFileSourceSPIRAMBuffer : public AudioFileSource
 
   private:
     AudioFileSource *src;
+    ESP8266Spiram Spiram;
     uint32_t ramSize;
     uint32_t writePtr;
     uint32_t readPtr;

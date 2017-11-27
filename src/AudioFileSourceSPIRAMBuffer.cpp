@@ -1,6 +1,6 @@
 /*
-  AudioFileSourceBuffer
-  Double-buffered file source using system RAM
+  AudioFileSourceSPIRAMBuffer
+  Buffered file source in external SPI RAM
 
   Copyright (C) 2017  Earle F. Philhower, III
 
@@ -23,9 +23,9 @@
 
 #pragma GCC optimize ("O3")
 
-AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source, uint32_t buffSizeBytes)
+AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source, uint8_t csPin, uint32_t buffSizeBytes)
 {
-  Spiram.begin();
+  Spiram.begin(csPin);
   Spiram.setSeqMode();
   ramSize = buffSizeBytes;
   writePtr = 0;
@@ -134,7 +134,9 @@ void AudioFileSourceSPIRAMBuffer::fill()
     Spiram.write(writePtr, buffer, cnt);
     bytesAvailable+=cnt;
     writePtr = (writePtr + cnt) % ramSize;
-//    Serial.printf("SockRead: %u | RamAvail: %u\n", cnt, bytesAvailable);
+#ifdef SPIBUF_DEBUG
+    Serial.printf("SockRead: %u | RamAvail: %u\n", cnt, bytesAvailable);
+#endif
   }
   return;
 }

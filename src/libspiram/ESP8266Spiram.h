@@ -44,7 +44,7 @@ class ESP8266Spiram
 {
   public:
     ESP8266Spiram();
-    void begin(void);
+    void begin(uint8_t csPin);
     void write(uint32_t addr, uint8_t *buff, int len);
     void read(uint32_t addr, uint8_t *buff, int len);
     void setByteMode(void);
