@@ -23,7 +23,7 @@
 
 #include "AudioFileSource.h"
 #include <SPI.h>
-#include "libspiram/ESP8266Spiram.h"
+#include <ESP8266Spiram.h>
 
 // #define SPIBUF_DEBUG
 
@@ -46,7 +46,7 @@ class AudioFileSourceSPIRAMBuffer : public AudioFileSource
 
   private:
     AudioFileSource *src;
-    ESP8266Spiram Spiram;
+    ESP8266Spiram *Spiram;
     uint32_t ramSize;
     uint32_t writePtr;
     uint32_t readPtr;

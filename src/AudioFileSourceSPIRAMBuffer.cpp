@@ -25,8 +25,9 @@
 
 AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source, uint8_t csPin, uint32_t buffSizeBytes)
 {
-  Spiram.begin(csPin);
-  Spiram.setSeqMode();
+  Spiram = new ESP8266Spiram(csPin, 40e6);
+  Spiram->begin();
+  Spiram->setSeqMode();
   ramSize = buffSizeBytes;
   writePtr = 0;
   readPtr = 0;
@@ -83,7 +84,7 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
     while (bytesAvailable!=ramSize) {
       length = src->read(buffer, toRead);
       if(length>0) {
-        Spiram.write(writePtr, buffer, length);
+        Spiram->write(writePtr, buffer, length);
         bytesAvailable+=length;
         writePtr = bytesAvailable % ramSize;
         if ((ramSize-bytesAvailable)<toRead) {
@@ -96,11 +97,13 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
     Serial.println("Filling Done !");
   }
 
+//  Serial.printf("Buffer: %u%\n", bytesAvailable*100/ramSize);
+
   uint8_t *ptr = reinterpret_cast<uint8_t*>(data);
   uint32_t toReadFromBuffer = (len < bytesAvailable) ? len : bytesAvailable;
   if (toReadFromBuffer>0) {
      // Pull from buffer until we've got none left or we've satisfied the request
-    Spiram.read(readPtr, ptr, toReadFromBuffer);
+    Spiram->read(readPtr, ptr, toReadFromBuffer);
     readPtr = (readPtr+toReadFromBuffer) % ramSize;
     bytes = toReadFromBuffer;
     bytesAvailable-=toReadFromBuffer;
@@ -124,14 +127,14 @@ void AudioFileSourceSPIRAMBuffer::fill()
   if (!filled) return;
 
   // Now trying to refill SPI RAM Buffer
-  uint8_t buffer[256];
+  uint8_t buffer[128];
   // Make sure there is at least buffer size free in RAM
   if ((ramSize - bytesAvailable)<sizeof(buffer)) {
 	return;
   }
   uint16_t cnt = src->readNonBlock(buffer, sizeof(buffer));
   if (cnt) {
-    Spiram.write(writePtr, buffer, cnt);
+    Spiram->write(writePtr, buffer, cnt);
     bytesAvailable+=cnt;
     writePtr = (writePtr + cnt) % ramSize;
 #ifdef SPIBUF_DEBUG
