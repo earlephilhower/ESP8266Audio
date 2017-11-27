@@ -2,7 +2,8 @@
   AudioFileSourceSPIRAMBuffer
   Buffered file source in external SPI RAM
 
-  Copyright (C) 2017  Earle F. Philhower, III
+  Copyright (C) 2017  Sebastien Decourriere
+  Based on AudioFileSourceBuffer class from Earle F. Philhower, III
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
