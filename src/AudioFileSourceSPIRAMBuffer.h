@@ -24,7 +24,7 @@
 
 #include "AudioFileSource.h"
 #include <SPI.h>
-#include <ESP8266Spiram.h>
+#include <ESP8266Spiram.h> // https://github.com/Gianbacchio/ESP8266_Spiram
 
 // #define SPIBUF_DEBUG
 
