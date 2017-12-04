@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include "AudioFileSourceHTTPStream.h"
+#include "AudioFileSourceICYStream.h"
 #include "AudioFileSourceBuffer.h"
 #include "AudioGeneratorMP3.h"
 #include "AudioOutputI2SNoDAC.h"
@@ -15,9 +15,15 @@ const char *PASSWORD = ".....";
 const char *URL="http://streaming.shoutcast.com/80sPlanet?lang=en-US";
 
 AudioGeneratorMP3 *mp3;
-AudioFileSourceHTTPStream *file;
+AudioFileSourceICYStream *file;
 AudioFileSourceBuffer *buff;
 AudioOutputI2SNoDAC *out;
+
+void ICYCallback(const char *type, const char *value)
+{
+  Serial.printf("ICY MD: '%s' = '%s'\n", type, value);
+  Serial.flush();
+}
 
 void setup()
 {
@@ -42,7 +48,8 @@ void setup()
     delay(1000);
   }
 
-  file = new AudioFileSourceHTTPStream(URL);
+  file = new AudioFileSourceICYStream(URL);
+  file->setCallback(ICYCallback);
   buff = new AudioFileSourceBuffer(file, 2048);
   out = new AudioOutputI2SNoDAC();
   mp3 = new AudioGeneratorMP3();
@@ -51,7 +58,14 @@ void setup()
 
 void loop()
 {
+  static int lastms = 0;
+
   if (mp3->isRunning()) {
+    if (millis()-lastms > 1000) {
+      lastms = millis();
+      Serial.printf("Running for %d ms...\n", lastms);
+      Serial.flush();
+     }
     if (!mp3->loop()) mp3->stop();
   } else {
     Serial.printf("MP3 done\n");
