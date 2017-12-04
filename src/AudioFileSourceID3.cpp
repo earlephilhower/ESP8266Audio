@@ -180,13 +180,13 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len)
           id3.getByte();
       }
       if (frameid[0]=='T' && frameid[1]=='A' && frameid[2]=='L' && frameid[3] == 'B') {
-        cb("Album", id3.getByte()==1, framesize-1, &id3);
+        if (cb) cb("Album", id3.getByte()==1, framesize-1, &id3);
       } else if (frameid[0]=='T' && frameid[1]=='I' && frameid[2]=='T' && frameid[3] == '2') {
-        cb("Title", id3.getByte()==1, framesize-1, &id3);
+        if (cb) cb("Title", id3.getByte()==1, framesize-1, &id3);
       } else if (frameid[0]=='T' && frameid[1]=='P' && frameid[2]=='E' && frameid[3] == '1') {
-        cb("Performer", id3.getByte()==1, framesize-1, &id3);
+        if (cb) cb("Performer", id3.getByte()==1, framesize-1, &id3);
       } else if (frameid[0]=='T' && frameid[1]=='Y' && frameid[2]=='E' && frameid[3] == 'R') {
-        cb("Year", id3.getByte()==1, framesize-1, &id3);
+        if (cb) cb("Year", id3.getByte()==1, framesize-1, &id3);
       } else {
         for (int j=0; j<framesize; j++)
           id3.getByte();
