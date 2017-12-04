@@ -513,6 +513,7 @@ bool AudioGeneratorMIDI::begin(AudioFileSource *src, AudioOutput *out)
   if (!out->begin()) return false;
 
   output = out;
+  file = src;
 
   running = true;
 

@@ -25,11 +25,13 @@ AudioFileSourceICYStream::AudioFileSourceICYStream()
   pos = 0;
   reconnectTries = 0;
   saveURL = NULL;
+  cb = NULL;
 }
 
 AudioFileSourceICYStream::AudioFileSourceICYStream(const char *url)
 {
   saveURL = NULL;
+  cb = NULL;
   reconnectTries = 0;
   open(url);
 }
@@ -50,13 +52,11 @@ bool AudioFileSourceICYStream::open(const char *url)
   if (http.hasHeader(hdr[0])) {
     String ret = http.header(hdr[0]);
     icyMetaInt = ret.toInt();
-    Serial.printf("ICY metaint = %d\n", icyMetaInt);
   } else {
     icyMetaInt = 0;
   }
   icyByteCount = 0;
   size = http.getSize();
-  Serial.printf("Stream size: %d\n", size);
   free(saveURL);
   saveURL = strdup(url);
   return true;
@@ -66,6 +66,52 @@ AudioFileSourceICYStream::~AudioFileSourceICYStream()
 {
   http.end();
 }
+
+class ICYMDReader {
+  public:
+    ICYMDReader(WiFiClient *str, uint16_t bytes) {
+      stream = str;
+      avail = bytes;
+      ptr = sizeof(buff)+1; // Cause read next time
+    }
+    ~ICYMDReader() {
+      // Get rid of any remaining bytes in the MD block
+      char xxx[16];
+      while (avail > 16) {
+        stream->readBytes(xxx, 16);
+        avail -= 16;
+      }
+      stream->readBytes(xxx, avail);
+    }
+    int read(uint8_t *dest, int len) {
+      int ret = 0;
+      while ((len>0) && (avail>0)) {
+        // Always copy from bounce buffer first
+        while ((ptr < sizeof(buff)) && (len>0) && (avail>0)) {
+          *(dest++) = buff[ptr++];
+          avail--;
+          ret++;
+          len--;
+        }
+        // refill the bounce buffer
+        if ((avail>0) && (len>0)) {
+          ptr = 0;
+          int toRead = (sizeof(buff)>avail)? avail : sizeof(buff);
+          int read = stream->readBytes(buff, toRead);
+          if (read != toRead) return 0; // Error, short read!
+        }
+      }
+      return ret;
+    }
+    bool eof() { return (avail==0); }
+
+  private:
+    WiFiClient *stream;
+    uint16_t avail;
+    uint8_t ptr;
+    uint8_t buff[16];
+};
+
 
 uint32_t AudioFileSourceICYStream::readInternal(void *data, uint32_t len, bool nonBlock)
 {
@@ -126,16 +172,46 @@ retry:
     uint8_t mdSize;
     int mdret = stream->readBytes(&mdSize, 1);
     if ((mdret == 1) && (mdSize > 0)) {
-      char mdBuff[17];
-      mdBuff[16] = 0;
-      Serial.print("ICY MD: ");
-      for (int i=0; i<mdSize; i++) {
-        mdret = stream->readBytes(reinterpret_cast<uint8_t*>(mdBuff), 16);
-        if (mdret == 16) {
-          Serial.printf("%s", mdBuff);
+      ICYMDReader md(stream, mdSize * 16);
+      // Break out (potentially multiple) NAME='xxxx'
+      char type[32];
+      char value[64];
+      while (!md.eof()) {
+        memset(type, 0, sizeof(type));
+        memset(value, 0, sizeof(value));
+        uint8_t c;
+        char *p = type;
+        for (size_t i=0; i<sizeof(type)-1; i++) {
+          int ret = md.read(&c, 1);
+          if (!ret) break;
+          if (c == '=') break;
+          *(p++) = c;
+        }
+        if (c != '=') {
+          // MD type was too long, read remainder and throw away
+          while ((c != '=') && !md.eof()) md.read(&c, 1);
+        }
+        md.read(&c, 1);
+        if (c=='\'') {
+          // Got start of string value, read that, too
+          p = value;
+          for (size_t i=0; i<sizeof(value)-1; i++) {
+            int ret = md.read(&c, 1);
+            if (!ret) break;
+            if (c == '\'') break;
+            if ((c=='\n') || (c=='\r') || (c==' ') || (c=='\t') || (c==0)) continue; // Throw away any whitespace
+            *(p++) = c;
+          }
+          if (c != '\'') {
+            // MD data was too long, read and throw away rest
+            while ((c != '\'') && !md.eof()) md.read(&c, 1);
+          }
+          if (cb) cb(type, value);
+          do {
+            ret = md.read(&c, 1);
+          } while ((c !=';') && (c!=0) && !md.eof());
         }
       }
-      Serial.println("\n---end---");
     }
     icyByteCount = 0;
   }

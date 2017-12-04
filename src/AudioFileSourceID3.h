@@ -1,6 +1,6 @@
 /*
-  AudioFileSourceHTTPStream
-  Connect to a HTTP based streaming service
+  AudioFileSourceID3
+  ID3 filter that extracts any ID3 fields and sends to CB function
   
   Copyright (C) 2017  Earle F. Philhower, III
 
@@ -18,30 +18,32 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _AUDIOFILESOURCEICYSTREAM_H
-#define _AUDIOFILESOURCEICYSTREAM_H
+#ifndef _AUDIOFILESOURCEID3_H
+#define _AUDIOFILESOURCEID3_H
 
 #include <Arduino.h>
-#include <ESP8266HTTPClient.h>
 
-#include "AudioFileSourceHTTPStream.h"
+#include "AudioFileSource.h"
 
-class AudioFileSourceICYStream : public AudioFileSourceHTTPStream
+class AudioFileSourceID3 : public AudioFileSource
 {
   public:
-    AudioFileSourceICYStream();
-    AudioFileSourceICYStream(const char *url);
-    virtual ~AudioFileSourceICYStream() override;
+    AudioFileSourceID3(AudioFileSource *src);
+    virtual ~AudioFileSourceID3() override;
     
-    virtual bool open(const char *url) override;
+    virtual uint32_t read(void *data, uint32_t len) override;
+    virtual bool seek(int32_t pos, int dir) override;
+    virtual bool close() override;
+    virtual bool isOpen() override;
+    virtual uint32_t getSize() override;
+    virtual uint32_t getPos() override;
 
-    typedef void (*callbackFn)(const char *type, const char *value);
+    typedef void (*callbackFn)(const char *type, bool isUnicode, int len, AudioFileSource *stream);
     void setCallback(callbackFn f) { cb = f; }
 
   private:
-    virtual uint32_t readInternal(void *data, uint32_t len, bool nonBlock) override;
-    int icyMetaInt;
-    int icyByteCount;
+    AudioFileSource *src;
+    bool checked;
     callbackFn cb;
 };
 
