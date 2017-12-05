@@ -145,8 +145,8 @@ USB-5V             -- Speaker + Terminal
 Basically the transistor acts as a switch and requires only a drive of 1/beta (~1/1000 for the transistor specified) times the speaker current.  As shown you've got a max current of (5-0.7)/8=540mA and a power of 0.54^2 * 8 = ~2.3W into the speaker.
 
 ## Using external SPI RAM to increase buffer
-A class has been added to use a 23lc1024 SPI RAM from Microchip. This chip connects to ESP8266 HSPI port and use external SPI RAM library (https://github.com/Gianbacchio/ESP8266_Spiram).
-You need to choose another pin than GPIO15 for Cs as this pin is already used by the I2S port. 
+A class allows you to use a 23lc1024 SPI RAM from Microchip as input buffer. This chip connects to ESP8266 HSPI port and use external SPI RAM library (https://github.com/Gianbacchio/ESP8266_Spiram).
+You need to choose another pin than GPIO15 for Cs as this pin is already used by the I2S port. Here is an example with the Cs pin plugged to GPIO00 on NodeMCU board.
 
 ![Example of SPIRAM Schematic](examples/StreamMP3FromHTTP_SPIRAM/Schema_Spiram.png)
 
