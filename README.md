@@ -8,6 +8,16 @@ The AAC decode code is from the Helix project and licensed under RealNetwork's R
 
 MIDI decoding comes from a highly ported MIDITONES (https://github.com/LenShustek/miditones) combined with a massively memory-optimized TinySoundFont (https://github.com/schellingb/TinySoundFont), see the respective source files for more information.
 
+## Installation
+Install the library and the SPI driver library in your ~/Arduino/libraries
+````
+mkdir -p ~/Arduino/libraries
+cd ~/Arduino/libraries
+git clone https://github.com/earlephilhower/ESP8266Audio
+git clone https://github.com/earlephilhower/ESP8266_Spiram
+# Once the pull request is merged, replace above with "git clone https://github.com/Gianbacchio/ESP8266_Spiram"
+````
+
 ## Usage
 Create an AudioInputXXX source pointing to your input file, an AudioOutputXXX sink as either an I2SDAC, I2S-sw-DAC, or as a "SerialWAV" which simply writes a WAV file to the Serial port which can be dumped to a file on your development system, and an AudioGeneratorXXX to actually take that input and decode it and send to the output.
 
