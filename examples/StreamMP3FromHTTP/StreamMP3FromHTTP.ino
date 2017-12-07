@@ -1,4 +1,5 @@
 #include <Arduino.h>
+
 #include <ESP8266WiFi.h>
 #include "AudioFileSourceICYStream.h"
 #include "AudioFileSourceBuffer.h"
@@ -8,8 +9,8 @@
 // To run, set your ESP8266 build to 160MHz, update the SSID info, and upload.
 
 // Enter your WiFi setup here:
-const char *SSID = ".....";
-const char *PASSWORD = ".....";
+const char *SSID = "....";
+const char *PASSWORD = "....";
 
 // Randomly picked URL
 const char *URL="http://streaming.shoutcast.com/80sPlanet?lang=en-US";
@@ -19,11 +20,23 @@ AudioFileSourceICYStream *file;
 AudioFileSourceBuffer *buff;
 AudioOutputI2SNoDAC *out;
 
-void ICYCallback(const char *type, const char *value)
+// Called when a metadata event occurs (i.e. an ID3 tag, an ICY block, etc.
+void MDCallback(void *cbData, const char *type, bool isUnicode, Stream *stream)
 {
-  Serial.printf("ICY MD: '%s' = '%s'\n", type, value);
+  const char *ptr = reinterpret_cast<const char *>(cbData);
+  (void) isUnicode; // Punt this ball for now
+  Serial.printf("METADATA(%s) '%s' = '%s'\n", ptr, type, stream->readString().c_str());
   Serial.flush();
 }
+
+// Called when there's a warning or error (like a buffer underflow or decode hiccup)
+void StatusCallback(void *cbData, int code, const char *string)
+{
+  const char *ptr = reinterpret_cast<const char *>(cbData);
+  Serial.printf("STATUS(%s) '%d' = '%s'\n", ptr, code, string);
+  Serial.flush();
+}
+
 
 void setup()
 {
@@ -47,14 +60,18 @@ void setup()
     Serial.println("...Connecting to WiFi");
     delay(1000);
   }
+  Serial.println("Connected");
 
   file = new AudioFileSourceICYStream(URL);
-  file->setCallback(ICYCallback);
+  file->RegisterMetadataCB(MDCallback, (void*)"ICY");
   buff = new AudioFileSourceBuffer(file, 2048);
+  buff->RegisterStatusCB(StatusCallback, (void*)"buffer");
   out = new AudioOutputI2SNoDAC();
   mp3 = new AudioGeneratorMP3();
+  mp3->RegisterStatusCB(StatusCallback, (void*)"mp3");
   mp3->begin(buff, out);
 }
+
 
 void loop()
 {

@@ -19,19 +19,19 @@
 */
 
 #include "AudioFileSourceICYStream.h"
+#include "AudioFileSourcePROGMEM.h"
+#include "AudioFileStream.h"
 
 AudioFileSourceICYStream::AudioFileSourceICYStream()
 {
   pos = 0;
   reconnectTries = 0;
   saveURL = NULL;
-  cb = NULL;
 }
 
 AudioFileSourceICYStream::AudioFileSourceICYStream(const char *url)
 {
   saveURL = NULL;
-  cb = NULL;
   reconnectTries = 0;
   open(url);
 }
@@ -47,6 +47,7 @@ bool AudioFileSourceICYStream::open(const char *url)
   int code = http.GET();
   if (code != HTTP_CODE_OK) {
     http.end();
+    cb.st(STATUS_HTTPFAIL, "Can't open HTTP request");
     return false;
   }
   if (http.hasHeader(hdr[0])) {
@@ -73,6 +74,7 @@ class ICYMDReader {
       stream = str;
       avail = bytes;
       ptr = sizeof(buff)+1; // Cause read next time
+      saved = -1;
     }
     ~ICYMDReader() {
       // Get rid of any remaining bytes in the MD block
@@ -84,6 +86,8 @@ class ICYMDReader {
       stream->readBytes(xxx, avail);
     }
     int read(uint8_t *dest, int len) {
+      if (!len) return 0;
+      if (saved >= 0) { *(dest++) = (uint8_t)saved; saved = -1; len--; }
       int ret = 0;
       while ((len>0) && (avail>0)) {
         // Always copy from bounce buffer first
@@ -104,12 +108,14 @@ class ICYMDReader {
       return ret;
     }
     bool eof() { return (avail==0); }
+    bool unread(uint8_t c) { if (saved>=0) return false; saved = c; return true; }
 
   private:
     WiFiClient *stream;
     uint16_t avail;
     uint8_t ptr;
     uint8_t buff[16];
+    int saved;
 };
 
 
@@ -117,21 +123,20 @@ uint32_t AudioFileSourceICYStream::readInternal(void *data, uint32_t len, bool n
 {
 retry:
   if (!http.connected()) {
-    Serial.println("Stream disconnected\n");
-    Serial.flush();
+    cb.st(STATUS_DISCONNECTED, "Stream disconnected");
     http.end();
     for (int i = 0; i < reconnectTries; i++) {
-      Serial.printf("Attempting to reconnect, try %d\n", i);
-      Serial.flush();
+      char buff[32];
+      sprintf(buff, "Attempting to reconnect, try %d", i);
+      cb.st(STATUS_RECONNECTING, buff);
       delay(reconnectDelayMs);
       if (open(saveURL)) {
-        Serial.println("Reconnected to stream");
+        cb.st(STATUS_RECONNECTED, "Stream reconnected");
         break;
       }
     }
     if (!http.connected()) {
-      Serial.printf("Unable to reconnect\n");
-      Serial.flush();
+      cb.st(STATUS_DISCONNECTED, "Unable to reconnect");
       return 0;
     }
   }
@@ -149,8 +154,7 @@ retry:
 
   size_t avail = stream->available();
   if (!nonBlock && !avail) {
-    Serial.printf("No stream data available\n");
-    Serial.flush();
+    cb.st(STATUS_NODATA, "No stream data available");
     http.end();
     goto retry;
   }
@@ -172,44 +176,54 @@ retry:
     uint8_t mdSize;
     int mdret = stream->readBytes(&mdSize, 1);
     if ((mdret == 1) && (mdSize > 0)) {
-      ICYMDReader md(stream, mdSize * 16);
+      ICYMDReader mdr(stream, mdSize * 16);
       // Break out (potentially multiple) NAME='xxxx'
       char type[32];
       char value[64];
-      while (!md.eof()) {
+      while (!mdr.eof()) {
         memset(type, 0, sizeof(type));
         memset(value, 0, sizeof(value));
         uint8_t c;
         char *p = type;
         for (size_t i=0; i<sizeof(type)-1; i++) {
-          int ret = md.read(&c, 1);
+          int ret = mdr.read(&c, 1);
           if (!ret) break;
           if (c == '=') break;
           *(p++) = c;
         }
         if (c != '=') {
           // MD type was too long, read remainder and throw away
-          while ((c != '=') && !md.eof()) md.read(&c, 1);
+          while ((c != '=') && !mdr.eof()) mdr.read(&c, 1);
         }
-        md.read(&c, 1);
+        mdr.read(&c, 1);
         if (c=='\'') {
           // Got start of string value, read that, too
           p = value;
           for (size_t i=0; i<sizeof(value)-1; i++) {
-            int ret = md.read(&c, 1);
+            int ret = mdr.read(&c, 1);
             if (!ret) break;
-            if (c == '\'') break;
-            if ((c=='\n') || (c=='\r') || (c==' ') || (c=='\t') || (c==0)) continue; // Throw away any whitespace
+            if (c == '\'') {
+              // Need to special case as you don't escape "'", so look for '; to terminate
+              uint8_t d = ';'; // In case of EOF, return end of line
+              mdr.read(&d, 1);
+              if (d==';') { mdr.unread(d); break; }
+              else { mdr.unread(d); }
+            }
+//            if ((c=='\n') || (c=='\r') || (c==' ') || (c=='\t') || (c==0)) continue; // Throw away any whitespace
             *(p++) = c;
           }
           if (c != '\'') {
             // MD data was too long, read and throw away rest
-            while ((c != '\'') && !md.eof()) md.read(&c, 1);
+            while ((c != '\'') && !mdr.eof()) mdr.read(&c, 1);
           }
-          if (cb) cb(type, value);
+          {
+            AudioFileSourcePROGMEM afsp(value, strlen(value));
+            AudioFileStream afs(&afsp, strlen(value));
+            cb.md(type, false, &afs);
+          }
           do {
-            ret = md.read(&c, 1);
-          } while ((c !=';') && (c!=0) && !md.eof());
+            ret = mdr.read(&c, 1);
+          } while ((c !=';') && (c!=0) && !mdr.eof());
         }
       }
     }

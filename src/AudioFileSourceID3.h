@@ -38,13 +38,9 @@ class AudioFileSourceID3 : public AudioFileSource
     virtual uint32_t getSize() override;
     virtual uint32_t getPos() override;
 
-    typedef void (*callbackFn)(const char *type, bool isUnicode, int len, AudioFileSource *stream);
-    void setCallback(callbackFn f) { cb = f; }
-
   private:
     AudioFileSource *src;
     bool checked;
-    callbackFn cb;
 };
 
 

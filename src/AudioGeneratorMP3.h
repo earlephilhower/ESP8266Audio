@@ -25,7 +25,7 @@
 #include "libmad/config.h"
 #include "libmad/mad.h"
 
-class AudioGeneratorMP3 : AudioGenerator
+class AudioGeneratorMP3 : public AudioGenerator
 {
   public:
     AudioGeneratorMP3();

@@ -22,6 +22,7 @@
 #define _AUDIOGENERATOR_H
 
 #include <Arduino.h>
+#include "AudioStatus.h"
 #include "AudioFileSource.h"
 #include "AudioOutput.h"
 
@@ -35,13 +36,18 @@ class AudioGenerator
     virtual bool stop() { return false; };
     virtual bool isRunning() { return false;};
 
+  public:
+    virtual bool RegisterMetadataCB(AudioStatus::metadataCBFn fn, void *data) { return cb.RegisterMetadataCB(fn, data); }
+    virtual bool RegisterStatusCB(AudioStatus::statusCBFn fn, void *data) { return cb.RegisterStatusCB(fn, data); }
+
   protected:
     bool running;
     AudioFileSource *file;
     AudioOutput *output;
     int16_t lastSample[2];
+
+  protected:
+    AudioStatus cb;
 };
 
-
 #endif
-

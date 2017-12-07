@@ -19,7 +19,7 @@
 */
 
 #include "AudioFileSourceID3.h"
-
+#include "AudioFileStream.h"
 
 // Handle unsync operation in ID3 with custom class
 class AudioFileSourceUnsync : public AudioFileSource
@@ -113,7 +113,6 @@ AudioFileSourceID3::AudioFileSourceID3(AudioFileSource *src)
 {
   this->src = src;
   this->checked = false;
-  this->cb = NULL;
 }
 
 AudioFileSourceID3::~AudioFileSourceID3()
@@ -179,17 +178,18 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len)
         for (int j=0; j<framesize; j++)
           id3.getByte();
       }
-      if (frameid[0]=='T' && frameid[1]=='A' && frameid[2]=='L' && frameid[3] == 'B') {
-        if (cb) cb("Album", id3.getByte()==1, framesize-1, &id3);
-      } else if (frameid[0]=='T' && frameid[1]=='I' && frameid[2]=='T' && frameid[3] == '2') {
-        if (cb) cb("Title", id3.getByte()==1, framesize-1, &id3);
-      } else if (frameid[0]=='T' && frameid[1]=='P' && frameid[2]=='E' && frameid[3] == '1') {
-        if (cb) cb("Performer", id3.getByte()==1, framesize-1, &id3);
-      } else if (frameid[0]=='T' && frameid[1]=='Y' && frameid[2]=='E' && frameid[3] == 'R') {
-        if (cb) cb("Year", id3.getByte()==1, framesize-1, &id3);
-      } else {
-        for (int j=0; j<framesize; j++)
-          id3.getByte();
+      {
+        AudioFileStream afs(&id3, framesize);
+        if (frameid[0]=='T' && frameid[1]=='A' && frameid[2]=='L' && frameid[3] == 'B') {
+          cb.md("Album", afs.read()==1, &afs);
+        } else if (frameid[0]=='T' && frameid[1]=='I' && frameid[2]=='T' && frameid[3] == '2') {
+          cb.md("Title", afs.read()==1, &afs);
+       } else if (frameid[0]=='T' && frameid[1]=='P' && frameid[2]=='E' && frameid[3] == '1') {
+          cb.md("Performer", afs.read()==1, &afs);
+        } else if (frameid[0]=='T' && frameid[1]=='Y' && frameid[2]=='E' && frameid[3] == 'R') {
+          cb.md("Year", afs.read()==1, &afs);
+        }
+        //afs destructor here will read any unread bytes
       }
     }
   } while (!id3.eof());

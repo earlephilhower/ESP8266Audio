@@ -78,7 +78,7 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
   uint32_t bytes = 0;
   if (!filled) {
     // Fill up completely before returning any data at all
-    Serial.println("Buffering...");
+    cb.st(STATUS_FILLING, "Refilling buffer");
     length = src->read(buffer, buffSize);
     writePtr = length % buffSize;
     filled = true;
@@ -115,6 +115,7 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
     writePtr = 0;
     length = 0;
     filled = false;
+    cb.st(STATUS_UNDERFLOW, "Buffer underflow");
   }
 
   fill();

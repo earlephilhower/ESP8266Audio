@@ -42,6 +42,7 @@ bool AudioFileSourceHTTPStream::open(const char *url)
   int code = http.GET();
   if (code != HTTP_CODE_OK) {
     http.end();
+    cb.st(STATUS_HTTPFAIL, "Can't open HTTP request");
     return false;
   }
   size = http.getSize();
@@ -69,21 +70,20 @@ uint32_t AudioFileSourceHTTPStream::readInternal(void *data, uint32_t len, bool 
 {
 retry:
   if (!http.connected()) {
-    Serial.println("Stream disconnected\n");
-    Serial.flush();
+    cb.st(STATUS_DISCONNECTED, "Stream disconnected");
     http.end();
     for (int i = 0; i < reconnectTries; i++) {
-      Serial.printf("Attempting to reconnect, try %d\n", i);
-      Serial.flush();
+      char buff[32];
+      sprintf(buff, "Attempting to reconnect, try %d", i);
+      cb.st(STATUS_RECONNECTING, buff);
       delay(reconnectDelayMs);
       if (open(saveURL)) {
-        Serial.println("Reconnected to stream");
+        cb.st(STATUS_RECONNECTED, "Stream reconnected");
         break;
       }
     }
     if (!http.connected()) {
-      Serial.printf("Unable to reconnect\n");
-      Serial.flush();
+      cb.st(STATUS_DISCONNECTED, "Unable to reconnect");
       return 0;
     }
   }
@@ -101,7 +101,7 @@ retry:
 
   size_t avail = stream->available();
   if (!nonBlock && !avail) {
-    Serial.printf("No stream data available\n");
+    cb.st(STATUS_NODATA, "No stream data available");
     http.end();
     goto retry;
   }

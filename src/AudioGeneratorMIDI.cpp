@@ -70,6 +70,8 @@
 
 void AudioGeneratorMIDI::midi_error(const char *msg, int curpos)
 {
+  cb.st(curpos, msg);
+#if 0
   int ptr;
   Serial.printf("---> MIDI file error at position %04X (%d): %s\n", (uint16_t) curpos, (uint16_t) curpos, msg);
   /* print some bytes surrounding the error */
@@ -82,6 +84,7 @@ void AudioGeneratorMIDI::midi_error(const char *msg, int curpos)
     Serial.printf((ptr + i) == curpos ? " [%02X]  " : "%02X ", (int) c & 0xff);
   }
   Serial.printf("\n");
+#endif
   running = false;
 }
 

@@ -191,6 +191,6 @@ void AudioGeneratorFLAC::metadata_cb(const FLAC__StreamDecoder *decoder, const F
 void AudioGeneratorFLAC::error_cb(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status)
 {
   (void) decoder;
-  Serial.printf("Error:%d\n", status);
+  cb.st((int)status, FLAC__StreamDecoderErrorStatusString[status]);
 }
 

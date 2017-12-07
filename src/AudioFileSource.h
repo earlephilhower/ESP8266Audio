@@ -22,6 +22,7 @@
 #define _AUDIOFILESOURCE_H
 
 #include <Arduino.h>
+#include "AudioStatus.h"
 
 class AudioFileSource
 {
@@ -37,6 +38,13 @@ class AudioFileSource
     virtual uint32_t getSize() { return 0; };
     virtual uint32_t getPos() { return 0; };
     virtual bool loop() { return true; };
+
+  public:
+    virtual bool RegisterMetadataCB(AudioStatus::metadataCBFn fn, void *data) { return cb.RegisterMetadataCB(fn, data); }
+    virtual bool RegisterStatusCB(AudioStatus::statusCBFn fn, void *data) { return cb.RegisterStatusCB(fn, data); }
+
+  protected:
+    AudioStatus cb;
 };
 
 #endif

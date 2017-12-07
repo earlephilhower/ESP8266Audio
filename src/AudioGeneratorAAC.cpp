@@ -108,7 +108,9 @@ bool AudioGeneratorAAC::loop()
     int ret = AACDecode(hAACDecoder, &inBuff, &bytesLeft, outSample);
     if (ret) {
       // Error, skip the frame...
-      Serial.printf("AAC decode error %d\n", ret);
+      char buff[48];
+      sprintf(buff, "AAC decode error %d", ret);
+      cb.st(ret, buff);
     } else {
       lastFrameEnd = buffValid - bytesLeft;
       AACFrameInfo fi;

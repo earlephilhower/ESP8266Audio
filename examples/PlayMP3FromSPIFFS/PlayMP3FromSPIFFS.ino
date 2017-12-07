@@ -16,21 +16,22 @@ AudioFileSourceSPIFFS *file;
 AudioOutputI2SNoDAC *out;
 AudioFileSourceID3 *id3;
 
-void ID3Callback(const char *type, bool unicode, int len, AudioFileSource *src)
+
+// Called when a metadata event occurs (i.e. an ID3 tag, an ICY block, etc.
+void MDCallback(void *cbData, const char *type, bool isUnicode, Stream *stream)
 {
-  Serial.printf("ID3 callback for: %s = [%d bytes] '", type, len);
-  if (unicode && len > 2) {
-    char ign[2];
-    src->read(&ign, 2);
-    len -= 2;
+  (void)cbData;
+  Serial.printf("ID3 callback for: %s = '", type);
+
+  if (isUnicode) {
+    // Skip byte order marker
+    stream->read();
+    stream->read();
   }
-  while (len) {
-    char a, b;
-    src->read(&a, 1);
-    len--;
-    if (unicode && len) {
-      src->read(&b, 1);
-      len--;
+  while (stream->available()) {
+    char a = stream->read();
+    if (isUnicode) {
+      stream->read();
     }
     Serial.printf("%c", a);
   }
@@ -48,7 +49,7 @@ void setup()
   Serial.printf("Sample MP3 playback begins...\n");
   file = new AudioFileSourceSPIFFS("/pno-cs.mp3");
   id3 = new AudioFileSourceID3(file);
-  id3->setCallback(ID3Callback);
+  id3->RegisterMetadataCB(MDCallback, (void*)"ID3TAG");
   out = new AudioOutputI2SNoDAC();
   mp3 = new AudioGeneratorMP3();
   mp3->begin(id3, out);

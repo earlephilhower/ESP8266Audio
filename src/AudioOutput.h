@@ -22,8 +22,9 @@
 #define _AUDIOOUTPUT_H
 
 #include <Arduino.h>
+#include "AudioStatus.h"
 
-class AudioOutput 
+class AudioOutput
 {
   public:
     AudioOutput() { };
@@ -38,6 +39,11 @@ class AudioOutput
     virtual bool stop() { return false; };
     virtual bool loop() { return true; };
 
+  public:
+    virtual bool RegisterMetadataCB(AudioStatus::metadataCBFn fn, void *data) { return cb.RegisterMetadataCB(fn, data); }
+    virtual bool RegisterStatusCB(AudioStatus::statusCBFn fn, void *data) { return cb.RegisterStatusCB(fn, data); }
+
+  protected:
     void MakeSampleStereo16(int16_t sample[2]) {
       // Mono to "stereo" conversion
       if (channels == 1)
@@ -61,6 +67,9 @@ class AudioOutput
     uint8_t bps;
     uint8_t channels;
     uint8_t gainF2P6; // Fixed point 2.6
+
+  protected:
+    AudioStatus cb;
 };
 
 #endif

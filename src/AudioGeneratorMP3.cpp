@@ -67,9 +67,11 @@ bool AudioGeneratorMP3::isRunning()
 enum mad_flow AudioGeneratorMP3::ErrorToFlow()
 {
   char err[64];
+  char errLine[128];
   strcpy_P(err, mad_stream_errorstr(&stream));
-  Serial.printf("Decoding error 0x%04x (%s) at byte offset %d\n", stream.error, err, (stream.this_frame - buff) + lastReadPos);
-  Serial.flush();
+  snprintf(errLine, sizeof(errLine), "Decoding error '%s' at byte offset %d",
+           err, (stream.this_frame - buff) + lastReadPos);
+  cb.st(stream.error, errLine);
   return MAD_FLOW_CONTINUE;
 }
 
@@ -193,11 +195,14 @@ done:
 
 bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output)
 {
-  if (!source) return false;
+  if (!source)  return false;
   file = source;
   if (!output) return false;
   this->output = output;
-  if (!file->isOpen()) return false; // Error
+  if (!file->isOpen()) {
+    Serial.printf("MP3 source file not open\n");
+    return false; // Error
+  }
   if (!output->begin()) return false;
 
   // Where we are in generating one frame's data, set to invalid so we will run loop on first getsample()
