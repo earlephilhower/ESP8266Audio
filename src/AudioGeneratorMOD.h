@@ -23,7 +23,7 @@
 
 #include "AudioGenerator.h"
 
-class AudioGeneratorMOD : AudioGenerator
+class AudioGeneratorMOD : public AudioGenerator
 {
   public:
     AudioGeneratorMOD();

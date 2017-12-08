@@ -23,7 +23,7 @@
 
 #include "AudioGenerator.h"
 
-class AudioGeneratorWAV : AudioGenerator
+class AudioGeneratorWAV : public AudioGenerator
 {
   public:
     AudioGeneratorWAV();

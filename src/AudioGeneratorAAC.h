@@ -24,7 +24,7 @@
 #include "AudioGenerator.h"
 #include "libhelix-aac/aacdec.h"
 
-class AudioGeneratorAAC : AudioGenerator
+class AudioGeneratorAAC : public AudioGenerator
 {
   public:
     AudioGeneratorAAC();

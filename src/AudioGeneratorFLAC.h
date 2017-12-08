@@ -26,7 +26,7 @@ extern "C" {
     #include "libflac/FLAC/stream_decoder.h"
 };
 
-class AudioGeneratorFLAC : AudioGenerator
+class AudioGeneratorFLAC : public AudioGenerator
 {
   public:
     AudioGeneratorFLAC();

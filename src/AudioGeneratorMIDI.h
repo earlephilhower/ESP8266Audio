@@ -26,7 +26,7 @@
 #define TSF_NO_STDIO
 #include "libtinysoundfont/tsf.h"
 
-class AudioGeneratorMIDI : AudioGenerator
+class AudioGeneratorMIDI : public AudioGenerator
 {
   public:
     AudioGeneratorMIDI() { freq=44100; };
