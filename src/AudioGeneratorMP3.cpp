@@ -68,9 +68,14 @@ enum mad_flow AudioGeneratorMP3::ErrorToFlow()
 {
   char err[64];
   char errLine[128];
+
+  // Special case - eat "lost sync @ byte 0" as it always occurs and is not really correct....it never had sync!
+  if ((lastReadPos==0) && (stream.error==MAD_ERROR_LOSTSYNC)) return MAD_FLOW_CONTINUE;
+
   strcpy_P(err, mad_stream_errorstr(&stream));
   snprintf(errLine, sizeof(errLine), "Decoding error '%s' at byte offset %d",
            err, (stream.this_frame - buff) + lastReadPos);
+  yield(); // Something bad happened anyway, ensure WiFi gets some time, too
   cb.st(stream.error, errLine);
   return MAD_FLOW_CONTINUE;
 }
@@ -78,9 +83,11 @@ enum mad_flow AudioGeneratorMP3::ErrorToFlow()
 enum mad_flow AudioGeneratorMP3::Input()
 {
   int unused = 0;
+
   if (stream.next_frame) {
     unused = buffLen - (stream.next_frame - buff);
     memmove(buff, stream.next_frame, unused);
+    stream.next_frame = NULL;
   }
   if (unused == buffLen) {
     // Something wicked this way came, throw it all out and try again
@@ -104,11 +111,7 @@ enum mad_flow AudioGeneratorMP3::Input()
 bool AudioGeneratorMP3::DecodeNextFrame()
 {
   do {
-    if (!inInnerDecode) {
-      if (Input() == MAD_FLOW_STOP) return false;
-    }
     while (1) {
-      inInnerDecode = true;
       if (mad_frame_decode(&frame, &stream) == -1) {
         if (!MAD_RECOVERABLE(stream.error)) break;
         ErrorToFlow(); // Always returns CONTINUE
@@ -117,7 +120,6 @@ bool AudioGeneratorMP3::DecodeNextFrame()
       nsCountMax  = MAD_NSBSAMPLES(&frame.header);
       return true;
     }
-    inInnerDecode = false;
   } while (stream.error == MAD_ERROR_BUFLEN);
   Serial.println("stream.error != mad_Err_bufflen");
   return false;
@@ -125,15 +127,6 @@ bool AudioGeneratorMP3::DecodeNextFrame()
 
 bool AudioGeneratorMP3::GetOneSample(int16_t sample[2])
 {
-  if ( (samplePtr >= synth.pcm.length) && (nsCount >= nsCountMax) ) {
-    if (!DecodeNextFrame()) {
-      Serial.println("DNF failed");
-      return false;
-    }
-    samplePtr = 9999;
-    nsCount = 0;
-  }
-
   if (synth.pcm.samplerate != lastRate) {
     output->SetRate(synth.pcm.samplerate);
     lastRate = synth.pcm.samplerate;
@@ -177,6 +170,20 @@ bool AudioGeneratorMP3::loop()
   // Try and stuff the buffer one sample at a time
   do
   {
+    // Decode next frame if we're beyond the existing generated data
+    if ( (samplePtr >= synth.pcm.length) && (nsCount >= nsCountMax) ) {
+      if (Input() == MAD_FLOW_STOP) {
+        return false;
+      }
+
+      if (!DecodeNextFrame()) {
+        Serial.println("DNF failed");
+        return false;
+      }
+      samplePtr = 9999;
+      nsCount = 0;
+    }
+
     if (!GetOneSample(lastSample)) {
       Serial.println("G1S failed\n");
       running = false;
@@ -212,7 +219,6 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output)
   lastRate = 0;
   lastChannels = 0;
   lastReadPos = 0;
-  inInnerDecode = false;
   buff = reinterpret_cast<unsigned char *>(malloc(buffLen));
   if (!buff) return false;
   

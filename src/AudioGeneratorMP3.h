@@ -50,7 +50,6 @@ class AudioGeneratorMP3 : public AudioGenerator
     int samplePtr;
     int nsCount;
     int nsCountMax;
-    bool inInnerDecode;
 
     // The internal helpers
     enum mad_flow ErrorToFlow();
