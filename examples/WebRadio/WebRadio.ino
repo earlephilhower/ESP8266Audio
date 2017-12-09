@@ -58,7 +58,7 @@ Currently Playing: <span id="titlespan">%s</span><br>
   function updateTitle() {
     var x = new XMLHttpRequest();
     x.open("GET", "title");
-    x.onload = function() { document.getElementById("titlespan").innerHTML=x.responseText; setTimeout(updateTitle, 1000); }
+    x.onload = function() { document.getElementById("titlespan").innerHTML=x.responseText; setTimeout(updateTitle, 5000); }
     x.send();
   }
   setTimeout(updateTitle, 1000);
@@ -73,7 +73,16 @@ Volume: <input type="range" name="vol" min="1" max="150" steps="10" value="%d" o
   }
 </script>
 <hr>
-Status: %s
+Status: <span id="statusspan">%s</span>
+<script type="text/javascript">
+  function updateTitle() {
+    var x = new XMLHttpRequest();
+    x.open("GET", "status");
+    x.onload = function() { document.getElementById("statusspan").innerHTML=x.responseText; setTimeout(updateStatus, 5000); }
+    x.send();
+  }
+  setTimeout(updateStatus, 2000);
+</script>
 <hr>
 <form action="changeurl" method="POST">
 Current URL: %s<br>
@@ -87,9 +96,10 @@ Change URL: <input type="text" name="url">
 
 void IndexHTML()
 {
-  char *webbuff = (char*)malloc(2048);
-  snprintf_P(webbuff, 2048, INDEX, title, volume, volume, status, url);
-  webbuff[2047] = 0;
+  int sz=1500;
+  char *webbuff = (char*)malloc(sz);
+  snprintf_P(webbuff, sz, INDEX, title, volume, volume, status, url);
+  webbuff[sz-1-1] = 0;
   server.send(200, "text/html", webbuff );
   free(webbuff);
 }
@@ -102,6 +112,11 @@ void Send404()
 void GetTitle()
 {
   server.send(200, "text/plain", title);
+}
+
+void GetStatus()
+{
+  server.send(200, "text/plain", status);
 }
 
 void SetVol()
@@ -170,20 +185,19 @@ void MDCallback(void *cbData, const char *type, bool isUnicode, Stream *stream)
   if (strstr(type, "Title")) { 
     strncpy(title, stream->readString().c_str(), sizeof(title));
     title[sizeof(title)-1] = 0;
-    Serial.printf("Set title: %s\n", title);
+//    Serial.printf("Set title: %s\n", title);
   } else {
-    Serial.printf("METADATA(%s) '%s' = '%s'\n", ptr, type, stream->readString().c_str());
+//    Serial.printf("METADATA(%s) '%s' = '%s'\n", ptr, type, stream->readString().c_str());
   }
-  
-  Serial.flush();
+//  Serial.flush();
 }
 void StatusCallback(void *cbData, int code, const char *string)
 {
   const char *ptr = reinterpret_cast<const char *>(cbData);
-  Serial.printf("STATUS(%s) '%d' = '%s'\n", ptr, code, string);
+//  Serial.printf("STATUS(%s) '%d' = '%s'\n", ptr, code, string);
   strncpy(status, string, sizeof(status)-1);
   status[sizeof(status)-1] = 0;
-  Serial.flush();
+//  Serial.flush();
 }
 
 void setup()
@@ -217,6 +231,7 @@ void setup()
   server.on("/", HTTP_GET, IndexHTML);
   server.on("/setvol", HTTP_GET, SetVol);
   server.on("/title", HTTP_GET, GetTitle);
+  server.on("/status", HTTP_GET, GetStatus);
   server.on("/changeurl", HTTP_POST, ChangeURL);
   server.onNotFound(Send404);
   server.begin();
@@ -235,15 +250,17 @@ void loop()
 {
   static int lastms = 0;
   server.handleClient();
-  if (!decoder) return;
   
+  if (millis()-lastms > 1000) {
+    lastms = millis();
+    Serial.printf("Running for %d seconds...Free mem=%d\n", lastms/1000, ESP.getFreeHeap());
+    //Serial.flush();
+  }
+
+  if (!decoder) return;
+
   if (decoder->isRunning()) {
     strcpy(status, "OK"); // By default we're OK unless the decoder says otherwise
-    if (millis()-lastms > 1000) {
-      lastms = millis();
-      Serial.printf("Running for %d seconds...\n", lastms/1000);
-      Serial.flush();
-     }
     if (!decoder->loop()) {
       Serial.println("Stopping decoder");
       decoder->stop();
