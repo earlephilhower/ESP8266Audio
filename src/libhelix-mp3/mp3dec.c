@@ -293,7 +293,7 @@ int MP3Decode(HMP3Decoder hMP3Decoder, unsigned char **inbuf, int *bytesLeft, sh
 	#ifdef PROFILE
 	long time;
 	#endif
-stack(__FUNCTION__, __FILE__, __LINE__);
+
 	if (!mp3DecInfo)
 		return ERR_MP3_NULL_POINTER;
 

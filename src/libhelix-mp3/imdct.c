@@ -267,7 +267,7 @@ static __inline void idct9(int *x)
 	int a19, a20, a21, a22, a23, a24, a25, a26, a27;
 	int m1, m3, m5, m6, m7, m8, m9, m10, m11, m12;
 	int x0, x1, x2, x3, x4, x5, x6, x7, x8;
-stack(__FUNCTION__, __FILE__, __LINE__);
+
 	x0 = x[0]; x1 = x[1]; x2 = x[2]; x3 = x[3]; x4 = x[4];
 	x5 = x[5]; x6 = x[6]; x7 = x[7]; x8 = x[8];
 
@@ -377,7 +377,7 @@ const int fastWin36[18] PROGMEM = {
 	int acc1, acc2, s, d, t, mOut;
 	int xo, xe, c, *xp, yLo, yHi;
 	const int *cp, *wp;
-stack(__FUNCTION__, __FILE__, __LINE__);
+
 	acc1 = acc2 = 0;
 	xCurr += 17;
 
@@ -544,7 +544,7 @@ static __inline void imdct12 (int *x, int *out)
 {
 	int i, es, mOut, yLo, xBuf[18], xPrevWin[18];	/* need temp buffer for reordering short blocks */
 	const int *wp;
-stack(__FUNCTION__, __FILE__, __LINE__);
+
 	es = 0;
 	/* 7 gb is always adequate for accumulator loop + idct12 + window + overlap */
 	if (gb < 7) {
@@ -627,7 +627,7 @@ stack(__FUNCTION__, __FILE__, __LINE__);
 	int xPrevWin[18], currWinIdx, prevWinIdx;
 	int i, j, nBlocksOut, nonZero, mOut;
 	int fiBit, xp;
-stack(__FUNCTION__, __FILE__, __LINE__);
+
 	ASSERT(bc->nBlocksLong  <= NBANDS);
 	ASSERT(bc->nBlocksTotal <= NBANDS);
 	ASSERT(bc->nBlocksPrev  <= NBANDS);
