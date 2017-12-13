@@ -232,3 +232,36 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output)
   return true;
 }
 
+// The following are helper routines for use in libmad to check stack/heap free
+// and to determine if there's enough stack space to allocate some blocks there
+// instead of precious heap.
+
+#undef stack
+extern "C" {
+  #include <cont.h>
+  extern cont_t g_cont;
+
+  void stack(const char *s, const char *t, int i) {
+    (void) t;
+    (void) i;
+    register uint32_t *sp asm("a1");
+    int freestack = 4 * (sp - g_cont.stack);
+    int freeheap = ESP.getFreeHeap();
+    if ((freestack < 512) || (freeheap < 5120)) {
+      static int laststack, lastheap;
+      if (laststack!=freestack|| lastheap !=freeheap)
+        Serial.printf("%s: FREESTACK=%d, FREEHEAP=%d\n", s, /*t, i,*/ freestack, /*cont_get_free_stack(&g_cont),*/ freeheap); Serial.flush();
+      if (freestack < 256) {Serial.printf("out of stack!\n"); while (1); }
+      if (freeheap < 1024) {Serial.printf("out of heap!\n"); while (1); }
+      laststack=freestack;lastheap=freeheap;
+    }
+  }
+
+  int stackfree()
+  {
+    register uint32_t *sp asm("a1");
+    int freestack = 4 * (sp - g_cont.stack);
+    return freestack;
+  }
+}
+

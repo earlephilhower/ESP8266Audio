@@ -1321,8 +1321,16 @@ enum mad_error III_reorder(mad_fixed_t xr[576], struct channel const *channel,
 {
   unsigned int sb, l, f, w, sbw[3], sw[3];
   mad_fixed_t *tmp; // [32][3][6]
-  tmp = (mad_fixed_t*)malloc(sizeof(mad_fixed_t)*32*3*6);
-  if (!tmp) return MAD_ERROR_NOMEM;
+  // See if we can allocate this buffer on the stack and save heap
+  char onstack = 0;
+  if (stackfree() > (int)(100 + sizeof(mad_fixed_t)*32*3*6)) {
+    onstack = 1;
+    tmp = alloca(sizeof(mad_fixed_t)*32*3*6);
+  } else {
+    tmp = (mad_fixed_t*)malloc(sizeof(mad_fixed_t)*32*3*6);
+    if (!tmp) return MAD_ERROR_NOMEM;
+  }
+
   stack(__FUNCTION__, __FILE__, __LINE__);
 
   /* this is probably wrong for 8000 Hz mixed blocks */
@@ -1360,7 +1368,8 @@ enum mad_error III_reorder(mad_fixed_t xr[576], struct channel const *channel,
 
   memcpy(&xr[18 * sb], &tmp[sb * 3 * 6], (576 - 18 * sb) * sizeof(mad_fixed_t));
 
-  free(tmp);
+  if (!onstack) free(tmp);
+  // If it's on the stack, it'll go away on the return
   return MAD_ERROR_NONE;
 }
 

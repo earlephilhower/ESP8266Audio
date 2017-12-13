@@ -7,6 +7,15 @@
 // Uncomment to show heap and stack space on entry
 #define stack(a,b,c)
 
+// Helper function to see if we can allocate one chunk on the stack
+# ifdef __cplusplus
+extern "C" {
+# endif
+extern int stackfree();
+# ifdef __cplusplus
+};
+# endif
+
 /* Define to enable experimental code. */
 /* #undef EXPERIMENTAL */
 
