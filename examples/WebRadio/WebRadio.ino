@@ -25,7 +25,9 @@
 #include "AudioGeneratorMP3.h"
 #include "AudioGeneratorAAC.h"
 #include "AudioOutputI2SDAC.h"
-#include "ESP8266WebServer.h"
+
+// Custom web server that doesn't need much RAM
+#include "web.h"
 
 // To run, set your ESP8266 build to 160MHz, update the SSID info, and upload.
 
@@ -33,27 +35,24 @@
 const char *SSID = "....";
 const char *PASSWORD = "....";
 
-ESP8266WebServer server(80);
+WiFiServer server(80);
 
-AudioGenerator *decoder;
-AudioFileSourceICYStream *file;
-AudioFileSourceBuffer *buff;
-AudioOutputI2SDAC *out;
+AudioGenerator *decoder = NULL;
+AudioFileSourceICYStream *file = NULL;
+AudioFileSourceBuffer *buff = NULL;
+AudioOutputI2SDAC *out = NULL;
 
 int volume = 100;
 char title[64];
 char url[64];
 char status[64];
+bool newUrl = false;
+bool isAAC = false;
 
 // C++11 multiline string constants are neato...
-const char INDEX[] PROGMEM = R"KEWL(<html>
+static const char HEAD[] PROGMEM = R"KEWL(
 <head>
 <title>ESP8266 Web Radio</title>
-</head>
-<body>
-ESP8266 Web Radio!
-<hr>
-Currently Playing: <span id="titlespan">%s</span><br>
 <script type="text/javascript">
   function updateTitle() {
     var x = new XMLHttpRequest();
@@ -62,183 +61,194 @@ Currently Playing: <span id="titlespan">%s</span><br>
     x.send();
   }
   setTimeout(updateTitle, 1000);
-</script>
-Volume: <input type="range" name="vol" min="1" max="150" steps="10" value="%d" onchange="showValue(this.value)"/> <span id="volspan">%d</span>%%
-<script type="text/javascript">
   function showValue(n) {
     document.getElementById("volspan").innerHTML=n;
     var x = new XMLHttpRequest();
     x.open("GET", "setvol?vol="+n);
     x.send();
   }
-</script>
-<hr>
-Status: <span id="statusspan">%s</span>
-<script type="text/javascript">
-  function updateTitle() {
-    var x = new XMLHttpRequest();
+  function updateTitle() {var x = new XMLHttpRequest();
     x.open("GET", "status");
     x.onload = function() { document.getElementById("statusspan").innerHTML=x.responseText; setTimeout(updateStatus, 5000); }
     x.send();
   }
   setTimeout(updateStatus, 2000);
 </script>
+</head>)KEWL";
+
+static const char BODY[] PROGMEM = R"KEWL(
+<body>
+ESP8266 Web Radio!
 <hr>
-<form action="changeurl" method="POST">
+Currently Playing: <span id="titlespan">%s</span><br>
+Volume: <input type="range" name="vol" min="1" max="150" steps="10" value="%d" onchange="showValue(this.value)"/> <span id="volspan">%d</span>%%
+<hr>
+Status: <span id="statusspan">%s</span>
+<hr>
+<form action="changeurl" method="GET">
 Current URL: %s<br>
 Change URL: <input type="text" name="url">
 <select name="type"><option value="mp3">MP3</option><option value="aac">AAC</option></select>
 <input type="submit" value="Change"></form>
-</body>
-</html>)KEWL";
+<form action="stop" method="POST"><input type="submit" value="Stop"></form>
+</body>)KEWL";
 
-// Static spot to store the web sprintf's
-
-void IndexHTML()
+void HandleIndex(WiFiClient *client)
 {
-  int sz=1500;
-  char *webbuff = (char*)malloc(sz);
-  snprintf_P(webbuff, sz, INDEX, title, volume, volume, status, url);
-  webbuff[sz-1-1] = 0;
-  server.send(200, "text/html", webbuff );
-  free(webbuff);
+  char buff[sizeof(BODY) + 64*3 + 3*2];
+  
+  Serial.printf_P(PSTR("Sending INDEX...Free mem=%d\n"), ESP.getFreeHeap());
+  WebHeaders(client, NULL);
+  WebPrintf(client, DOCTYPE);
+  client->write_P( PSTR("<html>"), 6 );
+  client->write_P( HEAD, strlen_P(HEAD) );
+  sprintf_P(buff, BODY, title, volume, volume, status, url);
+  client->write(buff, strlen(buff) );
+  client->write_P( PSTR("</html>"), 7 );
+  Serial.printf_P(PSTR("Sent INDEX...Free mem=%d\n"), ESP.getFreeHeap());
 }
 
-void Send404()
+void HandleStatus(WiFiClient *client)
 {
-  server.send(404, "text/plain", "404: Not Found");
+  WebHeaders(client, NULL);
+  client->write(status, strlen(status));
 }
 
-void GetTitle()
+void HandleTitle(WiFiClient *client)
 {
-  server.send(200, "text/plain", title);
+  WebHeaders(client, NULL);
+  client->write(title, strlen(title));
 }
 
-void GetStatus()
+void HandleVolume(WiFiClient *client, char *params)
 {
-  server.send(200, "text/plain", status);
-}
-
-void SetVol()
-{
-  if (server.hasArg("vol")) {
-    int vol = 100;
-    int ret = sscanf(server.arg("vol").c_str(), "%d", &vol);
-    if (ret==1) {
-      if (vol < 0) vol = 0;
-      if (vol > 150) vol = 150;
-      if (out) out->SetGain(((float)vol)/100.0);
-      volume = vol;
-      Serial.printf("Set volume: %d\n", volume);
-      server.sendHeader("Location", "/", true);
-      server.send(301, "text/plain", "");
-    }
+  char *namePtr;
+  char *valPtr;
+  
+  while (ParseParam(&params, &namePtr, &valPtr)) {
+    ParamInt("vol", volume);
   }
+  Serial.printf_P(PSTR("Set volume: %d\n"), volume);
+  RedirectToIndex(client);
 }
 
-void ChangeURL()
+void HandleChangeURL(WiFiClient *client, char *params)
 {
-  if (server.hasArg("url") && server.hasArg("type")) {
-    // Stop and free existing ones
-    if (decoder) {
-      decoder->stop();
-      delete decoder;
-    }
-    if (buff) {
-      buff->close();
-      delete buff;
-    }
-    if (out) {
-      out->stop();
-      delete out;
-    }
-    if (file) {
-      file->close();
-      delete file;
-    }
+  char *namePtr;
+  char *valPtr;
+  char newURL[64];
+  char newType[4];
 
-    strncpy(url, server.arg("url").c_str(), sizeof(url)-1);
+  newURL[0] = 0;
+  newType[0] = 0;
+  while (ParseParam(&params, &namePtr, &valPtr)) {
+    ParamText("url", newURL);
+    ParamText("type", newType);
+  }
+  if (newURL[0] && newType[0]) {
+    newUrl = true;
+    strncpy(url, newURL, sizeof(url)-1);
     url[sizeof(url)-1] = 0;
-    file = new AudioFileSourceICYStream(server.arg("url").c_str());
-    file->RegisterMetadataCB(MDCallback, (void*)"ICY");
-    buff = new AudioFileSourceBuffer(file, 2048);
-    buff->RegisterStatusCB(StatusCallback, (void*)"buffer");
-    out = new AudioOutputI2SDAC();
-    if (!strcmp(server.arg("type").c_str(), "aac")) {
-      decoder = new AudioGeneratorAAC();
+    if (!strcmp_P(newType, PSTR("aac"))) {
+      isAAC = true;
     } else {
-      decoder = new AudioGeneratorMP3();
+      isAAC = false;
     }
-    decoder->RegisterStatusCB(StatusCallback, (void*)"mp3");
-    decoder->begin(buff, out);
-    out->SetGain(((float)volume)/100.0);
-    server.sendHeader("Location", "/", true);
-    server.send(301, "text/plain", "");
+    strcpy_P(status, PSTR("Changing URL..."));
+    Serial.printf_P("Changed URL to: %s(%s)\n", url, newType);
+    RedirectToIndex(client);
   } else {
-    Send404(); // Need to specify those params or you're in error!
+    WebError(client, 404, NULL, false);
   }
 }
+
+void RedirectToIndex(WiFiClient *client)
+{
+  WebError(client, 301, PSTR("Location: /\r\n"), true);
+}
+
+void HandleStop(WiFiClient *client)
+{
+  Serial.printf_P(PSTR("HandleStop()\n"));
+  if (decoder) {
+    decoder->stop();
+    delete decoder;
+    decoder = NULL;
+  }
+  if (out) {
+    out->stop();
+    delete out;
+    out = NULL;
+  }
+  if (buff) {
+    buff->close();
+    delete buff;
+    buff = NULL;
+  }
+  if (file) {
+    file->close();
+    delete file;
+    file = NULL;
+  }
+  strcpy_P(status, PSTR("Stopped"));
+  RedirectToIndex(client);
+}
+
 void MDCallback(void *cbData, const char *type, bool isUnicode, Stream *stream)
 {
   const char *ptr = reinterpret_cast<const char *>(cbData);
   (void) isUnicode; // Punt this ball for now
+  (void) ptr;
   if (strstr(type, "Title")) { 
     strncpy(title, stream->readString().c_str(), sizeof(title));
     title[sizeof(title)-1] = 0;
-//    Serial.printf("Set title: %s\n", title);
   } else {
-//    Serial.printf("METADATA(%s) '%s' = '%s'\n", ptr, type, stream->readString().c_str());
+    // Who knows what yo do?  Not me!
   }
-//  Serial.flush();
 }
 void StatusCallback(void *cbData, int code, const char *string)
 {
   const char *ptr = reinterpret_cast<const char *>(cbData);
-//  Serial.printf("STATUS(%s) '%d' = '%s'\n", ptr, code, string);
+  (void) code;
+  (void) ptr;
   strncpy(status, string, sizeof(status)-1);
   status[sizeof(status)-1] = 0;
-//  Serial.flush();
 }
 
 void setup()
 {
   Serial.begin(115200);
-  delay(1000);
-  Serial.println("Connecting to WiFi");
 
-  WiFi.disconnect();
-  WiFi.softAPdisconnect(true);
+  delay(1000);
+  Serial.printf_P(PSTR("Connecting to WiFi\n"));
+
+//  WiFi.disconnect();
+//  WiFi.softAPdisconnect(true);
   WiFi.mode(WIFI_STA);
   
-  WiFi.hostname("melody");
+//  WiFi.hostname("melody");
   
-  byte zero[] = {0,0,0,0};
-  WiFi.config(zero, zero, zero, zero);
+//  byte zero[] = {0,0,0,0};
+//  WiFi.config(zero, zero, zero, zero);
 
   WiFi.begin(SSID, PASSWORD);
 
   // Try forever
   while (WiFi.status() != WL_CONNECTED) {
-    Serial.println("...Connecting to WiFi");
+    Serial.printf_P(PSTR("...Connecting to WiFi\n"));
     delay(1000);
   }
-  Serial.println("Connected\n");
+  Serial.printf_P(PSTR("Connected\n"));
   
-  Serial.print("Go to http://");
+  Serial.printf_P(PSTR("Go to http://"));
   Serial.print(WiFi.localIP());
-  Serial.println("/ to control the web radio.");
+  Serial.printf_P(PSTR("/ to control the web radio.\n"));
 
-  server.on("/", HTTP_GET, IndexHTML);
-  server.on("/setvol", HTTP_GET, SetVol);
-  server.on("/title", HTTP_GET, GetTitle);
-  server.on("/status", HTTP_GET, GetStatus);
-  server.on("/changeurl", HTTP_POST, ChangeURL);
-  server.onNotFound(Send404);
   server.begin();
-
-  strcpy(url, "none");
-  strcpy(status, "OK");
-  strcpy(title, "Idle");
+  
+  strcpy_P(url, PSTR("none"));
+  strcpy_P(status, PSTR("OK"));
+  strcpy_P(title, PSTR("Idle"));
 
   file = NULL;
   buff = NULL;
@@ -246,28 +256,99 @@ void setup()
   decoder = NULL;
 }
 
+void StartNewURL()
+{
+  Serial.printf_P(PSTR("Changing URL to: "));
+  Serial.println(url);
+  newUrl = false;
+  // Stop and free existing ones
+  if (decoder) {
+    decoder->stop();
+    delete decoder;
+  }
+  if (buff) {
+    buff->close();
+    delete buff;
+  }
+  if (out) {
+    out->stop();
+    delete out;
+  }
+  if (file) {
+    file->close();
+    delete file;
+  }
+
+  file = new AudioFileSourceICYStream(url);
+  file->RegisterMetadataCB(MDCallback, NULL);
+  buff = new AudioFileSourceBuffer(file, 1500);
+  buff->RegisterStatusCB(StatusCallback, NULL);
+  out = new AudioOutputI2SDAC();
+  decoder = isAAC ? (AudioGenerator*) new AudioGeneratorAAC() : (AudioGenerator*) new AudioGeneratorMP3();
+  decoder->RegisterStatusCB(StatusCallback, NULL);
+  decoder->begin(file, out);
+  out->SetGain(((float)volume)/100.0);
+  if (!decoder->isRunning()) {
+    Serial.printf_P(PSTR("Can't connect to URL"));
+    decoder->stop();
+    out->stop();
+    buff->close();
+    delete decoder;
+    delete file;
+    delete buff;
+    delete out;
+    decoder = NULL;
+    strcpy_P(status, PSTR("Unable to connect to URL"));
+  }
+}
+
 void loop()
 {
   static int lastms = 0;
-  server.handleClient();
-  
   if (millis()-lastms > 1000) {
     lastms = millis();
-    Serial.printf("Running for %d seconds...Free mem=%d\n", lastms/1000, ESP.getFreeHeap());
-    //Serial.flush();
+    Serial.printf_P(PSTR("Running for %d seconds...Free mem=%d\n"), lastms/1000, ESP.getFreeHeap());
+  }
+ 
+  if (newUrl) {
+    StartNewURL();
   }
 
-  if (!decoder) return;
-
-  if (decoder->isRunning()) {
+  if (decoder && decoder->isRunning()) {
     strcpy(status, "OK"); // By default we're OK unless the decoder says otherwise
     if (!decoder->loop()) {
-      Serial.println("Stopping decoder");
+      Serial.printf_P(PSTR("Stopping decoder"));
       decoder->stop();
-      strcpy(title, "Stopped");
+      strcpy_P(title, PSTR("Stopped"));
     }
   } else {
    // Nothing here
+  }
+
+  char *reqUrl;
+  char *params;
+  WiFiClient client = server.available();
+  if (client && WebReadRequest(&client, &reqUrl, &params)) {
+    Serial.printf_P(PSTR("URL: '%s'\n"), reqUrl);
+    if (IsIndexHTML(reqUrl)) {
+      HandleIndex(&client);
+    } else if (!strcmp_P(reqUrl, PSTR("stop"))) {
+      HandleStop(&client);
+    } else if (!strcmp_P(reqUrl, PSTR("status"))) {
+      HandleStatus(&client);
+    } else if (!strcmp_P(reqUrl, PSTR("title"))) {
+      HandleTitle(&client);
+    } else if (!strcmp_P(reqUrl, PSTR("setvol"))) {
+      HandleVolume(&client, params);
+    } else if (!strcmp_P(reqUrl, PSTR("changeurl"))) {
+      HandleChangeURL(&client, params);
+    } else {
+      WebError(&client, 404, NULL, false);
+    }
+  }
+  if (client) {
+    client.flush();
+    client.stop();
   }
 }
 
