@@ -334,11 +334,18 @@ void StartNewURL()
 void loop()
 {
   static int lastms = 0;
+  static int retryms = 0;
+
   if (millis()-lastms > 1000) {
     lastms = millis();
     Serial.printf_P(PSTR("Running for %d seconds...Free mem=%d\n"), lastms/1000, ESP.getFreeHeap());
   }
- 
+
+  if (retryms && millis()-retryms>0) {
+    retryms = 0;
+    newUrl = true;
+  }
+
   if (newUrl) {
     StartNewURL();
   }
@@ -349,6 +356,7 @@ void loop()
       Serial.printf_P(PSTR("Stopping decoder\n"));
       decoder->stop();
       StopPlaying();
+      retryms = millis() + 2000;
     }
   } else {
    // Nothing here
