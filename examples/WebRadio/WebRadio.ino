@@ -58,6 +58,7 @@ static const char HEAD[] PROGMEM = R"KEWL(
     var x = new XMLHttpRequest();
     x.open("GET", "title");
     x.onload = function() { document.getElementById("titlespan").innerHTML=x.responseText; setTimeout(updateTitle, 5000); }
+    x.onerror = function() { setTimeout(updateTitle, 5000); }
     x.send();
   }
   setTimeout(updateTitle, 1000);
@@ -67,9 +68,10 @@ static const char HEAD[] PROGMEM = R"KEWL(
     x.open("GET", "setvol?vol="+n);
     x.send();
   }
-  function updateTitle() {var x = new XMLHttpRequest();
+  function updateStatus() {var x = new XMLHttpRequest();
     x.open("GET", "status");
     x.onload = function() { document.getElementById("statusspan").innerHTML=x.responseText; setTimeout(updateStatus, 5000); }
+    x.onerror = function() { setTimeout(updateStatus, 5000); }
     x.send();
   }
   setTimeout(updateStatus, 2000);
@@ -315,7 +317,7 @@ void loop()
   }
 
   if (decoder && decoder->isRunning()) {
-    strcpy(status, "OK"); // By default we're OK unless the decoder says otherwise
+    strcpy_P(status, PSTR("Playing")); // By default we're OK unless the decoder says otherwise
     if (!decoder->loop()) {
       Serial.printf_P(PSTR("Stopping decoder"));
       decoder->stop();
