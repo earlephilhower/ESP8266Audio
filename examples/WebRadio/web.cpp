@@ -24,8 +24,6 @@
 
 #define LogPrintf(fmt, ...) { Serial.printf_P(PSTR(fmt), ## __VA_ARGS__); }
 
-// Web request line (URL, PARAMs parsed in-line)
-static char reqBuff[384];
 
 void WebPrintError(WiFiClient *client, int code)
 {
@@ -155,7 +153,7 @@ void URLDecode(char *ptr)
 
 
 // Parse HTTP request
-bool WebReadRequest(WiFiClient *client, char **urlStr, char **paramStr)
+bool WebReadRequest(WiFiClient *client, char *reqBuff, int reqBuffLen, char **urlStr, char **paramStr)
 {
   static char NUL = 0; // Get around writable strings...
 
@@ -169,7 +167,7 @@ bool WebReadRequest(WiFiClient *client, char **urlStr, char **paramStr)
     LogPrintf("-WebReadRequest: Timeout @ %d\n", millis());
     return false;
   }
-  int wlen = client->readBytesUntil('\r', reqBuff, sizeof(reqBuff)-1);
+  int wlen = client->readBytesUntil('\r', reqBuff, reqBuffLen-1);
   reqBuff[wlen] = 0;
 
   
@@ -206,7 +204,7 @@ bool WebReadRequest(WiFiClient *client, char **urlStr, char **paramStr)
     qp = strchr(url, '?');
     if (qp) *qp = 0; // End URL @ ?
     // In a POST the params are in the body
-    int sizeleft = sizeof(reqBuff) - strlen(reqBuff) - 1;
+    int sizeleft = reqBuffLen - strlen(reqBuff) - 1;
     qp = reqBuff + strlen(reqBuff) + 1;
     int wlen = client->readBytesUntil('\r', qp, sizeleft-1);
     qp[wlen] = 0;

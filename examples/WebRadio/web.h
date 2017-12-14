@@ -41,7 +41,7 @@ void Base64Decode(char *str); // In-place B64 decode
 void URLDecode(char *ptr); // In-place URL decode
 
 // GET/POST parsing
-bool WebReadRequest(WiFiClient *client, char **urlStr, char **paramStr);
+bool WebReadRequest(WiFiClient *client, char *reqBuff, int reqBuffLen, char **urlStr, char **paramStr);
 bool ParseParam(char **paramStr, char **name, char **value); // Get next name/parameter from a param string
 bool IsIndexHTML(const char *url); // Is this meant to be index.html (/, index.htm, etc.)
 

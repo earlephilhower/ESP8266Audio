@@ -319,7 +319,7 @@ void loop()
   if (decoder && decoder->isRunning()) {
     strcpy_P(status, PSTR("Playing")); // By default we're OK unless the decoder says otherwise
     if (!decoder->loop()) {
-      Serial.printf_P(PSTR("Stopping decoder"));
+      Serial.printf_P(PSTR("Stopping decoder\n"));
       decoder->stop();
       strcpy_P(title, PSTR("Stopped"));
     }
@@ -330,7 +330,8 @@ void loop()
   char *reqUrl;
   char *params;
   WiFiClient client = server.available();
-  if (client && WebReadRequest(&client, &reqUrl, &params)) {
+  char *reqBuff = (char *)alloca(384);
+  if (client && WebReadRequest(&client, reqBuff, 384, &reqUrl, &params)) {
     Serial.printf_P(PSTR("URL: '%s'\n"), reqUrl);
     if (IsIndexHTML(reqUrl)) {
       HandleIndex(&client);
