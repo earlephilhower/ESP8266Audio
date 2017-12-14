@@ -169,9 +169,8 @@ void RedirectToIndex(WiFiClient *client)
   WebError(client, 301, PSTR("Location: /\r\n"), true);
 }
 
-void HandleStop(WiFiClient *client)
+void StopPlaying()
 {
-  Serial.printf_P(PSTR("HandleStop()\n"));
   if (decoder) {
     decoder->stop();
     delete decoder;
@@ -193,6 +192,13 @@ void HandleStop(WiFiClient *client)
     file = NULL;
   }
   strcpy_P(status, PSTR("Stopped"));
+  strcpy_P(title, PSTR("Stopped"));
+}
+
+void HandleStop(WiFiClient *client)
+{
+  Serial.printf_P(PSTR("HandleStop()\n"));
+  StopPlaying();
   RedirectToIndex(client);
 }
 
@@ -321,7 +327,7 @@ void loop()
     if (!decoder->loop()) {
       Serial.printf_P(PSTR("Stopping decoder\n"));
       decoder->stop();
-      strcpy_P(title, PSTR("Stopped"));
+      StopPlaying();
     }
   } else {
    // Nothing here
