@@ -29,7 +29,10 @@ AudioGeneratorMP3a::AudioGeneratorMP3a()
   file = NULL;
   output = NULL;
   hMP3Decoder = MP3InitDecoder();
-  if (!hMP3Decoder) { Serial.println("Out of memory error! hMP3Decoder==NULL"); Serial.flush(); }
+  if (!hMP3Decoder) {
+    Serial.printf_P(PSTR("Out of memory error! hMP3Decoder==NULL\n"));
+    Serial.flush();
+  }
   // For sanity's sake...
   memset(buff, 0, sizeof(buff));
   memset(outSample, 0, sizeof(outSample));

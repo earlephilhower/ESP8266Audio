@@ -98,7 +98,7 @@ enum mad_flow AudioGeneratorMP3::Input()
   int len = buffLen - unused;
   len = file->read(buff + unused, len);
   if (len == 0) {
-    Serial.println("MP3 stop, len==0");
+    Serial.printf_P(PSTR("MP3 stop, len==0\n"));
     return MAD_FLOW_STOP;
   }
 
@@ -121,7 +121,7 @@ bool AudioGeneratorMP3::DecodeNextFrame()
       return true;
     }
   } while (stream.error == MAD_ERROR_BUFLEN);
-  Serial.println("stream.error != mad_Err_bufflen");
+  Serial.printf_P(PSTR("stream.error != mad_Err_bufflen\n"));
   return false;
 }
 
@@ -146,7 +146,7 @@ bool AudioGeneratorMP3::GetOneSample(int16_t sample[2])
     
     switch ( mad_synth_frame_onens(&synth, &frame, nsCount++) ) {
         case MAD_FLOW_STOP:
-        case MAD_FLOW_BREAK: Serial.println("msf1ns failed\n");
+        case MAD_FLOW_BREAK: Serial.printf_P(PSTR("msf1ns failed\n"));
           return false; // Either way we're done
         default:
           break; // Do nothing
@@ -177,7 +177,7 @@ bool AudioGeneratorMP3::loop()
       }
 
       if (!DecodeNextFrame()) {
-        Serial.println("DNF failed");
+        Serial.printf_P(PSTR("DNF failed\n"));
         return false;
       }
       samplePtr = 9999;
@@ -185,7 +185,7 @@ bool AudioGeneratorMP3::loop()
     }
 
     if (!GetOneSample(lastSample)) {
-      Serial.println("G1S failed\n");
+      Serial.printf_P(PSTR("G1S failed\n"));
       running = false;
       goto done;
     }
@@ -207,7 +207,7 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output)
   if (!output) return false;
   this->output = output;
   if (!file->isOpen()) {
-    Serial.printf("MP3 source file not open\n");
+    Serial.printf_P(PSTR("MP3 source file not open\n"));
     return false; // Error
   }
   if (!output->begin()) return false;
@@ -249,11 +249,18 @@ extern "C" {
     int freeheap = ESP.getFreeHeap();
     if ((freestack < 512) || (freeheap < 5120)) {
       static int laststack, lastheap;
-      if (laststack!=freestack|| lastheap !=freeheap)
-        Serial.printf("%s: FREESTACK=%d, FREEHEAP=%d\n", s, /*t, i,*/ freestack, /*cont_get_free_stack(&g_cont),*/ freeheap); Serial.flush();
-      if (freestack < 256) {Serial.printf("out of stack!\n"); while (1); }
-      if (freeheap < 1024) {Serial.printf("out of heap!\n"); while (1); }
-      laststack=freestack;lastheap=freeheap;
+      if (laststack!=freestack|| lastheap !=freeheap) {
+        Serial.printf_P(PSTR("%s: FREESTACK=%d, FREEHEAP=%d\n"), s, /*t, i,*/ freestack, /*cont_get_free_stack(&g_cont),*/ freeheap);
+      }
+      if (freestack < 256) {
+        Serial.printf_P(PSTR("out of stack!\n"));
+      }
+      if (freeheap < 1024) {
+        Serial.printf_P(PSTR("out of heap!\n"));
+      }
+      Serial.flush();
+      laststack=freestack;
+      lastheap=freeheap;
     }
   }
 

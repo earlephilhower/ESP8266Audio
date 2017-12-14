@@ -67,7 +67,7 @@ bool AudioOutputSerialWAV::ConsumeSample(int16_t sample[2])
 
 bool AudioOutputSerialWAV::stop()
 {
-  Serial.print("\n\n\nEOF\n\n\n");
+  Serial.printf_P(PSTR("\n\n\nEOF\n\n\n"));
   return true;
 }
  
