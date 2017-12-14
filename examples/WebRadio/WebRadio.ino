@@ -25,6 +25,7 @@
 #include "AudioGeneratorMP3.h"
 #include "AudioGeneratorAAC.h"
 #include "AudioOutputI2SDAC.h"
+#include <EEPROM.h>
 
 // Custom web server that doesn't need much RAM
 #include "web.h"
@@ -48,6 +49,11 @@ char url[64];
 char status[64];
 bool newUrl = false;
 bool isAAC = false;
+
+typedef struct {
+  char url[64];
+  int16_t checksum;
+} Settings;
 
 // C++11 multiline string constants are neato...
 static const char HEAD[] PROGMEM = R"KEWL(
@@ -262,6 +268,23 @@ void setup()
   buff = NULL;
   out = NULL;
   decoder = NULL;
+
+  // Restore from EEPROM, check the checksum matches
+  Settings s;
+  uint8_t *ptr = reinterpret_cast<uint8_t *>(&s);
+  EEPROM.begin(sizeof(s));
+  for (size_t i=0; i<sizeof(s); i++) {
+    ptr[i] = EEPROM.read(i);
+  }
+  EEPROM.end();
+  int16_t sum = 0x1234;
+  for (size_t i=0; i<sizeof(url); i++) sum += s.url[i];
+  
+  if (s.checksum == sum) {
+    strcpy(url, s.url);
+    Serial.printf_P(PSTR("Resuming stream from EEPROM: %s"), url);
+    newUrl = true;
+  }
 }
 
 void StartNewURL()
@@ -270,23 +293,21 @@ void StartNewURL()
   Serial.println(url);
   newUrl = false;
   // Stop and free existing ones
-  if (decoder) {
-    decoder->stop();
-    delete decoder;
-  }
-  if (buff) {
-    buff->close();
-    delete buff;
-  }
-  if (out) {
-    out->stop();
-    delete out;
-  }
-  if (file) {
-    file->close();
-    delete file;
-  }
+  StopPlaying();
 
+  // Store in "EEPROM" to restart automatically
+  Settings s;
+  strcpy(s.url, url);
+  s.checksum = 0x1234;
+  for (size_t i=0; i<sizeof(url); i++) s.checksum += url[i];
+  uint8_t *ptr = reinterpret_cast<uint8_t *>(&s);
+  EEPROM.begin(sizeof(s));
+  for (size_t i=0; i<sizeof(s); i++) {
+    EEPROM.write(i, ptr[i]);
+  }
+  EEPROM.commit();
+  EEPROM.end();
+  
   file = new AudioFileSourceICYStream(url);
   file->RegisterMetadataCB(MDCallback, NULL);
   buff = new AudioFileSourceBuffer(file, 1500);
