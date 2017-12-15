@@ -19,7 +19,6 @@
 */
 
 #include "AudioFileSourceID3.h"
-#include "AudioFileStream.h"
 
 // Handle unsync operation in ID3 with custom class
 class AudioFileSourceUnsync : public AudioFileSource
@@ -178,18 +177,23 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len)
         for (int j=0; j<framesize; j++)
           id3.getByte();
       }
-      {
-        AudioFileStream afs(&id3, framesize);
-        if (frameid[0]=='T' && frameid[1]=='A' && frameid[2]=='L' && frameid[3] == 'B') {
-          cb.md("Album", afs.read()==1, &afs);
-        } else if (frameid[0]=='T' && frameid[1]=='I' && frameid[2]=='T' && frameid[3] == '2') {
-          cb.md("Title", afs.read()==1, &afs);
-       } else if (frameid[0]=='T' && frameid[1]=='P' && frameid[2]=='E' && frameid[3] == '1') {
-          cb.md("Performer", afs.read()==1, &afs);
-        } else if (frameid[0]=='T' && frameid[1]=='Y' && frameid[2]=='E' && frameid[3] == 'R') {
-          cb.md("Year", afs.read()==1, &afs);
-        }
-        //afs destructor here will read any unread bytes
+
+      // Read the value and send to callback
+      char value[64];
+      uint16_t i;
+      bool isUnicode = (id3.getByte()==1) ? true : false;
+      for (i=0; i<framesize-1; i++) {
+        if (i<sizeof(value)-1) value[i] = id3.getByte();
+      }
+      value[i] = 0; // Terminate the string...
+      if (frameid[0]=='T' && frameid[1]=='A' && frameid[2]=='L' && frameid[3] == 'B') {
+        cb.md("Album", isUnicode, value);
+      } else if (frameid[0]=='T' && frameid[1]=='I' && frameid[2]=='T' && frameid[3] == '2') {
+        cb.md("Title", isUnicode, value);
+      } else if (frameid[0]=='T' && frameid[1]=='P' && frameid[2]=='E' && frameid[3] == '1') {
+        cb.md("Performer", isUnicode, value);
+      } else if (frameid[0]=='T' && frameid[1]=='Y' && frameid[2]=='E' && frameid[3] == 'R') {
+        cb.md("Year", isUnicode, value);
       }
     }
   } while (!id3.eof());

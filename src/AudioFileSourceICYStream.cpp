@@ -19,8 +19,6 @@
 */
 
 #include "AudioFileSourceICYStream.h"
-#include "AudioFileSourcePROGMEM.h"
-#include "AudioFileStream.h"
 
 AudioFileSourceICYStream::AudioFileSourceICYStream()
 {
@@ -209,18 +207,13 @@ retry:
               if (d==';') { mdr.unread(d); break; }
               else { mdr.unread(d); }
             }
-//            if ((c=='\n') || (c=='\r') || (c==' ') || (c=='\t') || (c==0)) continue; // Throw away any whitespace
             *(p++) = c;
           }
           if (c != '\'') {
             // MD data was too long, read and throw away rest
             while ((c != '\'') && !mdr.eof()) mdr.read(&c, 1);
           }
-          {
-            AudioFileSourcePROGMEM afsp(value, strlen(value));
-            AudioFileStream afs(&afsp, strlen(value));
-            cb.md(type, false, &afs);
-          }
+          cb.md(type, false, value);
           do {
             ret = mdr.read(&c, 1);
           } while ((c !=';') && (c!=0) && !mdr.eof());

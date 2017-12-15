@@ -209,13 +209,13 @@ void HandleStop(WiFiClient *client)
   RedirectToIndex(client);
 }
 
-void MDCallback(void *cbData, const char *type, bool isUnicode, Stream *stream)
+void MDCallback(void *cbData, const char *type, bool isUnicode, const char *string)
 {
   const char *ptr = reinterpret_cast<const char *>(cbData);
   (void) isUnicode; // Punt this ball for now
   (void) ptr;
-  if (strstr(type, PSTR("Title"))) { 
-    strncpy(title, stream->readString().c_str(), sizeof(title));
+  if (strstr_P(type, PSTR("Title"))) { 
+    strncpy_P(title, string, sizeof(title));
     title[sizeof(title)-1] = 0;
   } else {
     // Who knows what to do?  Not me!

@@ -18,20 +18,19 @@ AudioFileSourceID3 *id3;
 
 
 // Called when a metadata event occurs (i.e. an ID3 tag, an ICY block, etc.
-void MDCallback(void *cbData, const char *type, bool isUnicode, Stream *stream)
+void MDCallback(void *cbData, const char *type, bool isUnicode, const char *string)
 {
   (void)cbData;
   Serial.printf("ID3 callback for: %s = '", type);
 
   if (isUnicode) {
-    // Skip byte order marker
-    stream->read();
-    stream->read();
+    string += 2;
   }
-  while (stream->available()) {
-    char a = stream->read();
+  
+  while (*string) {
+    char a = *(string++);
     if (isUnicode) {
-      stream->read();
+      string++;
     }
     Serial.printf("%c", a);
   }
