@@ -27,6 +27,7 @@ AudioFileSourceBuffer::AudioFileSourceBuffer(AudioFileSource *source, int buffSi
 {
   buffSize = buffSizeBytes;
   buffer = (uint8_t*)malloc(sizeof(uint8_t) * buffSize);
+  if (!buffer) Serial.printf_P("Unable to allocate AudioFileSourceBuffer::buffer[]\n");
   writePtr = 0;
   readPtr = 0;
   src = source;

@@ -52,6 +52,7 @@ bool isAAC = false;
 
 typedef struct {
   char url[64];
+  bool isAAC;
   int16_t checksum;
 } Settings;
 
@@ -282,6 +283,7 @@ void setup()
   
   if (s.checksum == sum) {
     strcpy(url, s.url);
+    isAAC = s.isAAC;
     Serial.printf_P(PSTR("Resuming stream from EEPROM: %s"), url);
     newUrl = true;
   }
@@ -298,6 +300,7 @@ void StartNewURL()
   // Store in "EEPROM" to restart automatically
   Settings s;
   strcpy(s.url, url);
+  s.isAAC = isAAC;
   s.checksum = 0x1234;
   for (size_t i=0; i<sizeof(url); i++) s.checksum += url[i];
   uint8_t *ptr = reinterpret_cast<uint8_t *>(&s);
@@ -310,7 +313,7 @@ void StartNewURL()
   
   file = new AudioFileSourceICYStream(url);
   file->RegisterMetadataCB(MDCallback, NULL);
-  buff = new AudioFileSourceBuffer(file, 1500);
+  buff = new AudioFileSourceBuffer(file, 4096);
   buff->RegisterStatusCB(StatusCallback, NULL);
   out = new AudioOutputI2SDAC();
   decoder = isAAC ? (AudioGenerator*) new AudioGeneratorAAC() : (AudioGenerator*) new AudioGeneratorMP3();
@@ -335,7 +338,6 @@ void loop()
 {
   static int lastms = 0;
   static int retryms = 0;
-
   if (millis()-lastms > 1000) {
     lastms = millis();
     Serial.printf_P(PSTR("Running for %d seconds...Free mem=%d\n"), lastms/1000, ESP.getFreeHeap());
@@ -345,7 +347,7 @@ void loop()
     retryms = 0;
     newUrl = true;
   }
-
+  
   if (newUrl) {
     StartNewURL();
   }

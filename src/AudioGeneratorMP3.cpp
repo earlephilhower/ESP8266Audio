@@ -241,7 +241,8 @@ extern "C" {
   #include <cont.h>
   extern cont_t g_cont;
 
-  void stack(const char *s, const char *t, int i) {
+  void stack(const char *s, const char *t, int i)
+  {
     (void) t;
     (void) i;
     register uint32_t *sp asm("a1");
@@ -259,8 +260,8 @@ extern "C" {
         Serial.printf_P(PSTR("out of heap!\n"));
       }
       Serial.flush();
-      laststack=freestack;
-      lastheap=freeheap;
+      laststack = freestack;
+      lastheap = freeheap;
     }
   }
 
