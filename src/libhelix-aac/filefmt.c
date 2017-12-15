@@ -82,8 +82,9 @@ int UnpackADTSHeader(AACDecInfo *aacDecInfo, unsigned char **buf, int *bitOffset
 	GetBits(&bsi, *bitOffset);
 
 	/* verify that first 12 bits of header are syncword */
-	if (GetBits(&bsi, 12) != 0x0fff) { printf("no ffff\n");
-		return ERR_AAC_INVALID_ADTS_HEADER; }
+	if (GetBits(&bsi, 12) != 0x0fff) {
+		return ERR_AAC_INVALID_ADTS_HEADER; 
+	}
 
 	/* fixed fields - should not change from frame to frame */ 
 	fhADTS->id =               GetBits(&bsi, 1);

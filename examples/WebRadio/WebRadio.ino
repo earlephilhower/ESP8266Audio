@@ -164,7 +164,7 @@ void HandleChangeURL(WiFiClient *client, char *params)
       isAAC = false;
     }
     strcpy_P(status, PSTR("Changing URL..."));
-    Serial.printf_P("Changed URL to: %s(%s)\n", url, newType);
+    Serial.printf_P(PSTR("Changed URL to: %s(%s)\n"), url, newType);
     RedirectToIndex(client);
   } else {
     WebError(client, 404, NULL, false);
@@ -214,11 +214,11 @@ void MDCallback(void *cbData, const char *type, bool isUnicode, Stream *stream)
   const char *ptr = reinterpret_cast<const char *>(cbData);
   (void) isUnicode; // Punt this ball for now
   (void) ptr;
-  if (strstr(type, "Title")) { 
+  if (strstr(type, PSTR("Title"))) { 
     strncpy(title, stream->readString().c_str(), sizeof(title));
     title[sizeof(title)-1] = 0;
   } else {
-    // Who knows what yo do?  Not me!
+    // Who knows what to do?  Not me!
   }
 }
 void StatusCallback(void *cbData, int code, const char *string)
@@ -226,7 +226,7 @@ void StatusCallback(void *cbData, int code, const char *string)
   const char *ptr = reinterpret_cast<const char *>(cbData);
   (void) code;
   (void) ptr;
-  strncpy(status, string, sizeof(status)-1);
+  strncpy_P(status, string, sizeof(status)-1);
   status[sizeof(status)-1] = 0;
 }
 

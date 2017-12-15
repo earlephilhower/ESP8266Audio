@@ -42,7 +42,7 @@ bool AudioFileSourceHTTPStream::open(const char *url)
   int code = http.GET();
   if (code != HTTP_CODE_OK) {
     http.end();
-    cb.st(STATUS_HTTPFAIL, "Can't open HTTP request");
+    cb.st(STATUS_HTTPFAIL, PSTR("Can't open HTTP request"));
     return false;
   }
   size = http.getSize();
@@ -70,20 +70,20 @@ uint32_t AudioFileSourceHTTPStream::readInternal(void *data, uint32_t len, bool 
 {
 retry:
   if (!http.connected()) {
-    cb.st(STATUS_DISCONNECTED, "Stream disconnected");
+    cb.st(STATUS_DISCONNECTED, PSTR("Stream disconnected"));
     http.end();
     for (int i = 0; i < reconnectTries; i++) {
       char buff[32];
-      sprintf(buff, "Attempting to reconnect, try %d", i);
+      sprintf_P(buff, PSTR("Attempting to reconnect, try %d"), i);
       cb.st(STATUS_RECONNECTING, buff);
       delay(reconnectDelayMs);
       if (open(saveURL)) {
-        cb.st(STATUS_RECONNECTED, "Stream reconnected");
+        cb.st(STATUS_RECONNECTED, PSTR("Stream reconnected"));
         break;
       }
     }
     if (!http.connected()) {
-      cb.st(STATUS_DISCONNECTED, "Unable to reconnect");
+      cb.st(STATUS_DISCONNECTED, PSTR("Unable to reconnect"));
       return 0;
     }
   }
@@ -101,7 +101,7 @@ retry:
 
   size_t avail = stream->available();
   if (!nonBlock && !avail) {
-    cb.st(STATUS_NODATA, "No stream data available");
+    cb.st(STATUS_NODATA, PSTR("No stream data available"));
     http.end();
     goto retry;
   }

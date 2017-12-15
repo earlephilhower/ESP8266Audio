@@ -73,7 +73,7 @@ enum mad_flow AudioGeneratorMP3::ErrorToFlow()
   if ((lastReadPos==0) && (stream.error==MAD_ERROR_LOSTSYNC)) return MAD_FLOW_CONTINUE;
 
   strcpy_P(err, mad_stream_errorstr(&stream));
-  snprintf(errLine, sizeof(errLine), "Decoding error '%s' at byte offset %d",
+  snprintf_P(errLine, sizeof(errLine), PSTR("Decoding error '%s' at byte offset %d"),
            err, (stream.this_frame - buff) + lastReadPos);
   yield(); // Something bad happened anyway, ensure WiFi gets some time, too
   cb.st(stream.error, errLine);

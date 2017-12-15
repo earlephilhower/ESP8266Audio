@@ -27,7 +27,7 @@ AudioFileSourceBuffer::AudioFileSourceBuffer(AudioFileSource *source, int buffSi
 {
   buffSize = buffSizeBytes;
   buffer = (uint8_t*)malloc(sizeof(uint8_t) * buffSize);
-  if (!buffer) Serial.printf_P("Unable to allocate AudioFileSourceBuffer::buffer[]\n");
+  if (!buffer) Serial.printf_P(PSTR("Unable to allocate AudioFileSourceBuffer::buffer[]\n"));
   writePtr = 0;
   readPtr = 0;
   src = source;
@@ -79,7 +79,7 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
   uint32_t bytes = 0;
   if (!filled) {
     // Fill up completely before returning any data at all
-    cb.st(STATUS_FILLING, "Refilling buffer");
+    cb.st(STATUS_FILLING, PSTR("Refilling buffer"));
     length = src->read(buffer, buffSize);
     writePtr = length % buffSize;
     filled = true;
@@ -116,7 +116,7 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
     writePtr = 0;
     length = 0;
     filled = false;
-    cb.st(STATUS_UNDERFLOW, "Buffer underflow");
+    cb.st(STATUS_UNDERFLOW, PSTR("Buffer underflow"));
   }
 
   fill();

@@ -112,7 +112,7 @@ bool AudioGeneratorAAC::loop()
     if (ret) {
       // Error, skip the frame...
       char buff[48];
-      sprintf(buff, "AAC decode error %d", ret);
+      sprintf_P(buff, PSTR("AAC decode error %d"), ret);
       cb.st(ret, buff);
     } else {
       lastFrameEnd = buffValid - bytesLeft;
