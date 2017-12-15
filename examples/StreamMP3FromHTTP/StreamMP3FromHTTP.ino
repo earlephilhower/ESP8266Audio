@@ -21,11 +21,11 @@ AudioFileSourceBuffer *buff;
 AudioOutputI2SNoDAC *out;
 
 // Called when a metadata event occurs (i.e. an ID3 tag, an ICY block, etc.
-void MDCallback(void *cbData, const char *type, bool isUnicode, Stream *stream)
+void MDCallback(void *cbData, const char *type, bool isUnicode, const char *string)
 {
   const char *ptr = reinterpret_cast<const char *>(cbData);
   (void) isUnicode; // Punt this ball for now
-  Serial.printf("METADATA(%s) '%s' = '%s'\n", ptr, type, stream->readString().c_str());
+  Serial.printf("METADATA(%s) '%s' = '%s'\n", ptr, type, string);
   Serial.flush();
 }
 
