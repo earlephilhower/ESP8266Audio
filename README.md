@@ -19,6 +19,8 @@ git clone https://github.com/earlephilhower/ESP8266Audio
 git clone https://github.com/earlephilhower/ESP8266_Spiram
 # Once the pull request is merged, replace above with "git clone https://github.com/Gianbacchio/ESP8266_Spiram"
 ````
+Alternatively, install using the Arduino Boards manager by using the following URL and selecting 2.4.0-rc2:
+https://github.com/esp8266/Arduino/releases/download/2.4.0-rc2/package_esp8266com_index.json
 
 When in the IDE please select the following options:
 ````

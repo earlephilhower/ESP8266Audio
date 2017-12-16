@@ -77,7 +77,7 @@ class ICYMDReader {
     ~ICYMDReader() {
       // Get rid of any remaining bytes in the MD block
       char xxx[16];
-      if (saved) avail--; // Throw away any unread bytes
+      if (saved>=0) avail--; // Throw away any unread bytes
       while (avail > 16) {
         stream->readBytes(xxx, 16);
         avail -= 16;

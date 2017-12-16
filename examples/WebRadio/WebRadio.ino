@@ -104,7 +104,7 @@ Change URL: <input type="text" name="url">
 
 void HandleIndex(WiFiClient *client)
 {
-  char buff[sizeof(BODY) + 64*3 + 3*2];
+  char buff[sizeof(BODY) + sizeof(title) + sizeof(status) + sizeof(url) + 3*2];
   
   Serial.printf_P(PSTR("Sending INDEX...Free mem=%d\n"), ESP.getFreeHeap());
   WebHeaders(client, NULL);
