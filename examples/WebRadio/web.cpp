@@ -22,9 +22,6 @@
 #include <ESP8266WiFi.h>
 #include "web.h"
 
-#define LogPrintf(fmt, ...) { Serial.printf_P(PSTR(fmt), ## __VA_ARGS__); }
-
-
 void WebPrintError(WiFiClient *client, int code)
 {
   switch(code) {
@@ -40,8 +37,6 @@ void WebPrintError(WiFiClient *client, int code)
 
 void WebError(WiFiClient *client, int code, const char *headers, bool usePMEM)
 {
-  LogPrintf("+WebError: Begin, free=%d\n", ESP.getFreeHeap());
-  LogPrintf(" Sending headers...\n");
   WebPrintf(client, "HTTP/1.1 %d\r\n", code);
   WebPrintf(client, "Server: PsychoPlug\r\n");
   WebPrintf(client, "Content-type: text/html\r\n");
@@ -49,7 +44,6 @@ void WebError(WiFiClient *client, int code, const char *headers, bool usePMEM)
   WebPrintf(client, "Pragma: no-cache\r\n");
   WebPrintf(client, "Expires: 0\r\n");
   WebPrintf(client, "Connection: close\r\n");
-  LogPrintf("+WebError: Writing error headers: %08x\n", headers);
   if (headers) {
     if (!usePMEM) {
       WebPrintf(client, "%s", headers);
@@ -65,7 +59,6 @@ void WebError(WiFiClient *client, int code, const char *headers, bool usePMEM)
   WebPrintf(client, "<body><h1>");
   WebPrintError(client, code);
   WebPrintf(client, "</h1></body></html>\r\n");
-  LogPrintf("-WebError\n");
 }
 
 
@@ -160,11 +153,9 @@ bool WebReadRequest(WiFiClient *client, char *reqBuff, int reqBuffLen, char **ur
   *urlStr = NULL;
   *paramStr = NULL;
 
-  LogPrintf("+WebReadRequest @ %d\n", millis());
   unsigned long timeoutMS = millis() + 5000; // Max delay before we timeout
   while (!client->available() && millis() < timeoutMS) { delay(10); }
   if (!client->available()) {
-    LogPrintf("-WebReadRequest: Timeout @ %d\n", millis());
     return false;
   }
   int wlen = client->readBytesUntil('\r', reqBuff, reqBuffLen-1);
@@ -213,14 +204,12 @@ bool WebReadRequest(WiFiClient *client, char *reqBuff, int reqBuffLen, char **ur
   } else {
     // Not a GET or POST, error
     WebError(client, 405, PSTR("Allow: GET, POST"));
-    LogPrintf("-WebReadRequest(): Illegal command\n");
     return false;
   }
 
   if (urlStr) *urlStr = url;
   if (paramStr) *paramStr = qp;
 
-  LogPrintf("-WebReadRequest(): Success\n");
   return true;
 }
 

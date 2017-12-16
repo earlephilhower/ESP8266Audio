@@ -45,13 +45,13 @@ AudioOutputI2SDAC *out = NULL;
 
 int volume = 100;
 char title[64];
-char url[64];
+char url[96];
 char status[64];
 bool newUrl = false;
 bool isAAC = false;
 
 typedef struct {
-  char url[64];
+  char url[96];
   bool isAAC;
   int16_t checksum;
 } Settings;
@@ -209,13 +209,13 @@ void HandleStop(WiFiClient *client)
   RedirectToIndex(client);
 }
 
-void MDCallback(void *cbData, const char *type, bool isUnicode, const char *string)
+void MDCallback(void *cbData, const char *type, bool isUnicode, const char *str)
 {
   const char *ptr = reinterpret_cast<const char *>(cbData);
   (void) isUnicode; // Punt this ball for now
   (void) ptr;
   if (strstr_P(type, PSTR("Title"))) { 
-    strncpy_P(title, string, sizeof(title));
+    strncpy(title, str, sizeof(title));
     title[sizeof(title)-1] = 0;
   } else {
     // Who knows what to do?  Not me!
@@ -270,23 +270,7 @@ void setup()
   out = NULL;
   decoder = NULL;
 
-  // Restore from EEPROM, check the checksum matches
-  Settings s;
-  uint8_t *ptr = reinterpret_cast<uint8_t *>(&s);
-  EEPROM.begin(sizeof(s));
-  for (size_t i=0; i<sizeof(s); i++) {
-    ptr[i] = EEPROM.read(i);
-  }
-  EEPROM.end();
-  int16_t sum = 0x1234;
-  for (size_t i=0; i<sizeof(url); i++) sum += s.url[i];
-  
-  if (s.checksum == sum) {
-    strcpy(url, s.url);
-    isAAC = s.isAAC;
-    Serial.printf_P(PSTR("Resuming stream from EEPROM: %s"), url);
-    newUrl = true;
-  }
+  LoadSettings();
 }
 
 void StartNewURL()
@@ -297,20 +281,8 @@ void StartNewURL()
   // Stop and free existing ones
   StopPlaying();
 
-  // Store in "EEPROM" to restart automatically
-  Settings s;
-  strcpy(s.url, url);
-  s.isAAC = isAAC;
-  s.checksum = 0x1234;
-  for (size_t i=0; i<sizeof(url); i++) s.checksum += url[i];
-  uint8_t *ptr = reinterpret_cast<uint8_t *>(&s);
-  EEPROM.begin(sizeof(s));
-  for (size_t i=0; i<sizeof(s); i++) {
-    EEPROM.write(i, ptr[i]);
-  }
-  EEPROM.commit();
-  EEPROM.end();
-  
+  SaveSettings();
+
   file = new AudioFileSourceICYStream(url);
   file->RegisterMetadataCB(MDCallback, NULL);
   buff = new AudioFileSourceBuffer(file, 4096);
@@ -322,16 +294,47 @@ void StartNewURL()
   out->SetGain(((float)volume)/100.0);
   if (!decoder->isRunning()) {
     Serial.printf_P(PSTR("Can't connect to URL"));
-    decoder->stop();
-    out->stop();
-    buff->close();
-    delete decoder;
-    delete file;
-    delete buff;
-    delete out;
-    decoder = NULL;
+    StopPlaying();
     strcpy_P(status, PSTR("Unable to connect to URL"));
   }
+}
+
+void LoadSettings()
+{
+  // Restore from EEPROM, check the checksum matches
+  Settings s;
+  uint8_t *ptr = reinterpret_cast<uint8_t *>(&s);
+  EEPROM.begin(sizeof(s));
+  for (size_t i=0; i<sizeof(s); i++) {
+    ptr[i] = EEPROM.read(i);
+  }
+  EEPROM.end();
+  int16_t sum = 0x1234;
+  for (size_t i=0; i<sizeof(url); i++) sum += s.url[i];
+  if (s.checksum == sum) {
+    strcpy(url, s.url);
+    isAAC = s.isAAC;
+    Serial.printf_P(PSTR("Resuming stream from EEPROM: %s"), url);
+    newUrl = true;
+  }
+}
+
+void SaveSettings()
+{
+  // Store in "EEPROM" to restart automatically
+  Settings s;
+  memset(&s, 0, sizeof(s));
+  strcpy(s.url, url);
+  s.isAAC = isAAC;
+  s.checksum = 0x1234;
+  for (size_t i=0; i<sizeof(url); i++) s.checksum += s.url[i];
+  uint8_t *ptr = reinterpret_cast<uint8_t *>(&s);
+  EEPROM.begin(sizeof(s));
+  for (size_t i=0; i<sizeof(s); i++) {
+    EEPROM.write(i, ptr[i]);
+  }
+  EEPROM.commit();
+  EEPROM.end();
 }
 
 void loop()
@@ -356,7 +359,6 @@ void loop()
     strcpy_P(status, PSTR("Playing")); // By default we're OK unless the decoder says otherwise
     if (!decoder->loop()) {
       Serial.printf_P(PSTR("Stopping decoder\n"));
-      decoder->stop();
       StopPlaying();
       retryms = millis() + 2000;
     }
@@ -369,7 +371,6 @@ void loop()
   WiFiClient client = server.available();
   char *reqBuff = (char *)alloca(384);
   if (client && WebReadRequest(&client, reqBuff, 384, &reqUrl, &params)) {
-    Serial.printf_P(PSTR("URL: '%s'\n"), reqUrl);
     if (IsIndexHTML(reqUrl)) {
       HandleIndex(&client);
     } else if (!strcmp_P(reqUrl, PSTR("stop"))) {
