@@ -138,6 +138,7 @@ void HandleVolume(WiFiClient *client, char *params)
     ParamInt("vol", volume);
   }
   Serial.printf_P(PSTR("Set volume: %d\n"), volume);
+  out->SetGain(((float)volume)/100.0);
   RedirectToIndex(client);
 }
 
