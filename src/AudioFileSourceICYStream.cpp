@@ -77,6 +77,7 @@ class ICYMDReader {
     ~ICYMDReader() {
       // Get rid of any remaining bytes in the MD block
       char xxx[16];
+      if (saved) avail--; // Throw away any unread bytes
       while (avail > 16) {
         stream->readBytes(xxx, 16);
         avail -= 16;
@@ -85,8 +86,8 @@ class ICYMDReader {
     }
     int read(uint8_t *dest, int len) {
       if (!len) return 0;
-      if (saved >= 0) { *(dest++) = (uint8_t)saved; saved = -1; len--; }
       int ret = 0;
+      if (saved >= 0) { *(dest++) = (uint8_t)saved; saved = -1; len--; avail--; ret++; }
       while ((len>0) && (avail>0)) {
         // Always copy from bounce buffer first
         while ((ptr < sizeof(buff)) && (len>0) && (avail>0)) {
@@ -106,7 +107,7 @@ class ICYMDReader {
       return ret;
     }
     bool eof() { return (avail==0); }
-    bool unread(uint8_t c) { if (saved>=0) return false; saved = c; return true; }
+    bool unread(uint8_t c) { if (saved>=0) return false; saved = c; avail++; return true; }
 
   private:
     WiFiClient *stream;
