@@ -9,7 +9,12 @@ The AAC decode code is from the Helix project and licensed under RealNetwork's R
 MIDI decoding comes from a highly ported MIDITONES (https://github.com/LenShustek/miditones) combined with a massively memory-optimized TinySoundFont (https://github.com/schellingb/TinySoundFont), see the respective source files for more information.
 
 ## Prerequisites and Installation
-First, make sure you are running the 2.4-rc2 or GIT head version of the Arduino libraries.  See https://github.com/esp8266/Arduino/blob/master/README.md#using-git-version for detailed instructions.
+First, make sure you are running the 2.4-rc2 or GIT head version of the Arduino libraries.
+
+You can use GIT to pull right from GitHub: see https://github.com/esp8266/Arduino/blob/master/README.md#using-git-version for detailed instructions.
+
+Alternatively, install using the Arduino Boards manager by using the following URL and selecting 2.4.0-rc2:
+https://github.com/esp8266/Arduino/releases/download/2.4.0-rc2/package_esp8266com_index.json
 
 Install the library and the SPI driver library in your ~/Arduino/libraries
 ````
@@ -19,8 +24,6 @@ git clone https://github.com/earlephilhower/ESP8266Audio
 git clone https://github.com/earlephilhower/ESP8266_Spiram
 # Once the pull request is merged, replace above with "git clone https://github.com/Gianbacchio/ESP8266_Spiram"
 ````
-Alternatively, install using the Arduino Boards manager by using the following URL and selecting 2.4.0-rc2:
-https://github.com/esp8266/Arduino/releases/download/2.4.0-rc2/package_esp8266com_index.json
 
 When in the IDE please select the following options:
 ````
