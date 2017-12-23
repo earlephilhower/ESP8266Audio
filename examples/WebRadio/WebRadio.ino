@@ -146,7 +146,7 @@ void HandleChangeURL(WiFiClient *client, char *params)
 {
   char *namePtr;
   char *valPtr;
-  char newURL[64];
+  char newURL[sizeof(url)];
   char newType[4];
 
   newURL[0] = 0;
