@@ -111,15 +111,13 @@ enum mad_flow AudioGeneratorMP3::Input()
 bool AudioGeneratorMP3::DecodeNextFrame()
 {
   do {
-    while (1) {
-      if (mad_frame_decode(&frame, &stream) == -1) {
-        if (!MAD_RECOVERABLE(stream.error)) break;
-        ErrorToFlow(); // Always returns CONTINUE
-        continue;
-      }
-      nsCountMax  = MAD_NSBSAMPLES(&frame.header);
-      return true;
+    if (mad_frame_decode(&frame, &stream) == -1) {
+      if (!MAD_RECOVERABLE(stream.error)) break;
+      ErrorToFlow(); // Always returns CONTINUE
+      continue;
     }
+    nsCountMax  = MAD_NSBSAMPLES(&frame.header);
+    return true;
   } while (stream.error == MAD_ERROR_BUFLEN);
   Serial.printf_P(PSTR("stream.error != mad_Err_bufflen\n"));
   return false;
