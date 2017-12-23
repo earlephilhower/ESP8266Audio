@@ -25,7 +25,13 @@ void MDCallback(void *cbData, const char *type, bool isUnicode, const char *stri
 {
   const char *ptr = reinterpret_cast<const char *>(cbData);
   (void) isUnicode; // Punt this ball for now
-  Serial.printf("METADATA(%s) '%s' = '%s'\n", ptr, type, string);
+  // Note that the type and string may be in PROGMEM, so copy them to RAM for printf
+  char s1[32], s2[64];
+  strncpy_P(s1, type, sizeof(s1));
+  s1[sizeof(s1)-1]=0;
+  strncpy_P(s2, string, sizeof(s2));
+  s2[sizeof(s2)-1]=0;
+  Serial.printf("METADATA(%s) '%s' = '%s'\n", ptr, s1, s2);
   Serial.flush();
 }
 
@@ -33,7 +39,11 @@ void MDCallback(void *cbData, const char *type, bool isUnicode, const char *stri
 void StatusCallback(void *cbData, int code, const char *string)
 {
   const char *ptr = reinterpret_cast<const char *>(cbData);
-  Serial.printf("STATUS(%s) '%d' = '%s'\n", ptr, code, string);
+  // Note that the string may be in PROGMEM, so copy it to RAM for printf
+  char s1[64];
+  strncpy_P(s1, string, sizeof(s1));
+  s1[sizeof(s1)-1]=0;
+  Serial.printf("STATUS(%s) '%d' = '%s'\n", ptr, code, s1);
   Serial.flush();
 }
 
@@ -50,9 +60,6 @@ void setup()
   
   WiFi.hostname("melody");
   
-  byte zero[] = {0,0,0,0};
-  WiFi.config(zero, zero, zero, zero);
-
   WiFi.begin(SSID, PASSWORD);
 
   // Try forever
