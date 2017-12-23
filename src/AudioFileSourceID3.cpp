@@ -68,6 +68,15 @@ uint32_t AudioFileSourceUnsync::read(void *data, uint32_t len)
 
 int AudioFileSourceUnsync::getByte()
 {
+  // If we're not unsync, just read.
+  if (!unsync) {
+    uint8_t c;
+    if (!remaining) return -1;
+    remaining--;
+    if (1 != src->read(&c, 1)) return -1;
+    return c;
+  }
+
   // If we've saved a pre-read character, return it immediately
   if (savedByte >= 0) {
     int s = savedByte;
@@ -121,6 +130,8 @@ AudioFileSourceID3::~AudioFileSourceID3()
 
 uint32_t AudioFileSourceID3::read(void *data, uint32_t len)
 {
+  int rev = 0;
+
   if (checked) {
     return src->read(data, len);
   }
@@ -132,12 +143,26 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len)
   int ret = src->read(data, 10);
   if (ret<10) return ret;
 
-  if ((buff[0]!='I') || (buff[1]!='D') || (buff[2]!='3') || (buff[3]>0x04) || (buff[4]!=0)) {
+  if ((buff[0]!='I') || (buff[1]!='D') || (buff[2]!='3') || (buff[3]>0x04) || (buff[3]<0x02) || (buff[4]!=0)) {
     return 10 + src->read(buff+10, len-10);
   }
 
-  bool unsync = (buff[5] & 0x80);
-  bool exthdr = (buff[5] & 0x40);
+  rev = buff[3];
+  bool unsync = false;
+  bool exthdr = false;
+
+  switch(rev) {
+    case 2:
+      unsync = (buff[5] & 0x80);
+      exthdr = false;
+      break;
+    case 3:
+    case 4:
+      unsync = (buff[5] & 0x80);
+      exthdr = (buff[5] & 0x40);
+      break;
+  };
+
   int id3Size = buff[6];
   id3Size = id3Size << 7;
   id3Size |= buff[7];
@@ -145,8 +170,8 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len)
   id3Size |= buff[8];
   id3Size = id3Size << 7;
   id3Size |= buff[9];
-  AudioFileSourceUnsync id3(src, id3Size-10, unsync);
   // Every read from now may be unsync'd
+  AudioFileSourceUnsync id3(src, id3Size-10, unsync);
 
   if (exthdr) {
     int ehsz = (id3.getByte()<<24) | (id3.getByte()<<16) | (id3.getByte()<<8) | (id3.getByte());
@@ -157,19 +182,27 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len)
     unsigned char frameid[4];
     int framesize;
     bool compressed;
+
     frameid[0] = id3.getByte();
     frameid[1] = id3.getByte();
     frameid[2] = id3.getByte();
-    frameid[3] = id3.getByte();
+    if (rev==2) frameid[3] = 0;
+    else frameid[3] = id3.getByte();
+
     if (frameid[0]==0 && frameid[1]==0 && frameid[2]==0 && frameid[3]==0) {
       // We're in padding
       while (!id3.eof()) {
         id3.getByte();
       }
     } else {
-      framesize = (id3.getByte()<<24) | (id3.getByte()<<16) | (id3.getByte()<<8) | (id3.getByte());
-      id3.getByte(); // skip 1st flag
-      compressed = id3.getByte()&0x80;
+      if (rev==2) {
+        framesize = (id3.getByte()<<16) | (id3.getByte()<<8) | (id3.getByte());
+        compressed = false;
+      } else {
+        framesize = (id3.getByte()<<24) | (id3.getByte()<<16) | (id3.getByte()<<8) | (id3.getByte());
+        id3.getByte(); // skip 1st flag
+        compressed = id3.getByte()&0x80;
+      }
       if (compressed) {
         int decompsize = (id3.getByte()<<24) | (id3.getByte()<<16) | (id3.getByte()<<8) | (id3.getByte());
         // TODO - add libz decompression, for now ignore this one...
@@ -184,15 +217,20 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len)
       bool isUnicode = (id3.getByte()==1) ? true : false;
       for (i=0; i<framesize-1; i++) {
         if (i<sizeof(value)-1) value[i] = id3.getByte();
+        else (void)id3.getByte();
       }
       value[i] = 0; // Terminate the string...
-      if (frameid[0]=='T' && frameid[1]=='A' && frameid[2]=='L' && frameid[3] == 'B') {
+      if ( (frameid[0]=='T' && frameid[1]=='A' && frameid[2]=='L' && frameid[3] == 'B' ) ||
+           (frameid[0]=='T' && frameid[1]=='A' && frameid[2]=='L' && rev==2) ) {
         cb.md("Album", isUnicode, value);
-      } else if (frameid[0]=='T' && frameid[1]=='I' && frameid[2]=='T' && frameid[3] == '2') {
+      } else if ( (frameid[0]=='T' && frameid[1]=='I' && frameid[2]=='T' && frameid[3] == '2') ||
+                  (frameid[i]=='T' && frameid[1]=='T' && frameid[2]=='2' && rev==2) ) {
         cb.md("Title", isUnicode, value);
-      } else if (frameid[0]=='T' && frameid[1]=='P' && frameid[2]=='E' && frameid[3] == '1') {
+      } else if ( (frameid[0]=='T' && frameid[1]=='P' && frameid[2]=='E' && frameid[3] == '1') ||
+                  (frameid[0]=='T' && frameid[1]=='P' && frameid[2]=='1' && rev==2) ) {
         cb.md("Performer", isUnicode, value);
-      } else if (frameid[0]=='T' && frameid[1]=='Y' && frameid[2]=='E' && frameid[3] == 'R') {
+      } else if ( (frameid[0]=='T' && frameid[1]=='Y' && frameid[2]=='E' && frameid[3] == 'R') ||
+                  (frameid[0]=='T' && frameid[1]=='Y' && frameid[2]=='E' && rev==2) ) {
         cb.md("Year", isUnicode, value);
       }
     }
