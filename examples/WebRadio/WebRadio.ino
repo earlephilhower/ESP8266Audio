@@ -49,10 +49,12 @@ char url[96];
 char status[64];
 bool newUrl = false;
 bool isAAC = false;
+int retryms = 0;
 
 typedef struct {
   char url[96];
   bool isAAC;
+  int16_t volume;
   int16_t checksum;
 } Settings;
 
@@ -238,15 +240,12 @@ void setup()
   delay(1000);
   Serial.printf_P(PSTR("Connecting to WiFi\n"));
 
-//  WiFi.disconnect();
-//  WiFi.softAPdisconnect(true);
+  WiFi.disconnect();
+  WiFi.softAPdisconnect(true);
   WiFi.mode(WIFI_STA);
   
-//  WiFi.hostname("melody");
+  WiFi.hostname("melody");
   
-//  byte zero[] = {0,0,0,0};
-//  WiFi.config(zero, zero, zero, zero);
-
   WiFi.begin(SSID, PASSWORD);
 
   // Try forever
@@ -276,12 +275,13 @@ void setup()
 
 void StartNewURL()
 {
-  Serial.printf_P(PSTR("Changing URL to: "));
-  Serial.println(url);
+  Serial.printf_P(PSTR("Changing URL to: %s, vol=%d\n"), url, volume);
+
   newUrl = false;
   // Stop and free existing ones
+  Serial.printf_P(PSTR("Before stop...Free mem=%d\n"), ESP.getFreeHeap());
   StopPlaying();
-
+  Serial.printf_P(PSTR("After stop...Free mem=%d\n"), ESP.getFreeHeap());
   SaveSettings();
 
   file = new AudioFileSourceICYStream(url);
@@ -297,6 +297,7 @@ void StartNewURL()
     Serial.printf_P(PSTR("Can't connect to URL"));
     StopPlaying();
     strcpy_P(status, PSTR("Unable to connect to URL"));
+    retryms = millis() + 2000;
   }
 }
 
@@ -312,10 +313,13 @@ void LoadSettings()
   EEPROM.end();
   int16_t sum = 0x1234;
   for (size_t i=0; i<sizeof(url); i++) sum += s.url[i];
+  sum += s.isAAC;
+  sum += s.volume;
   if (s.checksum == sum) {
     strcpy(url, s.url);
     isAAC = s.isAAC;
-    Serial.printf_P(PSTR("Resuming stream from EEPROM: %s"), url);
+    volume = s.volume;
+    Serial.printf_P(PSTR("Resuming stream from EEPROM: %s, type=%s, vol=%d\n"), url, isAAC?"AAC":"MP3", volume);
     newUrl = true;
   }
 }
@@ -327,8 +331,11 @@ void SaveSettings()
   memset(&s, 0, sizeof(s));
   strcpy(s.url, url);
   s.isAAC = isAAC;
+  s.volume = volume;
   s.checksum = 0x1234;
   for (size_t i=0; i<sizeof(url); i++) s.checksum += s.url[i];
+  s.checksum += s.isAAC;
+  s.checksum += s.volume;
   uint8_t *ptr = reinterpret_cast<uint8_t *>(&s);
   EEPROM.begin(sizeof(s));
   for (size_t i=0; i<sizeof(s); i++) {
@@ -338,10 +345,22 @@ void SaveSettings()
   EEPROM.end();
 }
 
+void PumpDecoder()
+{
+  if (decoder && decoder->isRunning()) {
+    strcpy_P(status, PSTR("Playing")); // By default we're OK unless the decoder says otherwise
+    if (!decoder->loop()) {
+      Serial.printf_P(PSTR("Stopping decoder\n"));
+      StopPlaying();
+      retryms = millis() + 2000;
+    }
+}
+
+}
+
 void loop()
 {
   static int lastms = 0;
-  static int retryms = 0;
   if (millis()-lastms > 1000) {
     lastms = millis();
     Serial.printf_P(PSTR("Running for %d seconds...Free mem=%d\n"), lastms/1000, ESP.getFreeHeap());
@@ -356,22 +375,15 @@ void loop()
     StartNewURL();
   }
 
-  if (decoder && decoder->isRunning()) {
-    strcpy_P(status, PSTR("Playing")); // By default we're OK unless the decoder says otherwise
-    if (!decoder->loop()) {
-      Serial.printf_P(PSTR("Stopping decoder\n"));
-      StopPlaying();
-      retryms = millis() + 2000;
-    }
-  } else {
-   // Nothing here
-  }
-
+  PumpDecoder();
+  
   char *reqUrl;
   char *params;
   WiFiClient client = server.available();
+  PumpDecoder();
   char *reqBuff = (char *)alloca(384);
   if (client && WebReadRequest(&client, reqBuff, 384, &reqUrl, &params)) {
+    PumpDecoder();
     if (IsIndexHTML(reqUrl)) {
       HandleIndex(&client);
     } else if (!strcmp_P(reqUrl, PSTR("stop"))) {
@@ -388,6 +400,7 @@ void loop()
       WebError(&client, 404, NULL, false);
     }
   }
+  PumpDecoder();
   if (client) {
     client.flush();
     client.stop();
