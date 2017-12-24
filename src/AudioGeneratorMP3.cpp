@@ -110,17 +110,12 @@ enum mad_flow AudioGeneratorMP3::Input()
 
 bool AudioGeneratorMP3::DecodeNextFrame()
 {
-  do {
-    if (mad_frame_decode(&frame, &stream) == -1) {
-      if (!MAD_RECOVERABLE(stream.error)) break;
-      ErrorToFlow(); // Always returns CONTINUE
-      continue;
-    }
-    nsCountMax  = MAD_NSBSAMPLES(&frame.header);
-    return true;
-  } while (stream.error == MAD_ERROR_BUFLEN);
-  Serial.printf_P(PSTR("stream.error != mad_Err_bufflen\n"));
-  return false;
+  if (mad_frame_decode(&frame, &stream) == -1) {
+    ErrorToFlow(); // Always returns CONTINUE
+    return false;
+  }
+  nsCountMax  = MAD_NSBSAMPLES(&frame.header);
+  return true;
 }
 
 bool AudioGeneratorMP3::GetOneSample(int16_t sample[2])
@@ -170,13 +165,13 @@ bool AudioGeneratorMP3::loop()
   {
     // Decode next frame if we're beyond the existing generated data
     if ( (samplePtr >= synth.pcm.length) && (nsCount >= nsCountMax) ) {
+retry:
       if (Input() == MAD_FLOW_STOP) {
         return false;
       }
 
       if (!DecodeNextFrame()) {
-        Serial.printf_P(PSTR("DNF failed\n"));
-        return false;
+        goto retry;
       }
       samplePtr = 9999;
       nsCount = 0;
