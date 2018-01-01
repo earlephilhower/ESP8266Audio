@@ -404,7 +404,7 @@ static inline mad_fixed_t ca(int i)
    imdct_s[i /odd][k] = cos((PI / 24) * (2 * (6 + (i-1)/2) + 7) * (2 * k + 1))
 */
 static
-mad_fixed_t const imdct_s[6][6] = {
+mad_fixed_t const imdct_s[6][6] PROGMEM  = {
 # include "imdct_s.dat.h"
 };
 
@@ -1317,19 +1317,19 @@ y_final:
 */
 static
 enum mad_error III_reorder(mad_fixed_t xr[576], struct channel const *channel,
-                 unsigned int const sfbwidth[39])
+                 unsigned int const sfbwidth[39], mad_fixed_t tmp[576])
 {
   unsigned int sb, l, f, w, sbw[3], sw[3];
-  mad_fixed_t *tmp; // [32][3][6]
+//  mad_fixed_t *tmp; // [32][3][6]
   // See if we can allocate this buffer on the stack and save heap
-  char onstack = 0;
-  if (stackfree() > (int)(100 + sizeof(mad_fixed_t)*32*3*6)) {
-    onstack = 1;
-    tmp = alloca(sizeof(mad_fixed_t)*32*3*6);
-  } else {
-    tmp = (mad_fixed_t*)malloc(sizeof(mad_fixed_t)*32*3*6);
-    if (!tmp) return MAD_ERROR_NOMEM;
-  }
+//  char onstack = 0;
+//  if (stackfree() > (int)(100 + sizeof(mad_fixed_t)*32*3*6)) {
+//    onstack = 1;
+//    tmp = alloca(sizeof(mad_fixed_t)*32*3*6);
+//  } else {
+//    tmp = (mad_fixed_t*)malloc(sizeof(mad_fixed_t)*32*3*6);
+//    if (!tmp) return MAD_ERROR_NOMEM;
+//  }
 
   stack(__FUNCTION__, __FILE__, __LINE__);
 
@@ -1368,8 +1368,8 @@ enum mad_error III_reorder(mad_fixed_t xr[576], struct channel const *channel,
 
   memcpy(&xr[18 * sb], &tmp[sb * 3 * 6], (576 - 18 * sb) * sizeof(mad_fixed_t));
 
-  if (!onstack) free(tmp);
-  // If it's on the stack, it'll go away on the return
+//  if (!onstack) free(tmp);
+//  // If it's on the stack, it'll go away on the return
   return MAD_ERROR_NONE;
 }
 
@@ -2214,6 +2214,9 @@ void III_imdct_s(mad_fixed_t const X[18], mad_fixed_t z[36])
   int w, i;
   register mad_fixed64hi_t hi;
   register mad_fixed64lo_t lo;
+  // MAD_F_MLA may produce non-32b aligned reads, so copy from progmem to stack and work from there...
+  mad_fixed_t const imdct_s_lcl[6][6];
+  memcpy_P(imdct_s_lcl, imdct_s, sizeof(imdct_s));
   stack(__FUNCTION__, __FILE__, __LINE__);
 
   /* IMDCT */
@@ -2223,7 +2226,7 @@ void III_imdct_s(mad_fixed_t const X[18], mad_fixed_t z[36])
   for (w = 0; w < 3; ++w) {
     register mad_fixed_t const (*s)[6];
 
-    s = imdct_s;
+    s = imdct_s_lcl;
 
     for (i = 0; i < 3; ++i) {
       MAD_F_ML0(hi, lo, X[0], (*s)[0]);
@@ -2416,13 +2419,13 @@ enum mad_error III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
 {
   struct mad_header *header = &frame->header;
   mad_fixed_t *xr[2]; // Moved from stack to dynheap
-  mad_fixed_t *xr_raw; // [2][576]
+//  mad_fixed_t *xr_raw; // [2][576]
   unsigned int sfreqi, ngr, gr;
-  xr_raw = (mad_fixed_t*)malloc(sizeof(mad_fixed_t) * 2 * 576);
-  if (!xr_raw)
-    return MAD_ERROR_NOMEM;
-  xr[0] = xr_raw;
-  xr[1] = xr_raw + 576;
+//  xr_raw = (mad_fixed_t*)malloc(sizeof(mad_fixed_t) * 2 * 576);
+//  if (!xr_raw)
+//    return MAD_ERROR_NOMEM;
+  xr[0] = frame->xr_raw; //xr_raw;
+  xr[1] = frame->xr_raw + 576; //xr_raw + 576;
 
   stack(__FUNCTION__, __FILE__, __LINE__);
   {
@@ -2473,7 +2476,7 @@ enum mad_error III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
 
       error = III_huffdecode(ptr, xr[ch], channel, sfbwidth[ch], part2_length);
       if (error) {
-        free(xr_raw);
+//        free(xr_raw);
         return error;
       }
     }
@@ -2482,9 +2485,9 @@ enum mad_error III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
 
     if (header->mode == MAD_MODE_JOINT_STEREO && header->mode_extension) {
       // (void*) below just to get rid of warning about passing in a * and not a [2][576]
-      error = III_stereo((void*)xr_raw, granule, header, sfbwidth[0]);
+      error = III_stereo((void*)frame->xr_raw, granule, header, sfbwidth[0]);
       if (error) {
-        free(xr_raw);
+//        free(xr_raw);
         return error;
       }
     }
@@ -2498,9 +2501,9 @@ enum mad_error III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
       mad_fixed_t output[36];
 
       if (channel->block_type == 2) {
-        error = III_reorder(xr[ch], channel, sfbwidth[ch]);
+        error = III_reorder(xr[ch], channel, sfbwidth[ch], frame->tmp);
         if (error) {
-          free(xr_raw);
+//          free(xr_raw);
           return error;
         }
 
@@ -2586,7 +2589,7 @@ enum mad_error III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
     }
   }
 
-  free(xr_raw);
+//  free(xr_raw);
   return MAD_ERROR_NONE;
 }
 
