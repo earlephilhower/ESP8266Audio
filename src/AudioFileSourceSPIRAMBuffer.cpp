@@ -91,6 +91,9 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
         if ((ramSize-bytesAvailable)<toRead) {
           toRead=ramSize-bytesAvailable;
         }
+      } else {
+        // EOF, break out of read loop
+        break;
       }
     }
     writePtr = bytesAvailable % ramSize;
