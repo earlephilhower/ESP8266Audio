@@ -21,8 +21,7 @@ Install the library and the SPI driver library in your ~/Arduino/libraries
 mkdir -p ~/Arduino/libraries
 cd ~/Arduino/libraries
 git clone https://github.com/earlephilhower/ESP8266Audio
-git clone https://github.com/earlephilhower/ESP8266_Spiram
-# Once the pull request is merged, replace above with "git clone https://github.com/Gianbacchio/ESP8266_Spiram"
+git clone https://github.com/Gianbacchio/ESP8266_Spiram
 ````
 
 When in the IDE please select the following options:
