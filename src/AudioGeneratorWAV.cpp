@@ -62,7 +62,9 @@ bool AudioGeneratorWAV::GetBufferedData(int bytes, void *dest)
     // Potentially load next batch of data...
     if (buffPtr >= buffLen) {
       buffPtr = 0;
-      buffLen = file->read( buff, buffSize );
+      uint32_t toRead = availBytes > buffSize ? buffSize : availBytes;
+      buffLen = file->read( buff, toRead );
+      availBytes -= buffLen;
     }
     if (buffPtr >= buffLen)
       return false; // No data left!
@@ -159,7 +161,8 @@ bool AudioGeneratorWAV::ReadWAVInfo()
 
   // Skip size, read until end of file...
   if (!ReadU32(&u32)) return false;
-      
+  availBytes = u32;
+
   // Now set up the buffer or fail
   buff = reinterpret_cast<uint8_t *>(malloc(buffSize));
   if (!buff) return false;

@@ -48,6 +48,8 @@ class AudioGeneratorWAV : public AudioGenerator
     uint32_t sampleRate;
     uint16_t bitsPerSample;
     
+    uint32_t availBytes;
+
     // We need to buffer some data in-RAM to avoid doing 1000s of small reads
     uint32_t buffSize;
     uint8_t *buff;
