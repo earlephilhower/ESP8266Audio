@@ -19,6 +19,9 @@
 */
 
 #include "AudioFileSourceSPIFFS.h"
+#ifdef ESP32
+#include "SPIFFS.h"
+#endif
 
 AudioFileSourceSPIFFS::AudioFileSourceSPIFFS()
 {

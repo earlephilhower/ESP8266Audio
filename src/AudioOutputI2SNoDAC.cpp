@@ -19,14 +19,49 @@
 */
 
 #include <Arduino.h>
-#include <i2s.h>
+#ifdef ESP32
+  #include "driver/i2s.h"
+#else
+  #include <i2s.h>
+#endif
 #include "AudioOutputI2SNoDAC.h"
+
+
+#ifdef ESP32
+i2s_config_t i2s_config = {
+     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN),
+     .sample_rate = 44100,
+     .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT, /* the DAC module will only take the 8bits from MSB */
+     .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
+     .communication_format = (i2s_comm_format_t)I2S_COMM_FORMAT_I2S_MSB,
+     .intr_alloc_flags = 0, // default interrupt priority
+     .dma_buf_count = 8,
+     .dma_buf_len = 64,
+     .use_apll = 0
+    };
+    
+i2s_pin_config_t pin_config = {
+    .bck_io_num = 26, //this is BCK pin
+    .ws_io_num = 25, // this is LRCK pin
+    .data_out_num = 22, // this is DATA output pin
+    .data_in_num = -1   //Not used
+};
+#endif
 
 bool AudioOutputI2SNoDAC::i2sOn = false;
 
 AudioOutputI2SNoDAC::AudioOutputI2SNoDAC()
 {
+#ifdef ESP32
+  if (!i2sOn) {
+   //initialize i2s with configurations above
+   
+   i2s_driver_install((i2s_port_t)0, &i2s_config, 0, NULL);
+   i2s_set_pin((i2s_port_t)0, &pin_config);
+  } 
+#else
   if (!i2sOn) i2s_begin();
+#endif
   i2sOn = true;
   hertz = 44100;
   oversample = 32;
@@ -37,7 +72,13 @@ AudioOutputI2SNoDAC::AudioOutputI2SNoDAC()
 
 AudioOutputI2SNoDAC::~AudioOutputI2SNoDAC()
 {
+#ifdef ESP32
+  if (!i2sOn) {
+    i2s_driver_uninstall((i2s_port_t)0); //stop & destroy i2s driver
+  }	
+#else
   if (i2sOn) i2s_end();
+#endif
   i2sOn = false;
 }
 
@@ -45,7 +86,11 @@ bool AudioOutputI2SNoDAC::SetRate(int hz)
 {
   // TODO - what is the max hz we can request on I2S?
   this->hertz = hz;
+#ifdef ESP32
+  i2s_set_sample_rates((i2s_port_t)0, hz * (oversample / 32)); 
+#else
   i2s_set_rate(hz * (oversample / 32));
+#endif
   return true;
 }
 
@@ -109,6 +154,19 @@ void AudioOutputI2SNoDAC::DeltaSigma(int16_t sample[2], uint32_t dsBuff[4])
     dsBuff[j] = bits;
   }
 }
+
+#ifdef ESP32
+/* write sample data to I2S */
+int i2s_write_sample_nb(uint8_t sample){
+  return i2s_write_bytes((i2s_port_t)0, (const char *)&sample, sizeof(uint8_t), 100);
+}
+
+// how to do this blocking??
+int i2s_write_sample(uint8_t sample){
+  return i2s_write_bytes((i2s_port_t)0, (const char *)&sample, sizeof(uint8_t), 100);
+}
+
+#endif
 
 bool AudioOutputI2SNoDAC::ConsumeSample(int16_t sample[2])
 {

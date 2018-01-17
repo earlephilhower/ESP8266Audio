@@ -532,8 +532,8 @@ static FLAC__StreamDecoderInitStatus init_FILE_internal_(
 	 * must assign the FILE pointer before any further error can occur in
 	 * this routine.
 	 */
-	if(file == stdin)
-		file = get_binary_stdin_(); /* just to be safe */
+//	if(file == stdin)
+//		file = get_binary_stdin_(); /* just to be safe */
 
 	decoder->private_->file = file;
 
@@ -1274,26 +1274,7 @@ void set_defaults_(FLAC__StreamDecoder *decoder)
 #endif
 }
 
-/*
- * This will forcibly set stdin to binary mode (for OSes that require it)
- */
-FILE *get_binary_stdin_(void)
-{
-	/* if something breaks here it is probably due to the presence or
-	 * absence of an underscore before the identifiers 'setmode',
-	 * 'fileno', and/or 'O_BINARY'; check your system header files.
-	 */
-#if defined _MSC_VER || defined __MINGW32__
-	_setmode(_fileno(stdin), _O_BINARY);
-#elif defined __CYGWIN__
-	/* almost certainly not needed for any modern Cygwin, but let's be safe... */
-	setmode(_fileno(stdin), _O_BINARY);
-#elif defined __EMX__
-	setmode(fileno(stdin), O_BINARY);
-#endif
 
-	return stdin;
-}
 
 FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, unsigned size, unsigned channels)
 {

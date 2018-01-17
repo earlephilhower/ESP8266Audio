@@ -22,8 +22,8 @@
 #define _AUDIOGENERATORMP3_H
 
 #include "AudioGenerator.h"
-#include "libmad/config.h"
-#include "libmad/mad.h"
+#include "mad-esp32/config.h"
+#include "mad-esp32/mad.h"
 
 class AudioGeneratorMP3 : public AudioGenerator
 {

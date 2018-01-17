@@ -20,6 +20,9 @@
 
 #include <Arduino.h>
 #include <FS.h>
+#ifdef ESP32
+#include "SPIFFS.h"
+#endif
 
 #include "AudioOutputSPIFFSWAV.h"
 

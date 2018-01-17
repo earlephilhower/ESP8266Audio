@@ -1,12 +1,17 @@
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
+#ifdef ESP32
+  #include <WiFi.h>
+  #include "SPIFFS.h"
+#else
+  #include <ESP8266WiFi.h>
+#endif
 #include "AudioFileSourceSPIFFS.h"
 #include "AudioFileSourceID3.h"
 #include "AudioGeneratorMP3.h"
 #include "AudioOutputI2SNoDAC.h"
 
 // To run, set your ESP8266 build to 160MHz, and include a SPIFFS of 512KB or greater.
-// Use the "Tools->ESP8266 Sketch Data Upload" menu to write the MP3 to SPIFFS
+// Use the "Tools->ESP8266/ESP32 Sketch Data Upload" menu to write the MP3 to SPIFFS
 // Then upload the sketch normally.  
 
 // pno_cs from https://ccrma.stanford.edu/~jos/pasp/Sound_Examples.html
@@ -41,7 +46,7 @@ void MDCallback(void *cbData, const char *type, bool isUnicode, const char *stri
 
 void setup()
 {
-  WiFi.forceSleepBegin();
+  WiFi.mode(WIFI_OFF); 
   Serial.begin(115200);
   delay(1000);
   SPIFFS.begin();

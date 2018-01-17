@@ -39,7 +39,11 @@ After creation, you need to call the AudioGeneratorXXX::loop() routine from insi
 See the examples directory for some simple examples, but the following snippet can play an MP3 file over the simulated I2S DAC:
 ````
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
+#ifdef ESP32
+    #include <WiFi.h>
+#else
+    #include <ESP8266WiFi.h>
+#endif
 #include "AudioFileSourceSPIFFS.h"
 #include "AudioGeneratorMP3.h"
 #include "AudioOutputI2SNoDAC.h"

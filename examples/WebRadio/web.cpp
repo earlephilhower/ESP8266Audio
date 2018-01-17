@@ -19,7 +19,11 @@
 */
 
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
+#ifdef ESP32
+    #include <WiFi.h>
+#else
+    #include <ESP8266WiFi.h>
+#endif
 #include "web.h"
 
 void WebPrintError(WiFiClient *client, int code)
