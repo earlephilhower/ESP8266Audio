@@ -248,8 +248,6 @@ void setup()
   WiFi.softAPdisconnect(true);
   WiFi.mode(WIFI_STA);
   
-  WiFi.hostname("melody");
-  
   WiFi.begin(SSID, PASSWORD);
 
   // Try forever
