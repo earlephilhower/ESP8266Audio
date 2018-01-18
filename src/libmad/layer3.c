@@ -2216,7 +2216,7 @@ void III_imdct_s(mad_fixed_t const X[18], mad_fixed_t z[36])
   register mad_fixed64hi_t hi;
   register mad_fixed64lo_t lo;
   // MAD_F_MLA may produce non-32b aligned reads, so copy from progmem to stack and work from there...
-  mad_fixed_t const imdct_s_lcl[6][6];
+  mad_fixed_t imdct_s_lcl[6][6];
   memcpy_P(imdct_s_lcl, imdct_s, sizeof(imdct_s));
   stack(__FUNCTION__, __FILE__, __LINE__);
 
