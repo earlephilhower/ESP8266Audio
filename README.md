@@ -1,5 +1,7 @@
-# ESP8266Audio
-Arduino library for parsing and decoding MOD, WAV, MP3, FLAC, MIDI, and AAC files and playing them on an I2S DAC or even using a software-simulated delta-sigma DAC with dynamic 32x oversampling
+# ESP8266Audio - now supporting ESP32 as well!
+Arduino library for parsing and decoding MOD, WAV, MP3, FLAC, MIDI, and AAC files and playing them on an I2S DAC or even using a software-simulated delta-sigma DAC with dynamic 32x oversampling.
+
+ESP8266 is fully supported and most mature, but we've also just introduced support for the ESP32.
 
 ## Disclaimer
 All this code is released under the GPL, and all of it is to be used at your own risk.  If you find any bugs, please let me know via the GitHub issue tracker or drop me an email.  The MOD and MP3 routines were taken from StellaPlayer and libMAD respectively.  The software I2S delta-sigma 32x oversampling DAC was my own creation, and sounds quite good if I do say so myself.
@@ -9,12 +11,9 @@ The AAC decode code is from the Helix project and licensed under RealNetwork's R
 MIDI decoding comes from a highly ported MIDITONES (https://github.com/LenShustek/miditones) combined with a massively memory-optimized TinySoundFont (https://github.com/schellingb/TinySoundFont), see the respective source files for more information.
 
 ## Prerequisites and Installation
-First, make sure you are running the 2.4-rc2 or GIT head version of the Arduino libraries.
+First, make sure you are running the 2.4 or GIT head version of the Arduino libraries for ESP8266, or the latest ESP32 SDK from Espressif.
 
 You can use GIT to pull right from GitHub: see https://github.com/esp8266/Arduino/blob/master/README.md#using-git-version for detailed instructions.
-
-Alternatively, install using the Arduino Boards manager by using the following URL and selecting 2.4.0-rc2:
-https://github.com/esp8266/Arduino/releases/download/2.4.0-rc2/package_esp8266com_index.json
 
 Install the library and the SPI driver library in your ~/Arduino/libraries
 ````
@@ -24,9 +23,9 @@ git clone https://github.com/earlephilhower/ESP8266Audio
 git clone https://github.com/Gianbacchio/ESP8266_Spiram
 ````
 
-When in the IDE please select the following options:
+When in the IDE please select the following options on the ESP8266:
 ````
-Tools->lwIP Variant->v1.4 Open Source
+Tools->lwIP Variant->v1.4 Open Source, or V2 Prebuilt (MSS=1460)
 Tools->CPU Frequency->160MHz
 ````
 
@@ -39,11 +38,6 @@ After creation, you need to call the AudioGeneratorXXX::loop() routine from insi
 See the examples directory for some simple examples, but the following snippet can play an MP3 file over the simulated I2S DAC:
 ````
 #include <Arduino.h>
-#ifdef ESP32
-    #include <WiFi.h>
-#else
-    #include <ESP8266WiFi.h>
-#endif
 #include "AudioFileSourceSPIFFS.h"
 #include "AudioGeneratorMP3.h"
 #include "AudioOutputI2SNoDAC.h"
@@ -53,7 +47,6 @@ AudioFileSourceSPIFFS *file;
 AudioOutputI2SNoDAC *out;
 void setup()
 {
-  WiFi.forceSleepBegin();
   Serial.begin(115200);
   delay(1000);
   SPIFFS.begin();
@@ -184,6 +177,8 @@ There's no ESP8266-specific code in the AudioGenerator routines, so porting to o
 
 ## Thanks
 Thanks to the authors of StellaPlayer and libMAD for releasing their code freely, and to the maintainers and contributors to the ESP8266 Arduino port.
+
+Also, big thanks to @tueddy for getting the initial ESP32 porting into the tree!
 
 -Earle F. Philhower, III
  earlephilhower@yahoo.com
