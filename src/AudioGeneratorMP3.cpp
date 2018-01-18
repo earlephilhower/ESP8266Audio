@@ -231,6 +231,16 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output)
 
 #undef stack
 extern "C" {
+#ifdef ESP32
+  //TOTO - add ESP32 checks
+  void stack(const char *s, const char *t, int i)
+  {
+  }
+  int stackfree()
+  {
+    return 8192;
+  }
+#else
   #include <cont.h>
   extern cont_t g_cont;
 
@@ -264,5 +274,6 @@ extern "C" {
     int freestack = 4 * (sp - g_cont.stack);
     return freestack;
   }
+#endif  
 }
 
