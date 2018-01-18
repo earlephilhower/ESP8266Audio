@@ -1,5 +1,10 @@
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
+#ifdef ESP32
+    #include <WiFi.h>
+#else
+    #include <ESP8266WiFi.h>
+#endif
+
 
 #include <AudioOutputNull.h>
 #include <AudioOutputI2SDAC.h>
@@ -17,7 +22,7 @@ void setup()
   const char *soundfont = "1mgm.sf2";
   const char *midifile = "furelise.mid";
 
-  WiFi.forceSleepBegin();
+  WiFi.mode(WIFI_OFF); 
 
   Serial.begin(115200);
   Serial.println("Starting up...\n");

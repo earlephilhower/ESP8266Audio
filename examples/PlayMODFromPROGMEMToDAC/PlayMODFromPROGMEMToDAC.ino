@@ -1,8 +1,12 @@
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
 #include "AudioFileSourcePROGMEM.h"
 #include "AudioGeneratorMOD.h"
 #include "AudioOutputI2SDAC.h"
+#ifdef ESP32
+    #include <WiFi.h>
+#else
+    #include <ESP8266WiFi.h>
+#endif
 
 // enigma.mod sample from the mod archive: https://modarchive.org/index.php?request=view_by_moduleid&query=42146
 #include "enigma.h"
@@ -13,7 +17,7 @@ AudioOutputI2SDAC *out;
 
 void setup()
 {
-  WiFi.forceSleepBegin();
+  WiFi.mode(WIFI_OFF); //WiFi.forceSleepBegin();
   Serial.begin(115200);
   delay(1000);
   file = new AudioFileSourcePROGMEM( enigma_mod, sizeof(enigma_mod) );

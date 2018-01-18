@@ -1,5 +1,10 @@
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
+#ifdef ESP32
+    #include <WiFi.h>
+#else
+    #include <ESP8266WiFi.h>
+#endif
+
 #include "AudioFileSourcePROGMEM.h"
 #include "AudioGeneratorWAV.h"
 #include "AudioOutputI2SNoDAC.h"
@@ -13,9 +18,10 @@ AudioOutputI2SNoDAC *out;
 
 void setup()
 {
-  WiFi.forceSleepBegin();
+  WiFi.mode(WIFI_OFF); 
   Serial.begin(115200);
   delay(1000);
+  Serial.printf("WAV start\n");
   file = new AudioFileSourcePROGMEM( viola, sizeof(viola) );
   out = new AudioOutputI2SNoDAC();
   wav = new AudioGeneratorWAV();
