@@ -40,7 +40,7 @@ i2s_config_t i2s_config_dac = {
      .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // high interrupt priority
      .dma_buf_count = 8,
      .dma_buf_len = 64,   //Interrupt level 1
-     .use_apll = true // Use audio PLL
+     .use_apll = 1 // Use audio PLL
     };
     
 i2s_pin_config_t pin_config_dac = {
@@ -128,7 +128,7 @@ bool AudioOutputI2SDAC::ConsumeSample(int16_t sample[2])
   }
   uint32_t s32 = ((Amplify(sample[RIGHTCHANNEL]))<<16) | (Amplify(sample[LEFTCHANNEL]) & 0xffff);
 #ifdef ESP32
-  return i2s_write_bytes((i2s_port_t)i2s_num, (const char *)&s32, sizeof(uint32_t), 100);
+  return i2s_write_bytes((i2s_port_t)i2s_num, (const char *)&s32, sizeof(uint32_t), 0);
 #else
   return i2s_write_sample_nb(s32); // If we can't store it, return false.  OTW true
 #endif

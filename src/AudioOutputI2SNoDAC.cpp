@@ -29,15 +29,15 @@
 
 #ifdef ESP32
 i2s_config_t i2s_config = {
-     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN),
+     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
      .sample_rate = 44100,
-     .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT, /* the DAC module will only take the 8bits from MSB */
+     .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
      .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
      .communication_format = (i2s_comm_format_t)I2S_COMM_FORMAT_I2S_MSB,
      .intr_alloc_flags = 0, // default interrupt priority
      .dma_buf_count = 8,
      .dma_buf_len = 64,
-     .use_apll = 0
+     .use_apll = 1
     };
     
 i2s_pin_config_t pin_config = {
@@ -157,13 +157,13 @@ void AudioOutputI2SNoDAC::DeltaSigma(int16_t sample[2], uint32_t dsBuff[4])
 
 #ifdef ESP32
 /* write sample data to I2S */
-int i2s_write_sample_nb(uint8_t sample){
-  return i2s_write_bytes((i2s_port_t)0, (const char *)&sample, sizeof(uint8_t), 100);
+int i2s_write_sample_nb(uint32_t sample){
+  return i2s_write_bytes((i2s_port_t)0, (const char *)&sample, sizeof(sample), 0);
 }
 
 // how to do this blocking??
-int i2s_write_sample(uint8_t sample){
-  return i2s_write_bytes((i2s_port_t)0, (const char *)&sample, sizeof(uint8_t), 100);
+int i2s_write_sample(uint32_t sample){
+  return i2s_write_bytes((i2s_port_t)0, (const char *)&sample, sizeof(sample), portMAX_DELAY);
 }
 
 #endif
