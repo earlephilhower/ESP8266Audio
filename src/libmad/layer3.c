@@ -2225,7 +2225,7 @@ void III_imdct_s(mad_fixed_t const X[18], mad_fixed_t z[36])
   yptr = &y[0];
 
   for (w = 0; w < 3; ++w) {
-    register mad_fixed_t const (*s)[6];
+    register mad_fixed_t (*s)[6];
 
     s = imdct_s_lcl;
 
