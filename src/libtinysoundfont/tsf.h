@@ -1257,11 +1257,7 @@ static void tsf_voice_render(tsf* f, struct tsf_voice* v, float* outputBuffer, i
 
 
 void DumpF32P32(char *name, long long x) {
-#ifdef ESP32
-  printf("%s = %08x.%08x\n", name, (int)((x>>32)&0xffffffff), (int)(x&0xffffffff));
-#else
-  printf("%s = %08x.%08x\n", name, (int32)((x>>32)&0xffffffff), (int32)(x&0xffffffff));
-#endif
+  printf("%s = %08x.%08x\n", name, (int32_t)((x>>32)&0xffffffff), (int32_t)(x&0xffffffff));
 }
 static void tsf_voice_render_fast(tsf* f, struct tsf_voice* v, short* outputBuffer, int numSamples)
 {
