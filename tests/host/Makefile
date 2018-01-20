@@ -1,4 +1,4 @@
-all: mp3
+all: mp3 aac
 
 libmad=../../src/libmad/decoder.c ../../src/libmad/frame.c ../../src/libmad/bit.c ../../src/libmad/stream.c ../../src/libmad/fixed.c \
 ../../src/libmad/timer.c ../../src/libmad/layer3.c ../../src/libmad/synth.c ../../src/libmad/huffman.c ../../src/libmad/version.c
@@ -36,10 +36,16 @@ mp3: FORCE
 	gcc $(CCOPTS) -c $(libmad) -I ../../src/ -I.
 	g++ $(CPPOPTS) -o mp3 mp3.cpp Serial.cpp *.o ../../src/AudioFileSourceSTDIO.cpp ../../src/AudioOutputSTDIO.cpp ../../src/AudioFileSourceID3.cpp ../../src/AudioGeneratorMP3.cpp -I ../../src/ -I.
 	rm -f *.o
-	valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./mp3
+	echo valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./mp3
+
+aac: FORCE
+	rm -f *.o
+	gcc $(CCOPTS) -DUSE_DEFAULT_STDLIB -c $(libhelix_aac) -I ../../src/ -I.
+	g++ $(CPPOPTS) -o aac aac.cpp Serial.cpp *.o ../../src/AudioFileSourceSTDIO.cpp ../../src/AudioOutputSTDIO.cpp ../../src/AudioFileSourceID3.cpp ../../src/AudioGeneratorAAC.cpp -I ../../src/ -I.
+	rm -f *.o
+	echo valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./aac
 
 clean:
-	rm -f mp3 *.o
-
+	rm -f mp3 aac *.o
 
 FORCE:

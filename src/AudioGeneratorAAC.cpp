@@ -50,8 +50,8 @@ AudioGeneratorAAC::~AudioGeneratorAAC()
 
 bool AudioGeneratorAAC::stop()
 {
-  if (!running) return true;
   running = false;
+  output->stop();
   return file->close();
 }
 

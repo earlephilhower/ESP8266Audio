@@ -606,4 +606,28 @@ clip to [-2^n, 2^n-1], valid range of n = [1, 30]
 
 #endif	/* platforms */
 
+#ifndef CLIP_2N
+#define CLIP_2N(y, n) { \
+        int sign = (y) >> 31;  \
+        if (sign != (y) >> (n))  { \
+                (y) = sign ^ ((1 << (n)) - 1); \
+        } \
+}
+#endif
+
+#ifndef CLIP_2N_SHIFT
+/* From coder.h, ORIGINAL:
+ do y <<= n, clipping to range [-2^30, 2^30 - 1] (i.e. output has one guard bit) 
+*/
+//TODO (FB) Is there a better way ?
+#define CLIP_2N_SHIFT(y, n) {                   \
+        int sign = (y) >> 31;                   \
+        if (sign != (y) >> (30 - (n)))  {       \
+            (y) = sign ^ (0x3fffffff);          \
+        } else {                                \
+            (y) = (y) << (n);                   \
+        }                                       \
+    }
+#endif
+
 #endif /* _ASSEMBLY_H */

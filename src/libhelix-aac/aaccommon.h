@@ -50,7 +50,7 @@
 #include <pgmspace.h>
 
 // Can't fit in ESP8266 RAM
-#ifdef ESP32
+#ifndef ESP8266
   #define AAC_ENABLE_SBR 1 
 #endif
 
