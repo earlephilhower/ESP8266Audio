@@ -125,7 +125,6 @@ AudioFileSourceID3::AudioFileSourceID3(AudioFileSource *src)
 
 AudioFileSourceID3::~AudioFileSourceID3()
 {
-  src->close();
 }
 
 uint32_t AudioFileSourceID3::read(void *data, uint32_t len)

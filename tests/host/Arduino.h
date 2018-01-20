@@ -19,6 +19,7 @@
 #define printf_P printf
 #define strcpy_P strcpy
 #define snprintf_P snprintf
+#define strncpy_P strncpy
 
 #ifdef __cplusplus
 class SerialEmulator {
