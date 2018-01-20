@@ -451,6 +451,11 @@ int mad_frame_decode(struct mad_frame *frame, struct mad_stream *stream)
 
   frame->header.flags &= ~MAD_FLAG_INCOMPLETE;
 
+  // EFP3 - On non-MP3 frames, abort instead of crash..we removed MP-II/MP-I decoders
+  if (!decoder_table[frame->header.layer - 1]) {
+    goto fail;
+  }
+
   if (decoder_table[frame->header.layer - 1](stream, frame) == -1) {
     if (!MAD_RECOVERABLE(stream->error))
       stream->next_frame = stream->this_frame;
