@@ -31,12 +31,15 @@ libflac=../../src/libflac/md5.c ../../src/libflac/window.c ../../src/libflac/mem
 CCOPTS=-g -Wall -m32 -include Arduino.h
 CPPOPTS=-g -Wall -std=c++11 -m32 -include Arduino.h
 
-mp3: mp3.cpp $(audiolib)
+mp3: FORCE
 	rm -f *.o
 	gcc $(CCOPTS) -c $(libmad) -I ../../src/ -I.
 	g++ $(CPPOPTS) -o mp3 mp3.cpp Serial.cpp *.o ../../src/AudioFileSourceSTDIO.cpp ../../src/AudioOutputSTDIO.cpp ../../src/AudioFileSourceID3.cpp ../../src/AudioGeneratorMP3.cpp -I ../../src/ -I.
 	rm -f *.o
+	valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./mp3
 
 clean:
 	rm -f mp3 *.o
 
+
+FORCE:

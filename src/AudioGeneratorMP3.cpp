@@ -203,6 +203,8 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output)
     Serial.printf_P(PSTR("MP3 source file not open\n"));
     return false; // Error
   }
+  output->SetBitsPerSample(16);
+  output->SetChannels(2);
   if (!output->begin()) return false;
 
   // Where we are in generating one frame's data, set to invalid so we will run loop on first getsample()

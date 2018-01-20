@@ -15,4 +15,8 @@ int main(int argc, char **argv)
     mp3->begin(in, out);
     while (mp3->loop()) { /*noop*/ }
     mp3->stop();
+
+    delete mp3;
+    delete out;
+    delete in;
 }
