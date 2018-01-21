@@ -29,6 +29,7 @@ AudioGeneratorMP3::AudioGeneratorMP3()
   buffLen = 1500; // Max theoretical frame of 1441 + 8 guard bytes, with some fluff
   buff = NULL;
   nsCountMax = 1152/32;
+  madInitted = false;
 }
 
 AudioGeneratorMP3::~AudioGeneratorMP3()
@@ -49,10 +50,13 @@ bool AudioGeneratorMP3::stop()
 {
   free(buff);
   buff = NULL;
-  
-  mad_synth_finish(&synth);
-  mad_frame_finish(&frame);
-  mad_stream_finish(&stream);
+
+  if (madInitted) {
+    mad_synth_finish(&synth);
+    mad_frame_finish(&frame);
+    mad_stream_finish(&stream);
+    madInitted = false;
+  }
 
   running = false;
   output->stop();
@@ -222,8 +226,8 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output)
   mad_stream_init(&stream);
   mad_frame_init(&frame);
   mad_synth_init(&synth);
-
-  mad_stream_options(&stream, 0); // TODO - add options suppoirt
+  mad_stream_options(&stream, 0); // TODO - add options support
+  madInitted = true;
  
   running = true;
   return true;
