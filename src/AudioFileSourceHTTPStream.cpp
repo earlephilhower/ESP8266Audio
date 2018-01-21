@@ -46,7 +46,7 @@ bool AudioFileSourceHTTPStream::open(const char *url)
     return false;
   }
   size = http.getSize();
-  free(saveURL);
+  free(saveURL); saveURL = NULL;
   saveURL = strdup(url);
   return true;
 }
@@ -58,11 +58,19 @@ AudioFileSourceHTTPStream::~AudioFileSourceHTTPStream()
 
 uint32_t AudioFileSourceHTTPStream::read(void *data, uint32_t len)
 {
+  if (data==NULL) {
+    Serial.printf_P(PSTR("ERROR! AudioFileSourceHTTPStream::read passed NULL data\n"));
+    return 0;
+  }
   return readInternal(data, len, false);
 }
 
 uint32_t AudioFileSourceHTTPStream::readNonBlock(void *data, uint32_t len)
 {
+  if (data==NULL) {
+    Serial.printf_P(PSTR("ERROR! AudioFileSourceHTTPStream::readNonBlock passed NULL data\n"));
+    return 0;
+  }
   return readInternal(data, len, true);
 }
 

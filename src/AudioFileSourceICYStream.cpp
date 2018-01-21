@@ -56,7 +56,7 @@ bool AudioFileSourceICYStream::open(const char *url)
   }
   icyByteCount = 0;
   size = http.getSize();
-  free(saveURL);
+  free(saveURL); saveURL = false;
   saveURL = strdup(url);
   return true;
 }
