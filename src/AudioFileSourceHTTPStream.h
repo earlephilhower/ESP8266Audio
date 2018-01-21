@@ -57,7 +57,7 @@ class AudioFileSourceHTTPStream : public AudioFileSource
     int size;
     int reconnectTries;
     int reconnectDelayMs;
-    char *saveURL;
+    char saveURL[128];
 };
 
 

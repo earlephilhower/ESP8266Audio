@@ -24,12 +24,12 @@ AudioFileSourceHTTPStream::AudioFileSourceHTTPStream()
 {
   pos = 0;
   reconnectTries = 0;
-  saveURL = NULL;
+  saveURL[0] = 0;
 }
 
 AudioFileSourceHTTPStream::AudioFileSourceHTTPStream(const char *url)
 {
-  saveURL = NULL;
+  saveURL[0] = 0;
   reconnectTries = 0;
   open(url);
 }
@@ -46,8 +46,8 @@ bool AudioFileSourceHTTPStream::open(const char *url)
     return false;
   }
   size = http.getSize();
-  free(saveURL); saveURL = NULL;
-  saveURL = strdup(url);
+  strncpy(saveURL, url, sizeof(saveURL));
+  saveURL[sizeof(saveURL)-1] = 0;
   return true;
 }
 

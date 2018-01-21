@@ -10,7 +10,8 @@ int main(int argc, char **argv)
     AudioFileSourceSTDIO *in = new AudioFileSourceSTDIO("jamonit.aac");
     AudioOutputSTDIO *out = new AudioOutputSTDIO();
     out->SetFilename("jamonit.aac.wav");
-    AudioGeneratorAAC *aac = new AudioGeneratorAAC();
+    void *space = malloc(28000+60000);
+    AudioGeneratorAAC *aac = new AudioGeneratorAAC(space, 28000+60000);
 
     aac->begin(in, out);
     while (aac->loop()) { /*noop*/ }

@@ -52,7 +52,6 @@ stack(__FUNCTION__, __FILE__, __LINE__);
   mad_bit_init(&stream->anc_ptr, 0);
   stream->anc_bitlen = 0;
 
-  stream->main_data  = 0;
   stream->md_len     = 0;
 
   stream->options    = 0;
@@ -66,10 +65,6 @@ stack(__FUNCTION__, __FILE__, __LINE__);
 void mad_stream_finish(struct mad_stream *stream)
 {
 stack(__FUNCTION__, __FILE__, __LINE__);
-  if (stream->main_data) {
-    free(stream->main_data);
-    stream->main_data = 0;
-  }
 
   mad_bit_finish(&stream->anc_ptr);
   mad_bit_finish(&stream->ptr);

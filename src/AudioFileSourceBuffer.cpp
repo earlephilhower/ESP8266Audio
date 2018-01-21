@@ -28,6 +28,19 @@ AudioFileSourceBuffer::AudioFileSourceBuffer(AudioFileSource *source, int buffSi
   buffSize = buffSizeBytes;
   buffer = (uint8_t*)malloc(sizeof(uint8_t) * buffSize);
   if (!buffer) Serial.printf_P(PSTR("Unable to allocate AudioFileSourceBuffer::buffer[]\n"));
+  deallocateBuffer = true;
+  writePtr = 0;
+  readPtr = 0;
+  src = source;
+  length = 0;
+  filled = false;
+}
+
+AudioFileSourceBuffer::AudioFileSourceBuffer(AudioFileSource *source, void *inBuff, int buffSizeBytes)
+{
+  buffSize = buffSizeBytes;
+  buffer = (uint8_t*)inBuff;
+  deallocateBuffer = false;
   writePtr = 0;
   readPtr = 0;
   src = source;
@@ -37,7 +50,7 @@ AudioFileSourceBuffer::AudioFileSourceBuffer(AudioFileSource *source, int buffSi
 
 AudioFileSourceBuffer::~AudioFileSourceBuffer()
 {
-  free(buffer);
+  if (deallocateBuffer) free(buffer);
   buffer = NULL;
 }
 
@@ -52,7 +65,7 @@ bool AudioFileSourceBuffer::seek(int32_t pos, int dir)
 
 bool AudioFileSourceBuffer::close()
 {
-  free(buffer);
+  if (deallocateBuffer) free(buffer);
   buffer = NULL;
   return src->close();
 }

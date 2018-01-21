@@ -51,12 +51,14 @@ int main(int argc, char **argv)
     id3->RegisterMetadataCB(MDCallback, (void*)"ID3TAG");
     AudioOutputSTDIO *out = new AudioOutputSTDIO();
     out->SetFilename("jamonit.wav");
-    AudioGeneratorMP3 *mp3 = new AudioGeneratorMP3();
+    void *space = malloc(29192);
+    AudioGeneratorMP3 *mp3 = new AudioGeneratorMP3(space, 29192);
 
     mp3->begin(id3, out);
     while (mp3->loop()) { /*noop*/ }
     mp3->stop();
 
+    free(space);
     delete mp3;
     delete out;
     delete id3;

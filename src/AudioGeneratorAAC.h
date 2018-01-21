@@ -28,6 +28,7 @@ class AudioGeneratorAAC : public AudioGenerator
 {
   public:
     AudioGeneratorAAC();
+    AudioGeneratorAAC(void *preallocateData, int preallocateSize);
     virtual ~AudioGeneratorAAC() override;
     virtual bool begin(AudioFileSource *source, AudioOutput *output) override;
     virtual bool loop() override;
@@ -35,17 +36,21 @@ class AudioGeneratorAAC : public AudioGenerator
     virtual bool isRunning() override;
 
   protected:
+    void *preallocateSpace;
+    int preallocateSize;
+
     // Helix AAC decoder
     HAACDecoder hAACDecoder;
 
     // Input buffering
-    uint8_t buff[1600]; // File buffer required to store at least a whole compressed frame
+    const int buffLen = 1600;
+    uint8_t *buff; //[1600]; // File buffer required to store at least a whole compressed frame
     int16_t buffValid;
     int16_t lastFrameEnd;
     bool FillBufferWithValidFrame(); // Read until we get a valid syncword and min(feof, 2048) butes in the buffer
 
     // Output buffering
-    int16_t outSample[1024 * 2]; // Interleaved L/R
+    int16_t *outSample; //[1024 * 2]; // Interleaved L/R
     int16_t validSamples;
     int16_t curSample;
 

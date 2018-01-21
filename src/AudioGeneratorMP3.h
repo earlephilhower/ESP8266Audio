@@ -29,15 +29,18 @@ class AudioGeneratorMP3 : public AudioGenerator
 {
   public:
     AudioGeneratorMP3();
+    AudioGeneratorMP3(void *preallocateSpace, int preallocateSize);
     virtual ~AudioGeneratorMP3() override;
     virtual bool begin(AudioFileSource *source, AudioOutput *output) override;
     virtual bool loop() override;
     virtual bool stop() override;
     virtual bool isRunning() override;
-    bool SetBufferSize(int sz);
     
   protected:   
-    int buffLen;
+    void *preallocateSpace;
+    int preallocateSize;
+
+    const int buffLen = 0x600; // Slightly larger than largest MP3 frame
     unsigned char *buff;
     int lastReadPos;
     unsigned int lastRate;
@@ -45,9 +48,9 @@ class AudioGeneratorMP3 : public AudioGenerator
     
     // Decoding bits
     bool madInitted;
-    struct mad_stream stream;
-    struct mad_frame frame;
-    struct mad_synth synth;
+    struct mad_stream *stream;
+    struct mad_frame *frame;
+    struct mad_synth *synth;
     int samplePtr;
     int nsCount;
     int nsCountMax;

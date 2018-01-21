@@ -50,20 +50,20 @@ AudioFileSourceSTDIO::~AudioFileSourceSTDIO()
 
 uint32_t AudioFileSourceSTDIO::read(void *data, uint32_t len)
 {
-  if (rand() % 100 == 69) { // Give 0 data 1%
-    printf("0 read\n");
-    len = 0;
-  } else if (rand() % 100 == 1) { // Give short reads 1%
-    printf("0 read\n");
-    len = 0;
-  }
+//  if (rand() % 100 == 69) { // Give 0 data 1%
+//    printf("0 read\n");
+//    len = 0;
+//  } else if (rand() % 100 == 1) { // Give short reads 1%
+//    printf("0 read\n");
+//    len = 0;
+//  }
   int ret = fread(reinterpret_cast<uint8_t*>(data), 1, len, f);
-  if (ret && rand() % 100 < 5 ) {
-    // We're really mean...throw bad data in the mix
-    printf("bad data\n");
-    for (int i=0; i<100; i++)
-      *(reinterpret_cast<uint8_t*>(data) + (rand() % ret)) = rand();
-  }
+//  if (ret && rand() % 100 < 5 ) {
+//    // We're really mean...throw bad data in the mix
+//    printf("bad data\n");
+//    for (int i=0; i<100; i++)
+//      *(reinterpret_cast<uint8_t*>(data) + (rand() % ret)) = rand();
+//  }
   return ret;
 }
 

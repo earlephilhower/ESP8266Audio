@@ -113,6 +113,31 @@ AACDecInfo *AllocateBuffers(void)
 	return aacDecInfo;
 }
 
+AACDecInfo *AllocateBuffersPre(void **ptr, int *sz)
+{
+        AACDecInfo *aacDecInfo;
+
+        char *p = (char*)*ptr;
+        aacDecInfo = (AACDecInfo *)p;
+        p += (sizeof(AACDecInfo) +7 ) & ~7;
+        *sz -= (sizeof(AACDecInfo) +7 ) & ~7;
+        if (*sz < 0)
+                return 0;
+        ClearBuffer(aacDecInfo, sizeof(AACDecInfo));
+
+        aacDecInfo->psInfoBase = (PSInfoBase*)p;
+        p += (sizeof(PSInfoBase) + 7) & ~7;
+        *sz -= (sizeof(PSInfoBase) + 7) & ~7;
+        if (*sz <0) {
+                return 0;
+        }
+        ClearBuffer(aacDecInfo->psInfoBase, sizeof(PSInfoBase));
+
+	*ptr = p;
+
+        return aacDecInfo;
+}
+
 #ifndef SAFE_FREE
 #define SAFE_FREE(x)	{if (x)	free(x);	(x) = 0;}	/* helper macro */
 #endif

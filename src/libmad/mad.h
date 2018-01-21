@@ -706,7 +706,7 @@ struct mad_stream {
   struct mad_bitptr anc_ptr;		/* ancillary bits pointer */
   unsigned int anc_bitlen;		/* number of ancillary bits */
 
-  unsigned char (*main_data)[MAD_BUFFER_MDLEN];
+  unsigned char main_data[MAD_BUFFER_MDLEN];
 					/* Layer III main_data() */
   unsigned int md_len;			/* bytes in main_data */
 
@@ -790,7 +790,7 @@ struct mad_frame {
   int options;				/* decoding options (from stream) */
 
   mad_fixed_t sbsample[2][36][32];	/* synthesis subband filter samples */
-  mad_fixed_t (*overlap)[2][32][18];	/* Layer III block overlap data */
+  mad_fixed_t overlap[2][32][18];	/* Layer III block overlap data */
 
   mad_fixed_t xr_raw[576*2];
   mad_fixed_t tmp[576];

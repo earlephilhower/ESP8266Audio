@@ -114,6 +114,29 @@ int InitSBR(AACDecInfo *aacDecInfo)
 	return ERR_AAC_NONE;
 }
 
+int InitSBRPre(AACDecInfo *aacDecInfo, void **ptr, int *sz)
+{
+        PSInfoSBR *psi;
+
+        if (!aacDecInfo)
+                return ERR_AAC_NULL_POINTER;
+
+        /* allocate SBR state structure */
+        psi = (PSInfoSBR *)*ptr;
+        *sz -= sizeof(PSInfoSBR);
+        if (*sz < 0) {
+                printf("OOM in SBR, can't allocate %d bytes\n", sizeof(PSInfoSBR));
+                return ERR_AAC_SBR_INIT;
+        }
+        InitSBRState(psi);
+
+	*ptr = (void*)((char*)(*ptr) + sizeof(PSInfoSBR));
+        aacDecInfo->psInfoSBR = psi;
+        return ERR_AAC_NONE;
+}
+
+
+
 /**************************************************************************************
  * Function:    FreeSBR
  *

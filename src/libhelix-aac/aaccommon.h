@@ -157,6 +157,7 @@ typedef struct _AACDecInfo {
 
 /* decoder functions which must be implemented for each platform */
 AACDecInfo *AllocateBuffers(void);
+AACDecInfo *AllocateBuffersPre(void **space, int *len);
 void FreeBuffers(AACDecInfo *aacDecInfo);
 void ClearBuffer(void *buf, int nBytes);
 
@@ -179,6 +180,7 @@ int IMDCT(AACDecInfo *aacDecInfo, int ch, int chBase, short *outbuf);
 
 /* SBR specific functions */
 int InitSBR(AACDecInfo *aacDecInfo);
+int InitSBRPre(AACDecInfo *aacDecInfo, void **ptr, int *sz);
 void FreeSBR(AACDecInfo *aacDecInfo);
 int DecodeSBRBitstream(AACDecInfo *aacDecInfo, int chBase);
 int DecodeSBRData(AACDecInfo *aacDecInfo, int chBase, short *outbuf);

@@ -95,7 +95,6 @@ void mad_frame_init(struct mad_frame *frame)
 
   frame->options = 0;
 
-  frame->overlap = 0;
   mad_frame_mute(frame);
 }
 
@@ -106,11 +105,6 @@ void mad_frame_init(struct mad_frame *frame)
 void mad_frame_finish(struct mad_frame *frame)
 {
   mad_header_finish(&frame->header);
-
-  if (frame->overlap) {
-    free(frame->overlap);
-    frame->overlap = 0;
-  }
 }
 
 /*
@@ -498,12 +492,10 @@ void mad_frame_mute(struct mad_frame *frame)
     }
   }
 
-  if (frame->overlap) {
-    for (s = 0; s < 18; ++s) {
-      for (sb = 0; sb < 32; ++sb) {
-	(*frame->overlap)[0][sb][s] =
-	(*frame->overlap)[1][sb][s] = 0;
-      }
+  for (s = 0; s < 18; ++s) {
+    for (sb = 0; sb < 32; ++sb) {
+	frame->overlap[0][sb][s] =
+	frame->overlap[1][sb][s] = 0;
     }
   }
 }

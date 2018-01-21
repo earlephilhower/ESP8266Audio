@@ -24,12 +24,12 @@ AudioFileSourceICYStream::AudioFileSourceICYStream()
 {
   pos = 0;
   reconnectTries = 0;
-  saveURL = NULL;
+  saveURL[0] = 0;
 }
 
 AudioFileSourceICYStream::AudioFileSourceICYStream(const char *url)
 {
-  saveURL = NULL;
+  saveURL[0] = 0;
   reconnectTries = 0;
   open(url);
 }
@@ -56,8 +56,8 @@ bool AudioFileSourceICYStream::open(const char *url)
   }
   icyByteCount = 0;
   size = http.getSize();
-  free(saveURL); saveURL = NULL;
-  saveURL = strdup(url);
+  strncpy(saveURL, url, sizeof(saveURL));
+  saveURL[sizeof(saveURL)-1] = 0;
   return true;
 }
 

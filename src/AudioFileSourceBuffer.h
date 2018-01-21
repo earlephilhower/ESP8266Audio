@@ -28,6 +28,7 @@ class AudioFileSourceBuffer : public AudioFileSource
 {
   public:
     AudioFileSourceBuffer(AudioFileSource *in, int bufferBytes);
+    AudioFileSourceBuffer(AudioFileSource *in, void *buffer, int bufferBytes); // Pre-allocated buffer by app
     virtual ~AudioFileSourceBuffer() override;
     
     virtual uint32_t read(void *data, uint32_t len) override;
@@ -47,6 +48,7 @@ class AudioFileSourceBuffer : public AudioFileSource
     AudioFileSource *src;
     uint16_t buffSize;
     uint8_t *buffer;
+    bool deallocateBuffer;
     uint16_t writePtr;
     uint16_t readPtr;
     uint16_t length;

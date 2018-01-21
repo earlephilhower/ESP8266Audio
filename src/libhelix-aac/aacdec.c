@@ -81,6 +81,23 @@ HAACDecoder AACInitDecoder(void)
 	return (HAACDecoder)aacDecInfo;
 }
 
+HAACDecoder AACInitDecoderPre(void *ptr, int sz)
+{
+        AACDecInfo *aacDecInfo;
+
+        aacDecInfo = AllocateBuffersPre(&ptr, &sz);
+        if (!aacDecInfo)
+                return 0;
+
+#ifdef AAC_ENABLE_SBR
+        if (InitSBRPre(aacDecInfo, &ptr, &sz)) {
+                return 0;
+        }
+#endif
+
+        return (HAACDecoder)aacDecInfo;
+}
+
 /**************************************************************************************
  * Function:    AACFreeDecoder
  *

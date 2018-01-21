@@ -24,17 +24,26 @@
 
 AudioGeneratorAAC::AudioGeneratorAAC()
 {
+  preallocateSpace = NULL;
+  preallocateSize = 0;
+
   running = false;
   file = NULL;
   output = NULL;
+
+  buff = (uint8_t*)malloc(buffLen);
+  outSample = (int16_t*)malloc(1024 * 2 * sizeof(uint16_t));
+  if (!buff || !outSample) {
+    Serial.printf_P(PSTR("ERROR: Out of memory in AAC\n"));
+    Serial.flush();
+  }
+
   hAACDecoder = AACInitDecoder();
   if (!hAACDecoder) {
     Serial.printf_P(PSTR("Out of memory error! hAACDecoder==NULL\n"));
     Serial.flush();
   }
-  // For sanity's sake...
-  memset(buff, 0, sizeof(buff));
-  memset(outSample, 0, sizeof(outSample));
+
   buffValid = 0;
   lastFrameEnd = 0;
   validSamples = 0;
@@ -43,9 +52,48 @@ AudioGeneratorAAC::AudioGeneratorAAC()
   lastChannels = 0;
 }
 
+AudioGeneratorAAC::AudioGeneratorAAC(void *preallocateData, int preallocateSz)
+{
+  preallocateSpace = preallocateData;
+  preallocateSize = preallocateSz;
+
+  running = false;
+  file = NULL;
+  output = NULL;
+
+  uint8_t *p = (uint8_t*)preallocateSpace;
+  buff = (uint8_t*) p;
+  p += (buffLen + 7) & ~7;
+  outSample = (int16_t*) p;
+  p += (1024 * 2 * sizeof(int16_t) + 7) & ~7;
+  int used = p - (uint8_t*)preallocateSpace;
+  int availSpace = preallocateSize - used;
+  if (availSpace < 0 ) {
+    Serial.printf_P(PSTR("ERROR: Out of memory in AAC\n"));
+  }
+
+  hAACDecoder = AACInitDecoderPre(p, availSpace);
+  if (!hAACDecoder) {
+    Serial.printf_P(PSTR("Out of memory error! hAACDecoder==NULL\n"));
+    Serial.flush();
+  }
+  buffValid = 0;
+  lastFrameEnd = 0;
+  validSamples = 0;
+  curSample = 0;
+  lastRate = 0;
+  lastChannels = 0;
+}
+
+
+
 AudioGeneratorAAC::~AudioGeneratorAAC()
 {
-  AACFreeDecoder(hAACDecoder);
+  if (!preallocateSpace) {
+    AACFreeDecoder(hAACDecoder);
+    free(buff);
+    free(outSample);
+  }
 }
 
 bool AudioGeneratorAAC::stop()
@@ -71,10 +119,10 @@ bool AudioGeneratorAAC::FillBufferWithValidFrame()
     if (nextSync == -1) {
       if (buff[buffValid-1]==0xff) { // Could be 1st half of syncword, preserve it...
         buff[0] = 0xff;
-        buffValid = file->read(buff+1, sizeof(buff)-1);
+        buffValid = file->read(buff+1, buffLen-1);
         if (buffValid==0) return false; // No data available, EOF
       } else { // Try a whole new buffer
-        buffValid = file->read(buff, sizeof(buff));
+        buffValid = file->read(buff, buffLen-1);
         if (buffValid==0) return false; // No data available, EOF
       }
     }
@@ -85,7 +133,7 @@ bool AudioGeneratorAAC::FillBufferWithValidFrame()
   memmove(buff, buff+nextSync, buffValid);
 
   // We have a sync word at 0 now, try and fill remainder of buffer
-  buffValid += file->read(buff + buffValid, sizeof(buff) - buffValid);
+  buffValid += file->read(buff + buffValid, buffLen - buffValid);
 
   return true;
 }
@@ -152,7 +200,12 @@ bool AudioGeneratorAAC::begin(AudioFileSource *source, AudioOutput *output)
   
   // AAC always comes out at 16 bits
   output->SetBitsPerSample(16);
-  
+ 
+
+  memset(buff, 0, buffLen);
+  memset(outSample, 0, 1024*2*sizeof(int16_t));
+
+ 
   running = true;
   
   return true;
