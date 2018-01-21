@@ -190,11 +190,6 @@ void StopPlaying()
     delete decoder;
     decoder = NULL;
   }
-  if (out) {
-    out->stop();
-    delete out;
-    out = NULL;
-  }
   if (buff) {
     buff->close();
     delete buff;
@@ -237,8 +232,27 @@ void StatusCallback(void *cbData, int code, const char *string)
   status[sizeof(status)-1] = 0;
 }
 
+#ifdef ESP8266
+const int preallocateBufferSize = 5*1024;
+const int preallocateCodecSize = 29192; // MP3 codec max mem needed
+#else
+const int preallocateBufferSize = 16*1024;
+const int preallocateCodecSize = 85332; // AAC+SBR codec max mem needed
+#endif
+void *preallocateBuffer = NULL;
+void *preallocateCodec = NULL;
+
 void setup()
 {
+  // First, preallocate all the memory needed for the buffering and codecs, never to be freed
+  preallocateBuffer = malloc(preallocateBufferSize);
+  preallocateCodec = malloc(preallocateCodecSize);
+  if (!preallocateBuffer || !preallocateCodec) {
+    Serial.begin(115200);
+    Serial.printf_P(PSTR("FATAL ERROR:  Unable to preallocate %d bytes for app\n"), preallocateBufferSize+preallocateCodecSize);
+    while (1) delay(1000); // Infinite halt
+  }
+
   Serial.begin(115200);
 
   delay(1000);
@@ -269,7 +283,7 @@ void setup()
 
   file = NULL;
   buff = NULL;
-  out = NULL;
+  out = new AudioOutputI2SDAC();
   decoder = NULL;
 
   LoadSettings();
@@ -285,14 +299,18 @@ void StartNewURL()
   StopPlaying();
   Serial.printf_P(PSTR("After stop...Free mem=%d\n"), ESP.getFreeHeap());
   SaveSettings();
-
+  Serial.printf_P(PSTR("Saved settings\n"));
+  
   file = new AudioFileSourceICYStream(url);
+  Serial.printf_P(PSTR("created icystream\n"));
   file->RegisterMetadataCB(MDCallback, NULL);
-  buff = new AudioFileSourceBuffer(file, 4096);
+  buff = new AudioFileSourceBuffer(file, preallocateBuffer, preallocateBufferSize);
+  Serial.printf_P(PSTR("created buffer\n"));
   buff->RegisterStatusCB(StatusCallback, NULL);
-  out = new AudioOutputI2SDAC();
-  decoder = isAAC ? (AudioGenerator*) new AudioGeneratorAAC() : (AudioGenerator*) new AudioGeneratorMP3();
+  decoder = isAAC ? (AudioGenerator*) new AudioGeneratorAAC(preallocateCodec, preallocateCodecSize) : (AudioGenerator*) new AudioGeneratorMP3(preallocateCodec, preallocateCodecSize);
+  Serial.printf_P(PSTR("created decoder\n"));
   decoder->RegisterStatusCB(StatusCallback, NULL);
+  Serial.printf_P("Decoder start...\n");
   decoder->begin(file, out);
   out->SetGain(((float)volume)/100.0);
   if (!decoder->isRunning()) {
@@ -301,6 +319,7 @@ void StartNewURL()
     strcpy_P(status, PSTR("Unable to connect to URL"));
     retryms = millis() + 2000;
   }
+  Serial.printf_P("Done start new URL\n");
 }
 
 void LoadSettings()
@@ -365,7 +384,7 @@ void loop()
   static int lastms = 0;
   if (millis()-lastms > 1000) {
     lastms = millis();
-    Serial.printf_P(PSTR("Running for %d seconds...Free mem=%d\n"), lastms/1000, ESP.getFreeHeap());
+    Serial.printf_P(PSTR("Running for %d seconds%c...Free mem=%d\n"), lastms/1000, !decoder?' ':(decoder->isRunning()?'*':' '), ESP.getFreeHeap());
   }
 
   if (retryms && millis()-retryms>0) {
@@ -383,7 +402,7 @@ void loop()
   char *params;
   WiFiClient client = server.available();
   PumpDecoder();
-  char *reqBuff = (char *)alloca(384);
+  char reqBuff[384];
   if (client && WebReadRequest(&client, reqBuff, 384, &reqUrl, &params)) {
     PumpDecoder();
     if (IsIndexHTML(reqUrl)) {
