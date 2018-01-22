@@ -117,7 +117,7 @@ bool AudioGeneratorAAC::FillBufferWithValidFrame()
     if (nextSync >= 0) nextSync += lastFrameEnd;
     lastFrameEnd = 0;
     if (nextSync == -1) {
-      if (buff[buffValid-1]==0xff) { // Could be 1st half of syncword, preserve it...
+      if (buffValid && buff[buffValid-1]==0xff) { // Could be 1st half of syncword, preserve it...
         buff[0] = 0xff;
         buffValid = file->read(buff+1, buffLen-1);
         if (buffValid==0) return false; // No data available, EOF

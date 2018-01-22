@@ -28,8 +28,8 @@ libflac=../../src/libflac/md5.c ../../src/libflac/window.c ../../src/libflac/mem
 ../../src/libflac/stream_decoder.c ../../src/libflac/float.c
 
 
-CCOPTS=-g -Wall -m32 -include Arduino.h
-CPPOPTS=-g -Wall -std=c++11 -m32 -include Arduino.h
+CCOPTS=-g -Wunused-parameter -Wall -m32 -include Arduino.h
+CPPOPTS=-g -Wunused-parameter -Wall -std=c++11 -m32 -include Arduino.h
 
 mp3: FORCE
 	rm -f *.o

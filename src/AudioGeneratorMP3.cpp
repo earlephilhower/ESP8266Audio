@@ -336,6 +336,9 @@ extern "C" {
 #else
   void stack(const char *s, const char *t, int i)
   {
+    (void) s;
+    (void) t;
+    (void) i;
   }
   int stackfree()
   {

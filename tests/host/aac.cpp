@@ -20,4 +20,6 @@ int main(int argc, char **argv)
     delete aac;
     delete out;
     delete in;
+
+    free(space);
 }

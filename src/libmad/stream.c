@@ -65,6 +65,7 @@ stack(__FUNCTION__, __FILE__, __LINE__);
 void mad_stream_finish(struct mad_stream *stream)
 {
 stack(__FUNCTION__, __FILE__, __LINE__);
+  (void) stream;
 
   mad_bit_finish(&stream->anc_ptr);
   mad_bit_finish(&stream->ptr);

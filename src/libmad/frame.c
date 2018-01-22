@@ -104,6 +104,7 @@ void mad_frame_init(struct mad_frame *frame)
  */
 void mad_frame_finish(struct mad_frame *frame)
 {
+  (void) frame;
   mad_header_finish(&frame->header);
 }
 

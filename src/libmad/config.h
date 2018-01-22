@@ -13,7 +13,7 @@ extern "C" {
 # endif
 extern int stackfree();
 # ifdef __cplusplus
-};
+}
 # endif
 
 /* Define to enable experimental code. */
