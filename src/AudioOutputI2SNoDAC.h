@@ -21,25 +21,20 @@
 #ifndef _AUDIOOUTPUTI2SNODAC_H
 #define _AUDIOOUTPUTI2SNODAC_H
 
-#include "AudioOutput.h"
+#include "AudioOutputI2S.h"
 
-class AudioOutputI2SNoDAC : public AudioOutput
+class AudioOutputI2SNoDAC : public AudioOutputI2S
 {
   public:
-    AudioOutputI2SNoDAC();
+    AudioOutputI2SNoDAC(int port = 0);
     virtual ~AudioOutputI2SNoDAC() override;
-    virtual bool SetRate(int hz) override;
-    virtual bool SetBitsPerSample(int bits) override;
-    virtual bool SetChannels(int channels) override;
-    virtual bool begin() override;
     virtual bool ConsumeSample(int16_t sample[2]) override;
-    virtual bool stop() override;
     
     bool SetOversampling(int os);
     
   protected:
-    static bool i2sOn; // One per machine, not per instance...
-    int oversample;
+    virtual int AdjustI2SRate(int hz) { return hz * oversample/32; }
+    uint8_t oversample;
     void DeltaSigma(int16_t sample[2], uint32_t dsBuff[4]);
     typedef int32_t fixed24p8_t;
     enum {fixedPosValue=0x007fff00}; /* 24.8 of max-signed-int */

@@ -1,12 +1,12 @@
 #include <Arduino.h>
 #include "AudioGeneratorAAC.h"
-#include "AudioOutputI2SDAC.h"
+#include "AudioOutputI2S.h"
 #include "AudioFileSourcePROGMEM.h"
 #include "sampleaac.h"
 
 AudioFileSourcePROGMEM *in;
 AudioGeneratorAAC *aac;
-AudioOutputI2SDAC *out;
+AudioOutputI2S *out;
 
 void setup()
 {
@@ -14,7 +14,7 @@ void setup()
   
   in = new AudioFileSourcePROGMEM(sampleaac, sizeof(sampleaac));
   aac = new AudioGeneratorAAC();
-  out = new AudioOutputI2SDAC();
+  out = new AudioOutputI2S();
 
   aac->begin(in, out);
 }

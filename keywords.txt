@@ -16,7 +16,7 @@ AudioGeneratorMIDI	KEYWORD1
 AudioGeneratorMP3	KEYWORD1
 AudioGeneratorWAV	KEYWORD1
 AudioOutput		KEYWORD1
-AudioOutputI2SDAC	KEYWORD1
+AudioOutputI2S	KEYWORD1
 AudioOutputI2SNoDAC	KEYWORD1
 AudioOutputNull	KEYWORD1
 AudioOutputBuffer	KEYWORD1

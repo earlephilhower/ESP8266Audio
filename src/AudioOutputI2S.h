@@ -1,6 +1,6 @@
 /*
-  AudioOutputI2SDAC
-  Audio player for an I2S connected DAC, 16bps
+  AudioOutputI2S
+  Base class for an I2S output port
   
   Copyright (C) 2017  Earle F. Philhower, III
 
@@ -18,16 +18,17 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _AUDIOOUTPUTI2SDAC_H
-#define _AUDIOOUTPUTI2SDAC_H
+#ifndef _AUDIOOUTPUTI2S_H
+#define _AUDIOOUTPUTI2S_H
 
 #include "AudioOutput.h"
 
-class AudioOutputI2SDAC : public AudioOutput
+class AudioOutputI2S : public AudioOutput
 {
   public:
-    AudioOutputI2SDAC();
-    virtual ~AudioOutputI2SDAC() override;
+    AudioOutputI2S(int port=0);
+    virtual ~AudioOutputI2S() override;
+    bool SetPinout(int bclkPin, int wclkPin, int doutPin);
     virtual bool SetRate(int hz) override;
     virtual bool SetBitsPerSample(int bits) override;
     virtual bool SetChannels(int channels) override;
@@ -38,8 +39,10 @@ class AudioOutputI2SDAC : public AudioOutput
     bool SetOutputModeMono(bool mono);  // Force mono output no matter the input
     
   protected:
+    virtual int AdjustI2SRate(int hz) { return hz; }
+    uint8_t portNo;
     bool mono;
-    static bool i2sOn; // One per machine, not per instance...
+    bool i2sOn;
 };
 
 #endif

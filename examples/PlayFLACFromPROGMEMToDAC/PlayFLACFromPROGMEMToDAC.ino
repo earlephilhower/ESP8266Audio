@@ -1,11 +1,11 @@
 #include <Arduino.h>
-#include <AudioOutputI2SDAC.h>
+#include <AudioOutputI2S.h>
 #include <AudioFileSourcePROGMEM.h>
 #include <AudioGeneratorFLAC.h>
 
 #include "sample.h"
 
-AudioOutputI2SDAC *out;
+AudioOutputI2S *out;
 AudioFileSourcePROGMEM *file;
 AudioGeneratorFLAC *flac;
 
@@ -14,7 +14,7 @@ void setup()
   Serial.begin(115200);
   Serial.println("Starting up...\n");
   file = new AudioFileSourcePROGMEM( sample_flac, sizeof(sample_flac) );
-  out = new AudioOutputI2SDAC();
+  out = new AudioOutputI2S();
   flac = new AudioGeneratorFLAC();
   flac->begin(file, out);
 }

@@ -27,70 +27,15 @@
 #include "AudioOutputI2SNoDAC.h"
 
 
-#ifdef ESP32
-extern int i2s_num;
-extern i2s_config_t i2s_config_dac;
-extern i2s_pin_config_t pin_config_dac;
-#endif
-
-bool AudioOutputI2SNoDAC::i2sOn = false;
-
-AudioOutputI2SNoDAC::AudioOutputI2SNoDAC()
+AudioOutputI2SNoDAC::AudioOutputI2SNoDAC(int port) : AudioOutputI2S(port)
 {
-#ifdef ESP32
-  if (!i2sOn) {
-   //initialize i2s with configurations above
-   
-   i2s_driver_install((i2s_port_t)i2s_num, &i2s_config_dac, 0, NULL);
-   i2s_set_pin((i2s_port_t)i2s_num, &pin_config_dac);
-  } 
-#else
-  if (!i2sOn) i2s_begin();
-#endif
-  i2sOn = true;
-  hertz = 44100;
   oversample = 32;
   lastSamp = 0;
   cumErr = 0;
-  SetGain(1.0);
 }
 
 AudioOutputI2SNoDAC::~AudioOutputI2SNoDAC()
 {
-#ifdef ESP32
-  if (!i2sOn) {
-    i2s_driver_uninstall((i2s_port_t)0); //stop & destroy i2s driver
-  }	
-#else
-  if (i2sOn) i2s_end();
-#endif
-  i2sOn = false;
-}
-
-bool AudioOutputI2SNoDAC::SetRate(int hz)
-{
-  // TODO - what is the max hz we can request on I2S?
-  this->hertz = hz;
-#ifdef ESP32
-  i2s_set_sample_rates((i2s_port_t)0, hz * (oversample / 32)); 
-#else
-  i2s_set_rate(hz * (oversample / 32));
-#endif
-  return true;
-}
-
-bool AudioOutputI2SNoDAC::SetBitsPerSample(int bits)
-{
-  if ( (bits != 16) && (bits != 8) ) return false;
-  this->bps = bits;
-  return true;
-}
-
-bool AudioOutputI2SNoDAC::SetChannels(int channels)
-{
-  if ( (channels < 1) || (channels > 2) ) return false;
-  this->channels = channels;
-  return true;
 }
 
 bool AudioOutputI2SNoDAC::SetOversampling(int os) {
@@ -102,16 +47,9 @@ bool AudioOutputI2SNoDAC::SetOversampling(int os) {
   return SetRate(hertz);
 }
 
-bool AudioOutputI2SNoDAC::begin()
-{
-  // Nothing to do here, i2s will start once data comes in
-  return true;
-}
-
 void AudioOutputI2SNoDAC::DeltaSigma(int16_t sample[2], uint32_t dsBuff[4])
 {
 //  // Not shift 8 because addition takes care of one mult x 2
-//  fixed24p8_t newSamp = ( ((int32_t)sample[0]) + ((int32_t)sample[1]) ) << 7;
   int32_t sum = (((int32_t)sample[0]) + ((int32_t)sample[1])) >> 1;
   fixed24p8_t newSamp = ( (int32_t)Amplify(sum) ) << 8;
 
@@ -140,19 +78,6 @@ void AudioOutputI2SNoDAC::DeltaSigma(int16_t sample[2], uint32_t dsBuff[4])
   }
 }
 
-#ifdef ESP32
-/* write sample data to I2S */
-int i2s_write_sample_nb(uint32_t sample){
-  return i2s_write_bytes((i2s_port_t)0, (const char *)&sample, sizeof(sample), 0);
-}
-
-// how to do this blocking??
-int i2s_write_sample(uint32_t sample){
-  return i2s_write_bytes((i2s_port_t)0, (const char *)&sample, sizeof(sample), portMAX_DELAY);
-}
-
-#endif
-
 bool AudioOutputI2SNoDAC::ConsumeSample(int16_t sample[2])
 {
   MakeSampleStereo16( sample );
@@ -160,20 +85,17 @@ bool AudioOutputI2SNoDAC::ConsumeSample(int16_t sample[2])
   // Make delta-sigma filled buffer
   uint32_t dsBuff[4];
   DeltaSigma(sample, dsBuff);
-  
+
   // Either send complete pulse stream or nothing
+#ifdef ESP32
+  if (!i2s_write_bytes((i2s_port_t)portNo, (const char *)dsBuff, sizeof(uint32_t) * (oversample/32), 0))
+    return false;
+#else 
   if (!i2s_write_sample_nb(dsBuff[0])) return false; // No room at the inn
   // At this point we've sent in first of possibly 4 32-bits, need to send
   // remaining ones even if they block.
   for (int i = 32; i < oversample; i+=32)
     i2s_write_sample( dsBuff[i / 32]);
+#endif
   return true;
 }
-
-bool AudioOutputI2SNoDAC::stop()
-{
-  // Nothing to do here.  Maybe mute control if DAC doesn't do it for you
-  return true;
-}
-
-

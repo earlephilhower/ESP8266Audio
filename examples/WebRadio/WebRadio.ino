@@ -28,7 +28,7 @@
 #include "AudioFileSourceBuffer.h"
 #include "AudioGeneratorMP3.h"
 #include "AudioGeneratorAAC.h"
-#include "AudioOutputI2SDAC.h"
+#include "AudioOutputI2S.h"
 #include <EEPROM.h>
 
 // Custom web server that doesn't need much RAM
@@ -45,7 +45,7 @@ WiFiServer server(80);
 AudioGenerator *decoder = NULL;
 AudioFileSourceICYStream *file = NULL;
 AudioFileSourceBuffer *buff = NULL;
-AudioOutputI2SDAC *out = NULL;
+AudioOutputI2S *out = NULL;
 
 int volume = 100;
 char title[64];
@@ -283,7 +283,7 @@ void setup()
 
   file = NULL;
   buff = NULL;
-  out = new AudioOutputI2SDAC();
+  out = new AudioOutputI2S();
   decoder = NULL;
 
   LoadSettings();

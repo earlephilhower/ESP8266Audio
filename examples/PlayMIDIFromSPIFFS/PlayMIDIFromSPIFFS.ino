@@ -8,13 +8,13 @@
 
 
 #include <AudioOutputNull.h>
-#include <AudioOutputI2SDAC.h>
+#include <AudioOutputI2S.h>
 #include <AudioGeneratorMIDI.h>
 #include <AudioFileSourceSPIFFS.h>
 
 AudioFileSourceSPIFFS *sf2;
 AudioFileSourceSPIFFS *mid;
-AudioOutputI2SDAC *dac;
+AudioOutputI2S *dac;
 AudioGeneratorMIDI *midi;
 
 void setup()
@@ -30,7 +30,7 @@ void setup()
   sf2 = new AudioFileSourceSPIFFS(soundfont);
   mid = new AudioFileSourceSPIFFS(midifile);
   
-  dac = new AudioOutputI2SDAC();
+  dac = new AudioOutputI2S();
   midi = new AudioGeneratorMIDI();
   midi->SetSoundfont(sf2);
   midi->SetSampleRate(22050);

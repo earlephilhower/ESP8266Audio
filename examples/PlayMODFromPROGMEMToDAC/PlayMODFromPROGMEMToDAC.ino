@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "AudioFileSourcePROGMEM.h"
 #include "AudioGeneratorMOD.h"
-#include "AudioOutputI2SDAC.h"
+#include "AudioOutputI2S.h"
 #ifdef ESP32
     #include <WiFi.h>
 #else
@@ -13,7 +13,7 @@
 
 AudioGeneratorMOD *mod;
 AudioFileSourcePROGMEM *file;
-AudioOutputI2SDAC *out;
+AudioOutputI2S *out;
 
 void setup()
 {
@@ -21,7 +21,7 @@ void setup()
   Serial.begin(115200);
   delay(1000);
   file = new AudioFileSourcePROGMEM( enigma_mod, sizeof(enigma_mod) );
-  out = new AudioOutputI2SDAC();
+  out = new AudioOutputI2S();
   mod = new AudioGeneratorMOD();
   mod->SetBufferSize(3*1024);
   mod->SetSampleRate(44100);
