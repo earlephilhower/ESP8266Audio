@@ -124,7 +124,7 @@ bool AudioOutputI2S::SetBitsPerSample(int bits)
 {
   if ( (bits != 16) && (bits != 8) ) return false;
   this->bps = bits;
-  Serial.printf("VitsPerSample set to: %d\n", bits);
+  Serial.printf("BitsPerSample set to: %d\n", bits);
   return true;
 }
 
