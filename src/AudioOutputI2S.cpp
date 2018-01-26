@@ -70,9 +70,7 @@ AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC)
   }
 #endif
   i2sOn = true;
-  mono = false;
   SetGain(1.0);
-  this->builtInDAC = builtInDAC;
 }
 
 AudioOutputI2S::~AudioOutputI2S()
