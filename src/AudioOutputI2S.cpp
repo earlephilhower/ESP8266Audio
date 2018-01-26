@@ -29,6 +29,7 @@
 AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC)
 {
   portNo = port;
+  i2sOn = false;
 #ifdef ESP32
   if (!i2sOn) {
     i2s_config_t i2s_config_dac = {
