@@ -29,8 +29,19 @@
 AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC)
 {
   portNo = port;
+  this->builtInDAC = builtInDAC;
+  i2sOn = false;
+  mono = false;
 #ifdef ESP32
   if (!i2sOn) {
+    // don't use audio pll on buggy rev0 chips
+    int use_apll = 0;
+    esp_chip_info_t out_info;
+    esp_chip_info(&out_info);
+    if(out_info.revision > 0) {
+      use_apll = 1;
+    }
+    use_apll = 0; // ToDo: there is a problem with the heltec dev-board and apll
     i2s_config_t i2s_config_dac = {
       .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | (builtInDAC ? I2S_MODE_DAC_BUILT_IN : 0)),
       .sample_rate = 44100,
@@ -38,9 +49,9 @@ AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC)
       .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
       .communication_format = (i2s_comm_format_t)((builtInDAC ? 0 : I2S_COMM_FORMAT_I2S) | I2S_COMM_FORMAT_I2S_MSB),
       .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // high interrupt priority
-      .dma_buf_count = 8,
+      .dma_buf_count = 32,
       .dma_buf_len = 64,   //Interrupt level 1
-      .use_apll = 1 // Use audio PLL
+      .use_apll = use_apll // Use audio PLL
     };
     Serial.printf("+%d %p\n", portNo, &i2s_config_dac);
     if (i2s_driver_install((i2s_port_t)portNo, &i2s_config_dac, 0, NULL) != ESP_OK) {
@@ -60,9 +71,7 @@ AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC)
   }
 #endif
   i2sOn = true;
-  mono = false;
   SetGain(1.0);
-  this->builtInDAC = builtInDAC;
 }
 
 AudioOutputI2S::~AudioOutputI2S()
@@ -108,6 +117,7 @@ bool AudioOutputI2S::SetRate(int hz)
 #else
   i2s_set_rate(AdjustI2SRate(hz));
 #endif
+  Serial.printf("SampleRate set to: %d\n", hz);
   return true;
 }
 
@@ -115,6 +125,7 @@ bool AudioOutputI2S::SetBitsPerSample(int bits)
 {
   if ( (bits != 16) && (bits != 8) ) return false;
   this->bps = bits;
+  Serial.printf("BitsPerSample set to: %d\n", bits);
   return true;
 }
 
@@ -122,12 +133,14 @@ bool AudioOutputI2S::SetChannels(int channels)
 {
   if ( (channels < 1) || (channels > 2) ) return false;
   this->channels = channels;
+  Serial.printf("Channels set to: %d\n", channels);
   return true;
 }
 
 bool AudioOutputI2S::SetOutputModeMono(bool mono)
 {
   this->mono = mono;
+  Serial.printf("OutputModeMono set to: %d\n", mono);
   return true;
 }
 
