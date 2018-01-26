@@ -33,7 +33,7 @@ class AudioOutputI2SNoDAC : public AudioOutputI2S
     bool SetOversampling(int os);
     
   protected:
-    virtual int AdjustI2SRate(int hz) { return hz * oversample/32; }
+    virtual int AdjustI2SRate(int hz) override { return hz * oversample/32; }
     uint8_t oversample;
     void DeltaSigma(int16_t sample[2], uint32_t dsBuff[4]);
     typedef int32_t fixed24p8_t;

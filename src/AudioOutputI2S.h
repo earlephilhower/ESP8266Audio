@@ -26,7 +26,7 @@
 class AudioOutputI2S : public AudioOutput
 {
   public:
-    AudioOutputI2S(int port=0);
+    AudioOutputI2S(int port=0, bool builtInDAC=false);
     virtual ~AudioOutputI2S() override;
     bool SetPinout(int bclkPin, int wclkPin, int doutPin);
     virtual bool SetRate(int hz) override;
@@ -41,6 +41,7 @@ class AudioOutputI2S : public AudioOutput
   protected:
     virtual int AdjustI2SRate(int hz) { return hz; }
     uint8_t portNo;
+    bool builtInDAC;
     bool mono;
     bool i2sOn;
 };
