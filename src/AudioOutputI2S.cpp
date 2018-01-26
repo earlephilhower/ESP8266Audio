@@ -116,6 +116,7 @@ bool AudioOutputI2S::SetRate(int hz)
 #else
   i2s_set_rate(AdjustI2SRate(hz));
 #endif
+  Serial.printf("SampleRate set to: %d\n", hz);
   return true;
 }
 
@@ -123,6 +124,7 @@ bool AudioOutputI2S::SetBitsPerSample(int bits)
 {
   if ( (bits != 16) && (bits != 8) ) return false;
   this->bps = bits;
+  Serial.printf("VitsPerSample set to: %d\n", bits);
   return true;
 }
 
@@ -130,12 +132,14 @@ bool AudioOutputI2S::SetChannels(int channels)
 {
   if ( (channels < 1) || (channels > 2) ) return false;
   this->channels = channels;
+  Serial.printf("Channels set to: %d\n", channels);
   return true;
 }
 
 bool AudioOutputI2S::SetOutputModeMono(bool mono)
 {
   this->mono = mono;
+  Serial.printf("OutputModeMono set to: %d\n", mono);
   return true;
 }
 
