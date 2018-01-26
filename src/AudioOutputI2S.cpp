@@ -41,6 +41,7 @@ AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC)
     if(out_info.revision > 0) {
       use_apll = 1;
     }
+    use_apll = 0; // ToDo: there is a problem with the heltec dev-board and apll
     i2s_config_t i2s_config_dac = {
       .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | (builtInDAC ? I2S_MODE_DAC_BUILT_IN : 0)),
       .sample_rate = 44100,
@@ -48,7 +49,7 @@ AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC)
       .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
       .communication_format = (i2s_comm_format_t)((builtInDAC ? 0 : I2S_COMM_FORMAT_I2S) | I2S_COMM_FORMAT_I2S_MSB),
       .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // high interrupt priority
-      .dma_buf_count = 8,
+      .dma_buf_count = 32,
       .dma_buf_len = 64,   //Interrupt level 1
       .use_apll = use_apll // Use audio PLL
     };
