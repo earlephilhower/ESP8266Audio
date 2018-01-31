@@ -79,10 +79,10 @@ class ICYMDReader {
       char xxx[16];
       if (saved>=0) avail--; // Throw away any unread bytes
       while (avail > 16) {
-        stream->read(xxx, 16);
+        stream->read(reinterpret_cast<uint8_t*>(xxx), 16);
         avail -= 16;
       }
-      stream->read(xxx, avail);
+      stream->read(reinterpret_cast<uint8_t*>(xxx), avail);
     }
     int read(uint8_t *dest, int len) {
       if (!len) return 0;
