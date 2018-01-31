@@ -26,18 +26,20 @@
 #endif
 #include "AudioOutputI2S.h"
 
-AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC)
+AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC, int use_apll)
 {
   portNo = port;
   i2sOn = false;
 #ifdef ESP32
   if (!i2sOn) {
-    // don't use audio pll on buggy rev0 chips
-    int use_apll = 0;
-    esp_chip_info_t out_info;
-    esp_chip_info(&out_info);
-    if(out_info.revision > 0) {
-      use_apll = 1;
+    if (use_apll < 0) { // set use_apll to 0 or 1 to force dis-/enable
+      // don't use audio pll on buggy rev0 chips
+      use_apll = 0;
+      esp_chip_info_t out_info;
+      esp_chip_info(&out_info);
+      if(out_info.revision > 0) {
+        use_apll = 1;
+      }
     }
     i2s_config_t i2s_config_dac = {
       .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | (builtInDAC ? I2S_MODE_DAC_BUILT_IN : 0)),

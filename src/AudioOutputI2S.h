@@ -26,7 +26,7 @@
 class AudioOutputI2S : public AudioOutput
 {
   public:
-    AudioOutputI2S(int port=0, bool builtInDAC=false);
+    AudioOutputI2S(int port=0, bool builtInDAC=false, int use_apll=-1);
     virtual ~AudioOutputI2S() override;
     bool SetPinout(int bclkPin, int wclkPin, int doutPin);
     virtual bool SetRate(int hz) override;
