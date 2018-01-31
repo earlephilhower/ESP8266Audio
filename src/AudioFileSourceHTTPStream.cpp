@@ -116,7 +116,7 @@ retry:
   if (avail == 0) return 0;
   if (avail < len) len = avail;
 
-  int read = stream->readBytes(reinterpret_cast<uint8_t*>(data), len);
+  int read = stream->read(reinterpret_cast<uint8_t*>(data), len);
   pos += read;
   return read;
 }
