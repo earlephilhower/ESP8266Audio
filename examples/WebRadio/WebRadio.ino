@@ -311,7 +311,7 @@ void StartNewURL()
   Serial.printf_P(PSTR("created decoder\n"));
   decoder->RegisterStatusCB(StatusCallback, NULL);
   Serial.printf_P("Decoder start...\n");
-  decoder->begin(file, out);
+  decoder->begin(buff, out);
   out->SetGain(((float)volume)/100.0);
   if (!decoder->isRunning()) {
     Serial.printf_P(PSTR("Can't connect to URL"));
