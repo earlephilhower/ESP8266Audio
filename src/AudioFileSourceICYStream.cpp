@@ -79,10 +79,10 @@ class ICYMDReader {
       char xxx[16];
       if (saved>=0) avail--; // Throw away any unread bytes
       while (avail > 16) {
-        stream->readBytes(xxx, 16);
+        stream->read(reinterpret_cast<uint8_t*>(xxx), 16);
         avail -= 16;
       }
-      stream->readBytes(xxx, avail);
+      stream->read(reinterpret_cast<uint8_t*>(xxx), avail);
     }
     int read(uint8_t *dest, int len) {
       if (!len) return 0;
@@ -100,7 +100,7 @@ class ICYMDReader {
         if ((avail>0) && (len>0)) {
           ptr = 0;
           int toRead = (sizeof(buff)>avail)? avail : sizeof(buff);
-          int read = stream->readBytes(buff, toRead);
+          int read = stream->read(buff, toRead);
           if (read != toRead) return 0; // Error, short read!
         }
       }
@@ -164,7 +164,7 @@ retry:
   // If the read would hit an ICY block, split it up...
   if (((int)(icyByteCount + len) > (int)icyMetaInt) && (icyMetaInt > 0)) {
     int beforeIcy = icyMetaInt - icyByteCount;
-    int ret = stream->readBytes(reinterpret_cast<uint8_t*>(data), beforeIcy);
+    int ret = stream->read(reinterpret_cast<uint8_t*>(data), beforeIcy);
     read += ret;
     pos += ret;
     len -= ret;
@@ -173,7 +173,7 @@ retry:
     if (ret != beforeIcy) return read; // Partial read
 
     uint8_t mdSize;
-    int mdret = stream->readBytes(&mdSize, 1);
+    int mdret = stream->read(&mdSize, 1);
     if ((mdret == 1) && (mdSize > 0)) {
       ICYMDReader mdr(stream, mdSize * 16);
       // Break out (potentially multiple) NAME='xxxx'
@@ -224,7 +224,7 @@ retry:
     icyByteCount = 0;
   }
 
-  int ret = stream->readBytes(reinterpret_cast<uint8_t*>(data), len);
+  int ret = stream->read(reinterpret_cast<uint8_t*>(data), len);
   read += ret;
   pos += ret;
   icyByteCount += ret;
