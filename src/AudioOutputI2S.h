@@ -23,13 +23,6 @@
 
 #include "AudioOutput.h"
 
-enum i2s_apll_mode : int
-{
-  APLL_AUTO = -1,
-  APLL_ENABLE = 1,
-  APLL_DISABLE = 0
-};
-
 class AudioOutputI2S : public AudioOutput
 {
   public:
@@ -44,7 +37,9 @@ class AudioOutputI2S : public AudioOutput
     virtual bool stop() override;
     
     bool SetOutputModeMono(bool mono);  // Force mono output no matter the input
-    
+
+    enum : int { APLL_AUTO = -1, APLL_ENABLE = 1, APLL_DISABLE = 0 };
+
   protected:
     virtual int AdjustI2SRate(int hz) { return hz; }
     uint8_t portNo;
