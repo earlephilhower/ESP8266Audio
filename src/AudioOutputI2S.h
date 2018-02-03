@@ -23,10 +23,17 @@
 
 #include "AudioOutput.h"
 
+enum i2s_apll_mode : int
+{
+  APLL_AUTO = -1,
+  APLL_ENABLE = 1,
+  APLL_DISABLE = 0
+};
+
 class AudioOutputI2S : public AudioOutput
 {
   public:
-    AudioOutputI2S(int port=0, bool builtInDAC=false, int use_apll=-1);
+    AudioOutputI2S(int port=0, bool builtInDAC=false, int use_apll=APLL_AUTO);
     virtual ~AudioOutputI2S() override;
     bool SetPinout(int bclkPin, int wclkPin, int doutPin);
     virtual bool SetRate(int hz) override;

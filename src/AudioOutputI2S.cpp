@@ -32,13 +32,13 @@ AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC, int use_apll)
   i2sOn = false;
 #ifdef ESP32
   if (!i2sOn) {
-    if (use_apll < 0) { // set use_apll to 0 or 1 to force dis-/enable
+    if (use_apll == APLL_AUTO) {
       // don't use audio pll on buggy rev0 chips
-      use_apll = 0;
+      use_apll = APLL_DISABLE;
       esp_chip_info_t out_info;
       esp_chip_info(&out_info);
       if(out_info.revision > 0) {
-        use_apll = 1;
+        use_apll = APLL_ENABLE;
       }
     }
     i2s_config_t i2s_config_dac = {
