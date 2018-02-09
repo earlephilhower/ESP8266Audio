@@ -65,6 +65,7 @@ AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC, int use_apll)
     i2s_zero_dma_buffer((i2s_port_t)portNo);
   } 
 #else
+  (void) use_apll;
   if (!i2sOn) {
     i2s_begin();
   }

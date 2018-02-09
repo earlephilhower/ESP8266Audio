@@ -47,9 +47,9 @@ bool AudioOutputI2SNoDAC::SetOversampling(int os) {
   return SetRate(hertz);
 }
 
-void AudioOutputI2SNoDAC::DeltaSigma(int16_t sample[2], uint32_t dsBuff[4])
+void AudioOutputI2SNoDAC::DeltaSigma(int16_t sample[2], uint32_t dsBuff[8])
 {
-//  // Not shift 8 because addition takes care of one mult x 2
+  // Not shift 8 because addition takes care of one mult x 2
   int32_t sum = (((int32_t)sample[0]) + ((int32_t)sample[1])) >> 1;
   fixed24p8_t newSamp = ( (int32_t)Amplify(sum) ) << 8;
 
@@ -83,7 +83,7 @@ bool AudioOutputI2SNoDAC::ConsumeSample(int16_t sample[2])
   MakeSampleStereo16( sample );
 
   // Make delta-sigma filled buffer
-  uint32_t dsBuff[4];
+  uint32_t dsBuff[8];
   DeltaSigma(sample, dsBuff);
 
   // Either send complete pulse stream or nothing
@@ -92,7 +92,7 @@ bool AudioOutputI2SNoDAC::ConsumeSample(int16_t sample[2])
     return false;
 #else 
   if (!i2s_write_sample_nb(dsBuff[0])) return false; // No room at the inn
-  // At this point we've sent in first of possibly 4 32-bits, need to send
+  // At this point we've sent in first of possibly 8 32-bits, need to send
   // remaining ones even if they block.
   for (int i = 32; i < oversample; i+=32)
     i2s_write_sample( dsBuff[i / 32]);
