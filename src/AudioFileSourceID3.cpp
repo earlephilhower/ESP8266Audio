@@ -170,11 +170,11 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len)
   id3Size = id3Size << 7;
   id3Size |= buff[9];
   // Every read from now may be unsync'd
-  AudioFileSourceUnsync id3(src, id3Size-10, unsync);
+  AudioFileSourceUnsync id3(src, id3Size, unsync);
 
   if (exthdr) {
     int ehsz = (id3.getByte()<<24) | (id3.getByte()<<16) | (id3.getByte()<<8) | (id3.getByte());
-    for (int j=0; j<ehsz; j++) id3.getByte(); // Throw it away
+    for (int j=0; j<ehsz-4; j++) id3.getByte(); // Throw it away
   }
 
   do {
