@@ -28,8 +28,9 @@
 
 AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC, int use_apll)
 {
-  portNo = port;
-  i2sOn = false;
+  this->portNo = port;
+  this->i2sOn = false;
+  this->builtInDAC = builtInDAC;
 #ifdef ESP32
   if (!i2sOn) {
     if (use_apll == APLL_AUTO) {
@@ -76,7 +77,6 @@ AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC, int use_apll)
   channels = 2;
   SetGain(1.0);
   SetRate(44100); // Default
-  this->builtInDAC = builtInDAC;
 }
 
 AudioOutputI2S::~AudioOutputI2S()
