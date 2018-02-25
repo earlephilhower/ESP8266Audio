@@ -29,6 +29,7 @@ void setup()
   out = new AudioOutputI2S();
   mixer = new AudioOutputMixer(32, out);
   stub[0] = mixer->NewInput();
+  stub[0]->SetGain(0.3);
   wav[0] = new AudioGeneratorWAV();
   wav[0]->begin(file[0], stub[0]);
   // Begin wav[1] later in loop()
@@ -50,6 +51,7 @@ void loop()
     if (!go) {
       Serial.printf("starting 2\n");
       stub[1] = mixer->NewInput();
+      stub[1]->SetGain(0.4);
       wav[1] = new AudioGeneratorWAV();
       file[1] = new AudioFileSourcePROGMEM( viola, sizeof(viola) );
       wav[1]->begin(file[1], stub[1]);

@@ -25,6 +25,7 @@ AudioOutputMixerStub::AudioOutputMixerStub(AudioOutputMixer *sink, int id) : Aud
 {
   this->id = id;
   this->parent = sink;
+  SetGain(1.0);
 }
 
 AudioOutputMixerStub::~AudioOutputMixerStub()
@@ -54,8 +55,10 @@ bool AudioOutputMixerStub::begin()
 
 bool AudioOutputMixerStub::ConsumeSample(int16_t sample[2])
 {
-//  int16_t amp[2] = { Amplify(sample[LEFTCHANNEL]), Amplify(sample[RIGHTCHANNEL]) };
-  return parent->ConsumeSample(sample, id);
+  int16_t amp[2];
+  amp[LEFTCHANNEL] = Amplify(sample[LEFTCHANNEL]);
+  amp[RIGHTCHANNEL] = Amplify(sample[RIGHTCHANNEL]);
+  return parent->ConsumeSample(amp, id);
 }
 
 bool AudioOutputMixerStub::stop()
