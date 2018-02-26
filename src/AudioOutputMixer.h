@@ -38,7 +38,7 @@ class AudioOutputMixerStub : public AudioOutput
     virtual bool begin() override;
     virtual bool ConsumeSample(int16_t sample[2]) override;
     virtual bool stop() override;
-    
+
   protected:
     AudioOutputMixer *parent;
     int id;
@@ -56,6 +56,7 @@ class AudioOutputMixer : public AudioOutput
     virtual bool begin() override;
     virtual bool ConsumeSample(int16_t sample[2]) override;
     virtual bool stop() override;
+    virtual bool loop() override; // Send all existing samples we can to I2S
 
     AudioOutputMixerStub *NewInput(); // Get a new stub to pass to a generator
 

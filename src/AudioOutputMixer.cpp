@@ -177,7 +177,7 @@ void AudioOutputMixer::RemoveInput(int id)
   stubRunning[id] = false;
 }
 
-bool AudioOutputMixer::ConsumeSample(int16_t sample[2], int id)
+bool AudioOutputMixer::loop()
 {
   // First, try and fill I2S...
   // This is not optimal, but algorithmically should work fine
@@ -216,7 +216,13 @@ bool AudioOutputMixer::ConsumeSample(int16_t sample[2], int id)
       readPtr = (readPtr + 1) % buffSize;
     }
   } while (avail);
-     
+  return true;
+}
+
+bool AudioOutputMixer::ConsumeSample(int16_t sample[2], int id)
+{
+  loop(); // Send any pre-existing, completed I2S data we can fit
+
   // Now, do we have space for a new sample?
   int nextWritePtr = (writePtr[id] + 1) % buffSize;
   if (nextWritePtr == readPtr) {
