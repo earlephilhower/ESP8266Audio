@@ -4,6 +4,7 @@
 #include "AudioGeneratorMP3.h"
 #include "AudioFileSourceID3.h"
 #include "AudioFileSourceBuffer.h"
+#include "AudioOutputMixer.h"
 
 // Called when a metadata event occurs (i.e. an ID3 tag, an ICY block, etc.
 void MDCallback(void *cbData, const char *type, bool isUnicode, const char *string)
@@ -51,14 +52,19 @@ int main(int argc, char **argv)
     id3->RegisterMetadataCB(MDCallback, (void*)"ID3TAG");
     AudioOutputSTDIO *out = new AudioOutputSTDIO();
     out->SetFilename("jamonit.wav");
+    AudioOutputMixer *mix = new AudioOutputMixer(17, out);
+    AudioOutputMixerStub *stub = mix->NewInput();
     void *space = malloc(29192);
     AudioGeneratorMP3 *mp3 = new AudioGeneratorMP3(space, 29192);
 
-    mp3->begin(id3, out);
+    mp3->begin(id3, stub);
     while (mp3->loop()) { /*noop*/ }
     mp3->stop();
+    out->stop();
 
     free(space);
+    delete stub;
+    delete mix;
     delete mp3;
     delete out;
     delete id3;

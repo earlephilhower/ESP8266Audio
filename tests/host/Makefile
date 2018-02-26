@@ -34,7 +34,7 @@ CPPOPTS=-g -Wunused-parameter -Wall -std=c++11 -m32 -include Arduino.h
 mp3: FORCE
 	rm -f *.o
 	gcc $(CCOPTS) -c $(libmad) -I ../../src/ -I.
-	g++ $(CPPOPTS) -o mp3 mp3.cpp Serial.cpp *.o ../../src/AudioFileSourceSTDIO.cpp ../../src/AudioOutputSTDIO.cpp ../../src/AudioFileSourceID3.cpp ../../src/AudioFileSourceBuffer.cpp ../../src/AudioGeneratorMP3.cpp -I ../../src/ -I.
+	g++ $(CPPOPTS) -o mp3 mp3.cpp Serial.cpp *.o ../../src/AudioFileSourceSTDIO.cpp ../../src/AudioOutputSTDIO.cpp ../../src/AudioFileSourceID3.cpp ../../src/AudioFileSourceBuffer.cpp ../../src/AudioGeneratorMP3.cpp ../../src/AudioOutputMixer.cpp -I ../../src/ -I.
 	rm -f *.o
 	echo valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./mp3
 
