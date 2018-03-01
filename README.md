@@ -1,21 +1,34 @@
-# ESP8266Audio - now supporting ESP32 as well! [![Build Status](https://travis-ci.org/earlephilhower/ESP8266Audio.svg?branch=master)](https://travis-ci.org/earlephilhower/ESP8266Audio)
-Arduino library for parsing and decoding MOD, WAV, MP3, FLAC, MIDI, and AAC files and playing them on an I2S DAC or even using a software-simulated delta-sigma DAC with dynamic 32x oversampling.
+# ESP8266Audio - supports ESP8266 & ESP32 [![Build Status](https://travis-ci.org/earlephilhower/ESP8266Audio.svg?branch=master)](https://travis-ci.org/earlephilhower/ESP8266Audio)
+Arduino library for parsing and decoding MOD, WAV, MP3, FLAC, MIDI, and AAC files and playing them on an I2S DAC or even using a software-simulated delta-sigma DAC with dynamic 32x-128x oversampling.
 
-ESP8266 is fully supported and most mature, but we've also just introduced support for the ESP32.
+ESP8266 is fully supported and most mature, but ESP32 is also mostly there with built-in DAC as well as external ones.
+
+For real-time, autonomous speech synthesis, check out [ESP8266SAM](https://github.com/earlephilhower/ESP8266SAM), a library which uses this one and a port of an ancient format-based synthesis program to allow your ESP8266 to talk with low memory and no network required.
 
 ## Disclaimer
 All this code is released under the GPL, and all of it is to be used at your own risk.  If you find any bugs, please let me know via the GitHub issue tracker or drop me an email.  The MOD and MP3 routines were taken from StellaPlayer and libMAD respectively.  The software I2S delta-sigma 32x oversampling DAC was my own creation, and sounds quite good if I do say so myself.
 
-The AAC decode code is from the Helix project and licensed under RealNetwork's RSPL license.  For commercial use you're still going to need the usual AAC licensing from Via Licensing (http://www.via-corp.com/us/en/licensing/aac/overview.html).
+The AAC decode code is from the Helix project and licensed under RealNetwork's RSPL license.  For commercial use you're still going to need the usual AAC licensing from [Via Licensing](http://www.via-corp.com/us/en/licensing/aac/overview.html).
 
 On the ESP32, AAC-SBR is supported (many webradio stations use this to reduce bandwidth even further).  The ESP8266, however, does not support it due to a lack of onboard RAM.
 
-MIDI decoding comes from a highly ported MIDITONES (https://github.com/LenShustek/miditones) combined with a massively memory-optimized TinySoundFont (https://github.com/schellingb/TinySoundFont), see the respective source files for more information.
+MIDI decoding comes from a highly ported [MIDITONES](https://github.com/LenShustek/miditones) combined with a massively memory-optimized [TinySoundFont](https://github.com/schellingb/TinySoundFont), see the respective source files for more information.
+
+## Neat Things People Have Done With ESP8266Audio
+If you have a neat use for this library, [I'd love to hear about it](mailto:earlephilhower@yahoo.com)!
+
+My personal use of the ESP8266Audio library is only to drive a 3D-printed, network-time-setting alarm clock for my kids which can play an MP3 instead of a bell to wake them up, called [Psychoclock](https://github.com/earlephilhower/psychoclock).
+
+Erich Heinemann has developed a Stomper (instrument for playing samples in real-time during a live stage performance) that you can find more info about [here](https://github.com/ErichHeinemann/hman-stomper).
+
+Dagnall53 has integrated this into a really neat MQTT based model train controller to add sounds to his set.  More info is available [here](https://github.com/dagnall53/ESPMQTTRocnetSound), including STL files for 3D printed components!
 
 ## Prerequisites and Installation
 First, make sure you are running the 2.4 or GIT head version of the Arduino libraries for ESP8266, or the latest ESP32 SDK from Espressif.
 
-You can use GIT to pull right from GitHub: see https://github.com/esp8266/Arduino/blob/master/README.md#using-git-version for detailed instructions.
+You can use GIT to pull right from GitHub: see [this README](https://github.com/esp8266/Arduino/blob/master/README.md#using-git-version) for detailed instructions.
+
+And, for the ESP32, if you want to use SPIFFs please use the following pull request as the present ESP32-arduino code is completely broken for SPIFFs as of 02/28/2018: [Arduino-ESP32 Pull Request 1159](https://github.com/espressif/arduino-esp32/pull/1159)
 
 Install the library and the SPI driver library in your ~/Arduino/libraries
 ````
@@ -27,7 +40,7 @@ git clone https://github.com/Gianbacchio/ESP8266_Spiram
 
 When in the IDE please select the following options on the ESP8266:
 ````
-Tools->lwIP Variant->v1.4 Open Source, or V2 Prebuilt (MSS=1460)
+Tools->lwIP Variant->v1.4 Open Source, or V2 Higher Bandwidth
 Tools->CPU Frequency->160MHz
 ````
 
@@ -168,7 +181,7 @@ Basically the transistor acts as a switch and requires only a drive of 1/beta (~
 When using the software delta-sigma DAC, even though our playback circuit is not using the LRCLK or BCLK pins, the ESP8266 internal hardware *will* be driving them.  So these pins cannot be used as outputs in your application.  However, you can use the LRCLK and BCLK pins as *inputs*.  Simply start playback, then use the standard pinMode(xxx, INPUT/INPUT_PULLUP) Arduino commands and you can, for example, use those two pins to read a button or sensor.
 
 ## Using external SPI RAM to increase buffer
-A class allows you to use a 23lc1024 SPI RAM from Microchip as input buffer. This chip connects to ESP8266 HSPI port and use external SPI RAM library (https://github.com/Gianbacchio/ESP8266_Spiram).
+A class allows you to use a 23lc1024 SPI RAM from Microchip as input buffer. This chip connects to ESP8266 HSPI port and uses an [external SPI RAM library](https://github.com/Gianbacchio/ESP8266_Spiram).
 You need to choose another pin than GPIO15 for Cs as this pin is already used by the I2S port. Here is an example with the Cs pin plugged to GPIO00 on NodeMCU board.
 
 ![Example of SPIRAM Schematic](examples/StreamMP3FromHTTP_SPIRAM/Schema_Spiram.png)
