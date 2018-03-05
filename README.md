@@ -23,13 +23,23 @@ Erich Heinemann has developed a Stomper (instrument for playing samples in real-
 
 Dagnall53 has integrated this into a really neat MQTT based model train controller to add sounds to his set.  More info is available [here](https://github.com/dagnall53/ESPMQTTRocnetSound), including STL files for 3D printed components!
 
-## Prerequisites and Installation
+## Prerequisites
 First, make sure you are running the 2.4 or GIT head version of the Arduino libraries for ESP8266, or the latest ESP32 SDK from Espressif.
 
 You can use GIT to pull right from GitHub: see [this README](https://github.com/esp8266/Arduino/blob/master/README.md#using-git-version) for detailed instructions.
 
-And, for the ESP32, if you want to use SPIFFs please use the following pull request as the present ESP32-arduino code is completely broken for SPIFFs as of 02/28/2018: [Arduino-ESP32 Pull Request 1159](https://github.com/espressif/arduino-esp32/pull/1159)
+## ESP-32 SPIFFS Errors
+The latest official release of the ESP32-Arduino seems to have broken SPIFFS, but a patch has just been committed to git head.  If you want to run SPIFFS, please follow the directions below, courtesy of @rfestag:
+````
+cd ~/Arduino/hardware/espressif/esp32 # Or wherever you have it installed
+git pull # Update to the latest
+cd tools
+python get.py # On my system, I have python3 installed by default, so I had to run python2.7 get.py
+# Re-upload files using the new mkspiffs that is installed
+# Then reload your sketch
+````
 
+## Installation
 Install the library and the SPI driver library in your ~/Arduino/libraries
 ````
 mkdir -p ~/Arduino/libraries
