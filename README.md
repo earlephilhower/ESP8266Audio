@@ -38,6 +38,7 @@ python get.py # On my system, I have python3 installed by default, so I had to r
 # Re-upload files using the new mkspiffs that is installed
 # Then reload your sketch
 ````
+Be sure to use the [ESP32 SPIFFS](https://github.com/me-no-dev/arduino-esp32fs-plugin) upload plugin before running your sketch to upload the data files once the fixed IDE is set up.
 
 ## Installation
 Install the library and the SPI driver library in your ~/Arduino/libraries
