@@ -26,11 +26,14 @@
 #endif
 #include "AudioOutputI2S.h"
 
-AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC, int use_apll)
+AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int use_apll)
 {
   this->portNo = port;
   this->i2sOn = false;
-  this->builtInDAC = builtInDAC;
+  if (output_mode != I2S && output_mode != DAC_BUILT_IN && output_mode != PDM) {
+    output_mode = I2S;
+  }
+  this->output_mode = output_mode;
 #ifdef ESP32
   if (!i2sOn) {
     if (use_apll == APLL_AUTO) {
@@ -42,12 +45,25 @@ AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC, int use_apll)
         use_apll = APLL_ENABLE;
       }
     }
+
+    i2s_mode_t mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX);
+    if (output_mode == DAC_BUILT_IN) {
+      mode = (i2s_mode_t)(mode | I2S_MODE_DAC_BUILT_IN);
+    } else if (output_mode == PDM) {
+      mode = (i2s_mode_t)(mode | I2S_MODE_PDM);
+    }
+
+    i2s_comm_format_t comm_fmt = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB);
+    if (output_mode == DAC_BUILT_IN) {
+      comm_fmt = (i2s_comm_format_t)I2S_COMM_FORMAT_I2S_MSB;
+    }
+
     i2s_config_t i2s_config_dac = {
-      .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | (builtInDAC ? I2S_MODE_DAC_BUILT_IN : 0)),
+      .mode = mode,
       .sample_rate = 44100,
       .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
       .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
-      .communication_format = (i2s_comm_format_t)((builtInDAC ? 0 : I2S_COMM_FORMAT_I2S) | I2S_COMM_FORMAT_I2S_MSB),
+      .communication_format = comm_fmt,
       .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // high interrupt priority
       .dma_buf_count = 8,
       .dma_buf_len = 64,   //Interrupt level 1
@@ -57,7 +73,7 @@ AudioOutputI2S::AudioOutputI2S(int port, bool builtInDAC, int use_apll)
     if (i2s_driver_install((i2s_port_t)portNo, &i2s_config_dac, 0, NULL) != ESP_OK) {
       Serial.println("ERROR: Unable to install I2S drives\n");
     }
-    if (builtInDAC) {
+    if (output_mode == DAC_BUILT_IN || output_mode == PDM) {
       i2s_set_pin((i2s_port_t)portNo, NULL);
       i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN);
     } else {
@@ -85,7 +101,7 @@ AudioOutputI2S::~AudioOutputI2S()
   if (i2sOn) {
     Serial.printf("UNINSTALL I2S\n");
     i2s_driver_uninstall((i2s_port_t)portNo); //stop & destroy i2s driver
-  }	
+  }
 #else
   if (i2sOn) i2s_end();
 #endif
@@ -95,7 +111,7 @@ AudioOutputI2S::~AudioOutputI2S()
 bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout)
 {
 #ifdef ESP32
-  if (builtInDAC) return false; // Not allowed
+  if (output_mode == DAC_BUILT_IN || output_mode == PDM) return false; // Not allowed
 
   i2s_pin_config_t pins = {
     .bck_io_num = bclk,
@@ -159,15 +175,18 @@ bool AudioOutputI2S::ConsumeSample(int16_t sample[2])
     uint32_t ttl = sample[LEFTCHANNEL] + sample[RIGHTCHANNEL];
     sample[LEFTCHANNEL] = sample[RIGHTCHANNEL] = (ttl>>1) & 0xffff;
   }
-  uint32_t s32 = ((Amplify(sample[RIGHTCHANNEL]))<<16) | (Amplify(sample[LEFTCHANNEL]) & 0xffff);
 #ifdef ESP32
-  if (builtInDAC) {
+  uint32_t s32;
+  if (output_mode == DAC_BUILT_IN) {
     int16_t l = Amplify(sample[LEFTCHANNEL]) + 0x8000;
     int16_t r = Amplify(sample[RIGHTCHANNEL]) + 0x8000;
     s32 = (r<<16) | (l&0xffff);
+  } else {
+    s32 = ((Amplify(sample[RIGHTCHANNEL]))<<16) | (Amplify(sample[LEFTCHANNEL]) & 0xffff);
   }
   return i2s_push_sample((i2s_port_t)portNo, (const char *)&s32, 0);
 #else
+  uint32_t s32 = ((Amplify(sample[RIGHTCHANNEL]))<<16) | (Amplify(sample[LEFTCHANNEL]) & 0xffff);
   return i2s_write_sample_nb(s32); // If we can't store it, return false.  OTW true
 #endif
 }
