@@ -30,8 +30,8 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int use_apll)
 {
   this->portNo = port;
   this->i2sOn = false;
-  if (output_mode != I2S && output_mode != DAC_BUILT_IN && output_mode != PDM) {
-    output_mode = I2S;
+  if (output_mode != EXTERNAL_I2S && output_mode != INTERNAL_DAC && output_mode != INTERNAL_PDM) {
+    output_mode = EXTERNAL_I2S;
   }
   this->output_mode = output_mode;
 #ifdef ESP32
@@ -47,14 +47,14 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int use_apll)
     }
 
     i2s_mode_t mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX);
-    if (output_mode == DAC_BUILT_IN) {
+    if (output_mode == INTERNAL_DAC) {
       mode = (i2s_mode_t)(mode | I2S_MODE_DAC_BUILT_IN);
-    } else if (output_mode == PDM) {
+    } else if (output_mode == INTERNAL_PDM) {
       mode = (i2s_mode_t)(mode | I2S_MODE_PDM);
     }
 
     i2s_comm_format_t comm_fmt = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB);
-    if (output_mode == DAC_BUILT_IN) {
+    if (output_mode == INTERNAL_DAC) {
       comm_fmt = (i2s_comm_format_t)I2S_COMM_FORMAT_I2S_MSB;
     }
 
@@ -73,7 +73,7 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int use_apll)
     if (i2s_driver_install((i2s_port_t)portNo, &i2s_config_dac, 0, NULL) != ESP_OK) {
       Serial.println("ERROR: Unable to install I2S drives\n");
     }
-    if (output_mode == DAC_BUILT_IN || output_mode == PDM) {
+    if (output_mode == INTERNAL_DAC || output_mode == INTERNAL_PDM) {
       i2s_set_pin((i2s_port_t)portNo, NULL);
       i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN);
     } else {
@@ -111,7 +111,7 @@ AudioOutputI2S::~AudioOutputI2S()
 bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout)
 {
 #ifdef ESP32
-  if (output_mode == DAC_BUILT_IN || output_mode == PDM) return false; // Not allowed
+  if (output_mode == INTERNAL_DAC || output_mode == INTERNAL_PDM) return false; // Not allowed
 
   i2s_pin_config_t pins = {
     .bck_io_num = bclk,
@@ -177,7 +177,7 @@ bool AudioOutputI2S::ConsumeSample(int16_t sample[2])
   }
 #ifdef ESP32
   uint32_t s32;
-  if (output_mode == DAC_BUILT_IN) {
+  if (output_mode == INTERNAL_DAC) {
     int16_t l = Amplify(sample[LEFTCHANNEL]) + 0x8000;
     int16_t r = Amplify(sample[RIGHTCHANNEL]) + 0x8000;
     s32 = (r<<16) | (l&0xffff);

@@ -26,7 +26,7 @@
 class AudioOutputI2S : public AudioOutput
 {
   public:
-    AudioOutputI2S(int port=0, int output_mode=I2S, int use_apll=APLL_DISABLE);
+    AudioOutputI2S(int port=0, int output_mode=EXTERNAL_I2S, int use_apll=APLL_DISABLE);
     virtual ~AudioOutputI2S() override;
     bool SetPinout(int bclkPin, int wclkPin, int doutPin);
     virtual bool SetRate(int hz) override;
@@ -39,7 +39,7 @@ class AudioOutputI2S : public AudioOutput
     bool SetOutputModeMono(bool mono);  // Force mono output no matter the input
 
     enum : int { APLL_AUTO = -1, APLL_ENABLE = 1, APLL_DISABLE = 0 };
-    enum : int { I2S = 0, DAC_BUILT_IN = 1, PDM = 2 };
+    enum : int { EXTERNAL_I2S = 0, INTERNAL_DAC = 1, INTERNAL_PDM = 2 };
 
   protected:
     virtual int AdjustI2SRate(int hz) { return hz; }
