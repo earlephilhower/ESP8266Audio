@@ -130,7 +130,8 @@ bool AudioGeneratorRTTTL::ParseHeader()
   if (ptr >= len) return false;
   if (buff[ptr++] != ':') return false;
   if (!SkipWhitespace()) return false;
-  if (buff[ptr++] != 'd') return false;
+  if ((buff[ptr] != 'd') && (buff[ptr] != 'D')) return false;
+  ptr++;
   if (!SkipWhitespace()) return false;
   if (buff[ptr++] != '=') return false;
   if (!ReadInt(&defaultDuration)) return false;
@@ -138,7 +139,8 @@ bool AudioGeneratorRTTTL::ParseHeader()
   if (buff[ptr++] != ',') return false;
 
   if (!SkipWhitespace()) return false;
-  if (buff[ptr++] != 'o') return false;
+  if ((buff[ptr] != 'o') && (buff[ptr] != 'O')) return false;
+  ptr++;
   if (!SkipWhitespace()) return false;
   if (buff[ptr++] != '=') return false;
   if (!ReadInt(&defaultOctave)) return false;
@@ -147,7 +149,8 @@ bool AudioGeneratorRTTTL::ParseHeader()
 
   int bpm;
   if (!SkipWhitespace()) return false;
-  if (buff[ptr++] != 'b') return false;
+  if ((buff[ptr] != 'b') && (buff[ptr] != 'B')) return false;
+  ptr++;
   if (!SkipWhitespace()) return false;
   if (buff[ptr++] != '=') return false;
   if (!ReadInt(&bpm)) return false;
@@ -155,8 +158,6 @@ bool AudioGeneratorRTTTL::ParseHeader()
   if (buff[ptr++] != ':') return false;
 
   wholeNoteMS = (60 * 1000 * 4) / bpm;
-
-  //Serial.printf("%d %d %d\n", defaultDuration, defaultOctave, wholeNoteMS);
 
   return true;
 }
@@ -228,14 +229,14 @@ bool AudioGeneratorRTTTL::GetNextNote()
   if (ptr >= len) return false;
   note = 0;
   switch (buff[ptr++]) {
-    case 'c': note = 1; break;
-    case 'd': note = 3; break;
-    case 'e': note = 5; break;
-    case 'f': note = 6; break;
-    case 'g': note = 8; break;
-    case 'a': note = 10; break;
-    case 'b': note = 12;  break;
-    case 'p': note = 0; break;
+    case 'c': case 'C': note = 1; break;
+    case 'd': case 'D': note = 3; break;
+    case 'e': case 'E': note = 5; break;
+    case 'f': case 'F': note = 6; break;
+    case 'g': case 'G': note = 8; break;
+    case 'a': case 'A': note = 10; break;
+    case 'b': case 'B': note = 12; break;
+    case 'p': case 'P': note = 0; break;
     default: return false;
   }
   if ((ptr < len) && (buff[ptr] == '#')) {
