@@ -85,6 +85,11 @@ uint32_t AudioFileSourceBuffer::getPos()
   return src->getPos();
 }
 
+uint32_t AudioFileSourceBuffer::getFillLevel()
+{
+  return length;
+}
+
 uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
 {
   if (!buffer) return src->read(data, len);
