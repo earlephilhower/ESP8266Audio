@@ -51,6 +51,16 @@ bool AudioGeneratorRTTTL::isRunning()
   return running;
 }
 
+// Can't do pure square wave, the I2S DACs don't like being fed them
+static int16_t period[64] PROGMEM = {
+  250, 500, 1000, 2000, 4000, 8000, 16000, 32000, 32000, 31000, 32000, 31000,
+  32000, 31000, 32000, 31000, 32000, 31000, 32000, 32100, 32000, 31000, 32000,
+   31000, 32000, 32000, 16000, 8000, 4000, 2000, 1000, 500,
+  -250, -500, -1000, -2000, -4000, -8000, -16000, -32000, -32000, -31000,
+  -32000, -31000, -32000, -31000, -32000, -31000, -32000, -31000, -32000,
+  -32100, -32000, -31000, -32000, -31000, -32000, -32000, -16000, -8000,
+  -4000, -2000, -1000, -500 };
+
 bool AudioGeneratorRTTTL::loop()
 {
   if (!running) goto done; // Nothing to do here!
@@ -71,16 +81,13 @@ bool AudioGeneratorRTTTL::loop()
       samplesSent++;
     }
   } else {
-    int16_t hi[2] = { 32767, 32767 };
-    int16_t lo[2] = { -32767, -32767 };
     while (samplesSent < ttlSamples) {
       int samplesSentFP10 = samplesSent << 10;
       int rem = samplesSentFP10 % ttlSamplesPerWaveFP10;
-      if (rem > (ttlSamplesPerWaveFP10 / 2)) {
-        if (!output->ConsumeSample(hi)) goto done;
-      } else {
-        if (!output->ConsumeSample(lo)) goto done;
-      }
+      rem = (64 * rem) / ttlSamplesPerWaveFP10;
+      int16_t val = pgm_read_word(&period[rem]);
+      int16_t s[2] = { val, val };
+      if (!output->ConsumeSample(s)) goto done;
       samplesSent++;
     }
   }
