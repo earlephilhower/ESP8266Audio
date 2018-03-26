@@ -45,11 +45,16 @@ bool AudioOutputSerialWAV::begin()
   wavHeader[34] = bps;
   wavHeader[35] = 0;
   Serial.write(wavHeader, sizeof(wavHeader));
+  count = 0;
   return true;
 }
 
 bool AudioOutputSerialWAV::ConsumeSample(int16_t sample[2])
 {
+  if (++count == 200) {
+    count = 0;
+    return false;
+  }
   for (int i=0; i<channels; i++) {
     if (bps == 8) {
       uint8_t l = sample[i] & 0xff;
