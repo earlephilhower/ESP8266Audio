@@ -23,6 +23,8 @@ Erich Heinemann has developed a Stomper (instrument for playing samples in real-
 
 Dagnall53 has integrated this into a really neat MQTT based model train controller to add sounds to his set.  More info is available [here](https://github.com/dagnall53/ESPMQTTRocnetSound), including STL files for 3D printed components!
 
+JohannesMTC has built a similar project especially for model trains: https://github.com/JohannesMTC/ESP32_MAS
+
 ## Prerequisites
 First, make sure you are running the 2.4 or GIT head version of the Arduino libraries for ESP8266, or the latest ESP32 SDK from Espressif.
 
