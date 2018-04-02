@@ -25,6 +25,8 @@ Dagnall53 has integrated this into a really neat MQTT based model train controll
 
 JohannesMTC has built a similar project especially for model trains: https://github.com/JohannesMTC/ESP32_MAS
 
+A neat MQTT-driven ESP8266 light-and-sound device (alarm? toy? who can say!) was built by @CosmicMac, available at https://github.com/CosmicMac/ESParkle
+
 ## Prerequisites
 First, make sure you are running the 2.4 or GIT head version of the Arduino libraries for ESP8266, or the latest ESP32 SDK from Espressif.
 
