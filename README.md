@@ -129,7 +129,7 @@ AudioOutputI2SNoDAC *out;
 
 ````
 
-## AudioFileSourceID3 - ID3 stream parser filter with a user-speficied callback
+## AudioFileSourceID3 - ID3 stream parser filter with a user-specified callback
 This class, which takes as input any other AudioFileSource and outputs an AudioFileSource suitable for any decoder, automatically parses out ID3 tags from MP3 files.  You need to specify a callback function, which will be called as tags are decoded and allow you to update your UI state with this information.  See the PlayMP3FromSPIFFS example for more information.
 
 ## AudioGenerator classes
