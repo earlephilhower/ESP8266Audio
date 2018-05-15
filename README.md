@@ -162,6 +162,22 @@ AudioOutputSPIFFSWAV:  Writes a binary WAV format with headers to a SPIFFS files
 
 AudioOutputNull:  Just dumps samples to /dev/null.  Used for speed testing as it doesn't artificially limit the AudioGenerator output speed since there are no buffers to fill/drain.
 
+## I2S DACs
+I've used both the Adafruit [I2S +3W amp DAC](https://www.adafruit.com/product/3006) and a generic PCM5102 based DAC with success.  The biggest problems I've seen from users involve pinouts from the ESP8266 for GPIO and hooking up all necessary pins on the DAC board.
+
+### Adafruit I2S DAC
+This is quite simple and only needs the GND, VIN, LRC, BCLK< and DIN pins to be wired.  Be sure to use +5V on the VIN to get the loudest sound.  See the [Adafruit example page](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp) for more info.
+
+### PCM5102 DAC
+I've used several versions of PCM5102 DAC boards purchased from eBay.  They've all had the same pinout, no matter the form factor.  There are several input configuration pins beyond the I2S interface itself that need to be wired:
+* 3.3V from ESP8266 -> VCC, 33V, XMT
+* GND from ESP8266 -> GND, FLT, DMP, FMT, SCL
+* (Standard I2S interface) BCLK->BCK, I2SO->DIN, and LRCLK(WS)->LCK
+
+
+### Others
+There are many other variants out there, and they should all work reasonably well with this code and the ESP8266.  Please be certain you've read the datasheet and are applying proper input voltages, and be sure to tie off any unused inputs to GND or VCC as appropriate.  LEaving an input pin floating on any integrated circuit can cause unstable operation as it may pick up noise from the environment (very low input capacitance) and cause havoc with internal IC settings.
+
 ## Software I2S Delta-Sigma DAC (i.e. playing music with a single transistor and speaker)
 For the best fidelity, and stereo to boot, spend the money on a real I2S DAC.  Adafruit makes a great mono one with amplifier, and you can find stereo unamplified ones on eBay or elsewhere quite cheaply.  However, thanks to the software delta-sigma DAC with 32x oversampling (up to 128x if the audio rate is low enough) you can still have pretty good sound!
 
@@ -196,6 +212,14 @@ USB-5V             -- Speaker + Terminal
 Basically the transistor acts as a switch and requires only a drive of 1/beta (~1/1000 for the transistor specified) times the speaker current.  As shown you've got a max current of (5-0.7)/8=540mA and a power of 0.54^2 * 8 = ~2.3W into the speaker.
 
 When using the software delta-sigma DAC, even though our playback circuit is not using the LRCLK or BCLK pins, the ESP8266 internal hardware *will* be driving them.  So these pins cannot be used as outputs in your application.  However, you can use the LRCLK and BCLK pins as *inputs*.  Simply start playback, then use the standard pinMode(xxx, INPUT/INPUT_PULLUP) Arduino commands and you can, for example, use those two pins to read a button or sensor.
+
+### Debugging the 1-T amp circupt, compliments of @msmcmickey
+If you've built the amp but are not getting any sound, @msmcmickey wrote up a very good debugging sequence to check:
+
+0. Please double-check the wiring.  GPIO pins and board pins are not always the same and vary immensely between brands of ESP8266 carrier boards.
+1. Is the transistor connected properly? Check the datasheet for this package style and make sure you have the leads connected properly. This package has three leads, and the lead that is by itself in the middle of the one side is the collector, not the base as you might expect it to be.
+2. If connected properly, do you have ~5 volts between the collector and emitter?
+3.  Was the transistor possibly damaged/overheated during soldering, or by connecting it improperly? Out-of-circuit diode check voltage drop test using a multimeter from base->emitter and base->collector should be between .5 and .7 volts. If it's shorted or open or conducting in both directions, then replace it and make sure it's connected properly.
 
 ## Using external SPI RAM to increase buffer
 A class allows you to use a 23lc1024 SPI RAM from Microchip as input buffer. This chip connects to ESP8266 HSPI port and uses an [external SPI RAM library](https://github.com/Gianbacchio/ESP8266_Spiram).
