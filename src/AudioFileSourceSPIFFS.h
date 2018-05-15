@@ -42,7 +42,7 @@ class AudioFileSourceSPIFFS : public AudioFileSource
     virtual uint32_t getPos() override { if (!f) return 0; else return f.position(); };
 
   private:
-    File f;
+    fs::File f;
 };
 
 
