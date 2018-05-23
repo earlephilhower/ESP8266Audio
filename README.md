@@ -215,7 +215,18 @@ Basically the transistor acts as a switch and requires only a drive of 1/beta (~
 
 When using the software delta-sigma DAC, even though our playback circuit is not using the LRCLK or BCLK pins, the ESP8266 internal hardware *will* be driving them.  So these pins cannot be used as outputs in your application.  However, you can use the LRCLK and BCLK pins as *inputs*.  Simply start playback, then use the standard pinMode(xxx, INPUT/INPUT_PULLUP) Arduino commands and you can, for example, use those two pins to read a button or sensor.
 
-### Debugging the 1-T amp circupt, compliments of @msmcmickey
+### High pitched buzzing with the 1-T circuit
+The 1-T amp can _NOT_ drive any sort of amplified speaker.  If there is a power or USB input to the speaker, or it has lights or Bluetooth or a battery, it can _NOT_ be used with this circuit.
+
+The 1T output is a binary signal at 0 or 5V, with nothing in between. When you connect to a 8ohm paper physical speaker directly, the speaker cone itself has inertia and acts as a low pass filter and averages the density of pulses in order to give a nice, analog output.
+
+When you feed the 1T output to an amp you are alternatively grounding and overdriving the op-amp's input at a high frequency. That causes ringing and the opamp has a frequency response high enough to amplify the high frequency noise and you get that buzzing.
+
+The same problem may happen with piezo speakers. They have a very high frequency response, normally, and have (almost) no inertia. So you hear the buzzing at high frequency.
+
+You could attach the 1T output to a low pass and feed that into an amplifier. But at that point it is easier to just get an I2S DAC and avoid the whole thing (plus get stereo and true 16-bit output).
+
+### Debugging the 1-T amp circuit, compliments of @msmcmickey
 If you've built the amp but are not getting any sound, @msmcmickey wrote up a very good debugging sequence to check:
 
 0. Please double-check the wiring.  GPIO pins and board pins are not always the same and vary immensely between brands of ESP8266 carrier boards.
