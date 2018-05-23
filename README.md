@@ -27,6 +27,8 @@ JohannesMTC has built a similar project especially for model trains: https://git
 
 A neat MQTT-driven ESP8266 light-and-sound device (alarm? toy? who can say!) was built by @CosmicMac, available at https://github.com/CosmicMac/ESParkle
 
+A very interesting "linear clock" with a stepper motor, NTP time keeping, and configurable recorded chimes with schematics, 3D printer plans, and source code, is now available http://home.kpn.nl/bderogee1980/projects/linear_clock/linear_clock.html
+
 ## Prerequisites
 First, make sure you are running the 2.4 or GIT head version of the Arduino libraries for ESP8266, or the latest ESP32 SDK from Espressif.
 
