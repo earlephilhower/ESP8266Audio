@@ -111,7 +111,7 @@ AudioFileSourceHTTPStream:  Simple implementation of a streaming HTTP reader for
 ## AudioFileSourceBuffer - Double buffering, useful for HTTP streams
 AudioFileSourceBuffer is an input source that simpy adds an additional RAM buffer of the output of any other AudioFileSource.  This is particularly useful for web streaming where you need to have 1-2 packets in memory to ensure hiccup-free playback.
 
-Simply create your standard input file source, create the buffer with the original source as its input, and pass this buffer object to the generator.
+Create your standard input file source, create the buffer with the original source as its input, and pass this buffer object to the generator.
 ````
 ...
 AudioGeneratorMP3 *mp3;

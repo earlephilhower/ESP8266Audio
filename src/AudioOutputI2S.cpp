@@ -168,25 +168,29 @@ bool AudioOutputI2S::begin()
 
 bool AudioOutputI2S::ConsumeSample(int16_t sample[2])
 {
-  MakeSampleStereo16( sample );
+  int16_t ms[2];
+
+  ms[0] = sample[0];
+  ms[1] = sample[1];
+  MakeSampleStereo16( ms );
 
   if (this->mono) {
     // Average the two samples and overwrite
-    uint32_t ttl = sample[LEFTCHANNEL] + sample[RIGHTCHANNEL];
-    sample[LEFTCHANNEL] = sample[RIGHTCHANNEL] = (ttl>>1) & 0xffff;
+    int32_t ttl = ms[LEFTCHANNEL] + ms[RIGHTCHANNEL];
+    ms[LEFTCHANNEL] = ms[RIGHTCHANNEL] = (ttl>>1) & 0xffff;
   }
 #ifdef ESP32
   uint32_t s32;
   if (output_mode == INTERNAL_DAC) {
-    int16_t l = Amplify(sample[LEFTCHANNEL]) + 0x8000;
-    int16_t r = Amplify(sample[RIGHTCHANNEL]) + 0x8000;
+    int16_t l = Amplify(ms[LEFTCHANNEL]) + 0x8000;
+    int16_t r = Amplify(ms[RIGHTCHANNEL]) + 0x8000;
     s32 = (r<<16) | (l&0xffff);
   } else {
-    s32 = ((Amplify(sample[RIGHTCHANNEL]))<<16) | (Amplify(sample[LEFTCHANNEL]) & 0xffff);
+    s32 = ((Amplify(ms[RIGHTCHANNEL]))<<16) | (Amplify(ms[LEFTCHANNEL]) & 0xffff);
   }
   return i2s_push_sample((i2s_port_t)portNo, (const char *)&s32, 0);
 #else
-  uint32_t s32 = ((Amplify(sample[RIGHTCHANNEL]))<<16) | (Amplify(sample[LEFTCHANNEL]) & 0xffff);
+  uint32_t s32 = ((Amplify(ms[RIGHTCHANNEL]))<<16) | (Amplify(ms[LEFTCHANNEL]) & 0xffff);
   return i2s_write_sample_nb(s32); // If we can't store it, return false.  OTW true
 #endif
 }

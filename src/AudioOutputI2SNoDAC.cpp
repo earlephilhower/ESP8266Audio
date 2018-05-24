@@ -80,11 +80,14 @@ void AudioOutputI2SNoDAC::DeltaSigma(int16_t sample[2], uint32_t dsBuff[8])
 
 bool AudioOutputI2SNoDAC::ConsumeSample(int16_t sample[2])
 {
-  MakeSampleStereo16( sample );
+  int16_t ms[2];
+  ms[0] = sample[0];
+  ms[1] = sample[1];
+  MakeSampleStereo16( ms );
 
   // Make delta-sigma filled buffer
   uint32_t dsBuff[8];
-  DeltaSigma(sample, dsBuff);
+  DeltaSigma(ms, dsBuff);
 
   // Either send complete pulse stream or nothing
 #ifdef ESP32
