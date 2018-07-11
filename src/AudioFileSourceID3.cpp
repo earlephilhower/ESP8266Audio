@@ -218,12 +218,12 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len)
         if (i<sizeof(value)-1) value[i] = id3.getByte();
         else (void)id3.getByte();
       }
-      value[i] = 0; // Terminate the string...
+      value[i<sizeof(value)-1?i:sizeof(value)-1] = 0; // Terminate the string...
       if ( (frameid[0]=='T' && frameid[1]=='A' && frameid[2]=='L' && frameid[3] == 'B' ) ||
            (frameid[0]=='T' && frameid[1]=='A' && frameid[2]=='L' && rev==2) ) {
         cb.md("Album", isUnicode, value);
       } else if ( (frameid[0]=='T' && frameid[1]=='I' && frameid[2]=='T' && frameid[3] == '2') ||
-                  (frameid[i]=='T' && frameid[1]=='T' && frameid[2]=='2' && rev==2) ) {
+                  (frameid[0]=='T' && frameid[1]=='T' && frameid[2]=='2' && rev==2) ) {
         cb.md("Title", isUnicode, value);
       } else if ( (frameid[0]=='T' && frameid[1]=='P' && frameid[2]=='E' && frameid[3] == '1') ||
                   (frameid[0]=='T' && frameid[1]=='P' && frameid[2]=='1' && rev==2) ) {
