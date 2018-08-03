@@ -115,6 +115,7 @@ bool AudioGeneratorWAV::ReadWAVInfo()
 {
   uint32_t u32;
   uint16_t u16;
+  int toSkip;
 
   // Header == "RIFF"
   if (!ReadU32(&u32)) return false;
@@ -131,7 +132,10 @@ bool AudioGeneratorWAV::ReadWAVInfo()
   if (u32 != 0x20746d66) return false; // "fmt "
   // subchunk size
   if (!ReadU32(&u32)) return false;
-  if (u32 != 16) return false; // we only do standard PCM
+  if (u32 == 16) { toSkip = 0; }
+  else if (u32 == 18) { toSkip = 18 - 16; }
+  else if (u32 == 40) { toSkip = 40 - 16; }
+  else { return false; } // we only do standard PCM
   // AudioFormat
   if (!ReadU16(&u16)) return false;
   if (u16 != 1) return false; // we only do standard PCM
@@ -147,6 +151,12 @@ bool AudioGeneratorWAV::ReadWAVInfo()
   // Bits per sample
   if (!ReadU16(&bitsPerSample)) return false;
   if ((bitsPerSample!=8) && (bitsPerSample != 16)) return false; // Only 8 or 16 bits
+  // Skip any extra header
+  while (toSkip) {
+    uint8_t ign;
+    if (!ReadU8(&ign)) return false;
+    toSkip--;
+  }
 
   // look for data subchunk
   do {

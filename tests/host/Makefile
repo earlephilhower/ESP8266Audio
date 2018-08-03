@@ -1,4 +1,4 @@
-all: mp3 aac
+all: mp3 aac wav
 
 libmad=../../src/libmad/decoder.c ../../src/libmad/frame.c ../../src/libmad/bit.c ../../src/libmad/stream.c ../../src/libmad/fixed.c \
 ../../src/libmad/timer.c ../../src/libmad/layer3.c ../../src/libmad/synth.c ../../src/libmad/huffman.c ../../src/libmad/version.c
@@ -45,7 +45,13 @@ aac: FORCE
 	rm -f *.o
 	echo valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./aac
 
+wav: FORCE
+	rm -f *.o
+	g++ $(CPPOPTS) -o wav wav.cpp Serial.cpp  ../../src/AudioFileSourceSTDIO.cpp ../../src/AudioOutputSTDIO.cpp ../../src/AudioGeneratorWAV.cpp  -I ../../src/ -I.
+	rm -f *.o
+	echo valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./wav
+
 clean:
-	rm -f mp3 aac *.o
+	rm -f mp3 aac wav *.o
 
 FORCE:
