@@ -75,6 +75,7 @@ AudioInputI2S::~AudioInputI2S()
   if (running) i2s_end();
 #endif
 running = false;
+free(buff);
 }
 
 uint32_t AudioInputI2S::GetSample()
