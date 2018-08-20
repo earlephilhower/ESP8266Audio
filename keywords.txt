@@ -25,3 +25,4 @@ AudioOutputSerialWAV	KEYWORD1
 AudioOutputSPIFFSWAV	KEYWORD1
 AudioOutputMixer	KEYWORD1
 AudioOutputMixerStub	KEYWORD1
+AudioInputI2S	KEYWORD1
