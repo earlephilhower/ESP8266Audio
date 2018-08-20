@@ -15,14 +15,14 @@
 AudioInputI2S::AudioInputI2S(int port, int dma_buf_count, int use_apll)
 {
   this->portNo = port;
-  this->i2sOn = false;
+  this->running = false;
   this->hertz = 44100;
 
   buffLen = dma_buf_count*64;
   buff = (uint8_t*)malloc(buffLen);
 
 #ifdef ESP32
-  if (!i2sOn) {
+  if (!running) {
     if (use_apll == APLL_AUTO) {
       // don't use audio pll on buggy rev0 chips
       use_apll = APLL_DISABLE;
@@ -54,11 +54,11 @@ AudioInputI2S::AudioInputI2S(int port, int dma_buf_count, int use_apll)
   } 
 #else
   (void) use_apll;
-  if (!i2sOn) {
+  if (!running) {
     i2s_begin();
   }
 #endif
-  i2sOn = true;
+  running = true;
   bps = 32;
   channels = 1;
   gain_shift = 0;
@@ -67,19 +67,19 @@ AudioInputI2S::AudioInputI2S(int port, int dma_buf_count, int use_apll)
 AudioInputI2S::~AudioInputI2S()
 {
 #ifdef ESP32
-  if (i2sOn) {
+  if (running) {
     Serial.printf("UNINSTALL I2S\n");
     i2s_driver_uninstall((i2s_port_t)portNo); //stop & destroy i2s driver
   }
 #else
-  if (i2sOn) i2s_end();
+  if (running) i2s_end();
 #endif
-i2sOn = false;
+running = false;
 }
 
 uint32_t AudioInputI2S::GetSample()
 {
-  if (!i2sOn) return 0;
+  if (!running) return 0;
 
   uint32_t sampleIn=0;
   i2s_pop_sample((i2s_port_t)portNo, (char*)&sampleIn, portMAX_DELAY);
@@ -89,7 +89,7 @@ uint32_t AudioInputI2S::GetSample()
 
 uint32_t AudioInputI2S::read(void* data, size_t len_bytes)
 {
-  if (!i2sOn) return 0;
+  if (!running) return 0;
   size_t bytes_read = 0;
   //bytes_read = i2s_read_bytes((i2s_port_t)portNo, (char*)data, (size_t)len, portMAX_DELAY);
   esp_err_t err = i2s_read((i2s_port_t)portNo, data, len_bytes, &bytes_read, 0);
@@ -143,24 +143,25 @@ bool AudioInputI2S::SetGain(float f)
 }
 
 bool AudioInputI2S::stop() {
-  i2sOn = false;
+  running = false;
   output->stop();
   esp_err_t err = i2s_stop((i2s_port_t)portNo);
   return (err == ESP_OK);
 }
 
 bool AudioInputI2S::isRunning() {
-  return i2sOn;
+  return running;
 }
 
 bool AudioInputI2S::loop() {
-  if (!i2sOn) return false;
+  if (!running) return false;
 
   uint32_t* buff32 = reinterpret_cast<uint32_t*>(buff);
 
   while (validSamples) {
     int32_t sample = buff32[curSample]>>(14+gain_shift);
-    int16_t lastSample[2] = {sample, sample};
+    lastSample[0] = sample;
+    lastSample[1] = sample;
     if (!output->ConsumeSample(lastSample)) {
       output->loop();
       yield();
@@ -176,12 +177,12 @@ bool AudioInputI2S::loop() {
   output->loop();
 }
 
-bool AudioInputI2S::begin(AudioOutput *output) {
+bool AudioInputI2S::begin(AudioFileSource *source, AudioOutput *output) {
   if (!output) return false;
-  if (!i2sOn) {
+  if (!running) {
     esp_err_t err = i2s_start((i2s_port_t)portNo);
     if (err != ESP_OK) return false;
-    i2sOn = true;
+    running = true;
   }
   this->output = output;
   output->begin();

@@ -8,19 +8,18 @@
 #define _AUDIOINPUTI2S_H
 
 #include <Arduino.h>
-#include "AudioStatus.h"
-#include "AudioOutput.h"
+#include "AudioGenerator.h"
 
-class AudioInputI2S
+class AudioInputI2S : public AudioGenerator
 {
   public:
     AudioInputI2S(int port=0, int dma_buf_count = 8, int use_apll=APLL_DISABLE);
-    virtual ~AudioInputI2S();
+    virtual ~AudioInputI2S() override;
     bool SetPinout(int bclkPin, int wclkPin, int dinPin);
-    virtual bool begin(AudioOutput *output);
-    virtual bool loop();
-    virtual bool stop();
-    virtual bool isRunning();
+    virtual bool begin(AudioFileSource *source, AudioOutput *output) override;
+    virtual bool loop() override;
+    virtual bool stop() override;
+    virtual bool isRunning() override;
     virtual bool SetRate(int hz);
     virtual bool SetBitsPerSample(int bits);
     virtual bool SetGain(float f);
@@ -31,7 +30,6 @@ class AudioInputI2S
   private:
   protected:
     uint8_t portNo;
-    bool i2sOn;
     uint16_t hertz;
     uint8_t bps;
     uint8_t channels;

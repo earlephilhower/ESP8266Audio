@@ -27,7 +27,7 @@ void setup()
   //in->SetGain(0.1);
 
   outbuf = new AudioOutputBuffer(0.7*44100, out);
-  in->begin(outbuf);
+  in->begin(NULL, outbuf);
   Serial.printf("starting\n");
 }
 
