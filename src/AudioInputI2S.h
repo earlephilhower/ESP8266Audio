@@ -26,6 +26,7 @@ class AudioInputI2S : public AudioGenerator
     uint32_t GetSample(void);
     virtual uint32_t read(void* data, size_t len_bytes);
 
+    enum : int { LEFTCHANNEL=0, RIGHTCHANNEL=1 };
     enum : int { APLL_AUTO = -1, APLL_ENABLE = 1, APLL_DISABLE = 0 };
   private:
   protected:

@@ -1,6 +1,5 @@
 #include <Arduino.h>
 
-#include<SPI.h>
 #ifdef ESP32
     #include <WiFi.h>
 #else

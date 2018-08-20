@@ -82,9 +82,13 @@ uint32_t AudioInputI2S::GetSample()
   if (!running) return 0;
 
   uint32_t sampleIn=0;
+#ifdef ESP32
   i2s_pop_sample((i2s_port_t)portNo, (char*)&sampleIn, portMAX_DELAY);
-
   return sampleIn>>(14+gain_shift);
+#else
+  i2s_read_sample(&lastSample[LEFTCHANNEL], &lastSample[RIGHTCHANNEL], true);
+  return (lastSample[RIGHTCHANNEL] << 16) | (lastSample[LEFTCHANNEL] & 0xffff);
+#endif
 }
 
 uint32_t AudioInputI2S::read(void* data, size_t len_bytes)
@@ -92,7 +96,16 @@ uint32_t AudioInputI2S::read(void* data, size_t len_bytes)
   if (!running) return 0;
   size_t bytes_read = 0;
   //bytes_read = i2s_read_bytes((i2s_port_t)portNo, (char*)data, (size_t)len, portMAX_DELAY);
+#ifdef ESP32
   esp_err_t err = i2s_read((i2s_port_t)portNo, data, len_bytes, &bytes_read, 0);
+#else
+  uint16_t* data16 = reinterpret_cast<uint16_t*>(data);
+  for (int i = 0; (i < len_bytes/(2*sizeof(int16_t))) && (i2s_rx_available()) > 0; i++) {
+    i2s_read_sample(&lastSample[LEFTCHANNEL], &lastSample[RIGHTCHANNEL], false);
+    data16[i+RIGHTCHANNEL] = lastSample[RIGHTCHANNEL];
+    data16[i+LEFTCHANNEL] = lastSample[LEFTCHANNEL];
+  }
+#endif
   return bytes_read;
 }
 
@@ -145,8 +158,13 @@ bool AudioInputI2S::SetGain(float f)
 bool AudioInputI2S::stop() {
   running = false;
   output->stop();
+#ifdef ESP32
   esp_err_t err = i2s_stop((i2s_port_t)portNo);
   return (err == ESP_OK);
+#else
+  i2s_rxtx_begin(false, false);
+  return true;
+#endif
 }
 
 bool AudioInputI2S::isRunning() {
@@ -180,8 +198,12 @@ bool AudioInputI2S::loop() {
 bool AudioInputI2S::begin(AudioFileSource *source, AudioOutput *output) {
   if (!output) return false;
   if (!running) {
+#ifdef ESP32
     esp_err_t err = i2s_start((i2s_port_t)portNo);
     if (err != ESP_OK) return false;
+#else
+    i2s_rxtx_begin(true, false);
+#endif
     running = true;
   }
   this->output = output;
