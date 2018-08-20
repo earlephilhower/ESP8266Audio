@@ -23,7 +23,7 @@
 
 #pragma GCC optimize ("O3")
 
-AudioFileSourceBuffer::AudioFileSourceBuffer(AudioFileSource *source, int buffSizeBytes)
+AudioFileSourceBuffer::AudioFileSourceBuffer(AudioFileSource *source, uint32_t buffSizeBytes)
 {
   buffSize = buffSizeBytes;
   buffer = (uint8_t*)malloc(sizeof(uint8_t) * buffSize);
@@ -36,7 +36,7 @@ AudioFileSourceBuffer::AudioFileSourceBuffer(AudioFileSource *source, int buffSi
   filled = false;
 }
 
-AudioFileSourceBuffer::AudioFileSourceBuffer(AudioFileSource *source, void *inBuff, int buffSizeBytes)
+AudioFileSourceBuffer::AudioFileSourceBuffer(AudioFileSource *source, void *inBuff, uint32_t buffSizeBytes)
 {
   buffSize = buffSizeBytes;
   buffer = (uint8_t*)inBuff;
@@ -149,24 +149,24 @@ void AudioFileSourceBuffer::fill()
   if (length < buffSize) {
     // Now try and opportunistically fill the buffer
     if (readPtr > writePtr) {
-        int bytesAvailMid = readPtr - writePtr - 1;
-        if (bytesAvailMid > 0) {
-          int cnt = src->readNonBlock(&buffer[writePtr], bytesAvailMid);
-          length += cnt;
-          writePtr = (writePtr + cnt) % buffSize;
-        }
+      if (readPtr == writePtr+1) return;
+      uint32_t bytesAvailMid = readPtr - writePtr - 1;
+      int cnt = src->readNonBlock(&buffer[writePtr], bytesAvailMid);
+      length += cnt;
+      writePtr = (writePtr + cnt) % buffSize;
       return;
     }
 
-    int bytesAvailEnd = buffSize - writePtr;
-    if (bytesAvailEnd > 0) {
+    if (buffSize > writePtr) {
+      uint32_t bytesAvailEnd = buffSize - writePtr;
       int cnt = src->readNonBlock(&buffer[writePtr], bytesAvailEnd);
       length += cnt;
       writePtr = (writePtr + cnt) % buffSize;
       if (cnt != bytesAvailEnd) return;
     }
-    int bytesAvailStart = readPtr - 1;
-    if (bytesAvailStart > 0) {
+
+    if (readPtr > 1) {
+      uint32_t bytesAvailStart = readPtr - 1;
       int cnt = src->readNonBlock(&buffer[writePtr], bytesAvailStart);
       length += cnt;
       writePtr = (writePtr + cnt) % buffSize;
