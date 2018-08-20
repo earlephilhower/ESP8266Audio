@@ -26,7 +26,7 @@
 #endif
 #include "AudioOutputI2S.h"
 
-AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int use_apll)
+AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int use_apll)
 {
   this->portNo = port;
   this->i2sOn = false;
@@ -64,9 +64,9 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int use_apll)
       .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
       .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
       .communication_format = comm_fmt,
-      .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // high interrupt priority
-      .dma_buf_count = 8,
-      .dma_buf_len = 64,   //Interrupt level 1
+      .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // lowest interrupt priority
+      .dma_buf_count = dma_buf_count,
+      .dma_buf_len = 64,
       .use_apll = use_apll // Use audio PLL
     };
     Serial.printf("+%d %p\n", portNo, &i2s_config_dac);
