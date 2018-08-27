@@ -54,7 +54,6 @@ class AudioFileSourceBuffer : public AudioFileSource
     uint32_t writePtr;
     uint32_t readPtr;
     uint32_t length;
-    bool filled;
 };
 
 
