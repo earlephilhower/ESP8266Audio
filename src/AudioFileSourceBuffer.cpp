@@ -170,6 +170,26 @@ void AudioFileSourceBuffer::fill()
   }
 }
 
+bool AudioFileSourceBuffer::fill(uint32_t len, uint32_t max_delay)
+{
+  if (!src->isOpen()) {
+    Serial.printf_P(PSTR("Source file not open\n"));
+    return false;
+  }
+  if (!src->loop()) return false;
+  fill();
+
+  uint32_t toFill = (len < buffSize) ? len : buffSize;
+  uint32_t startTimestamp = millis();
+  while (length < toFill && millis() - startTimestamp < max_delay) {
+    delay(100);
+    if (!src->loop()) return false;
+    fill();
+  }
+  if (length < len) return false;
+  return true;
+}
+
 
 
 bool AudioFileSourceBuffer::loop()
