@@ -33,6 +33,7 @@ AudioFileSourceBuffer::AudioFileSourceBuffer(AudioFileSource *source, uint32_t b
   readPtr = 0;
   src = source;
   length = 0;
+  filled = false;
 }
 
 AudioFileSourceBuffer::AudioFileSourceBuffer(AudioFileSource *source, void *inBuff, uint32_t buffSizeBytes)
@@ -44,6 +45,7 @@ AudioFileSourceBuffer::AudioFileSourceBuffer(AudioFileSource *source, void *inBu
   readPtr = 0;
   src = source;
   length = 0;
+  filled = false;
 }
 
 AudioFileSourceBuffer::~AudioFileSourceBuffer()
@@ -93,11 +95,12 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
   if (!buffer) return src->read(data, len);
 
   uint32_t bytes = 0;
-  if (length == 0) {
+  if (!filled) {
     // Fill up completely before returning any data at all
     cb.st(STATUS_FILLING, PSTR("Refilling buffer"));
     length = src->read(buffer, buffSize);
     writePtr = length % buffSize;
+    filled = true;
   }
 
   // Pull from buffer until we've got none left or we've satisfied the request
@@ -130,6 +133,7 @@ uint32_t AudioFileSourceBuffer::read(void *data, uint32_t len)
     readPtr = 0;
     writePtr = 0;
     length = 0;
+    filled = false;
     cb.st(STATUS_UNDERFLOW, PSTR("Buffer underflow"));
   }
 
