@@ -190,6 +190,7 @@ bool AudioFileSourceBuffer::fill(uint32_t len, uint32_t max_delay)
     if (!src->loop()) return false;
     fill();
   }
+  filled = true;
   if (length < len) return false;
   return true;
 }
