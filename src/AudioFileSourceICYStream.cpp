@@ -164,13 +164,16 @@ retry:
   // If the read would hit an ICY block, split it up...
   if (((int)(icyByteCount + len) > (int)icyMetaInt) && (icyMetaInt > 0)) {
     int beforeIcy = icyMetaInt - icyByteCount;
-    int ret = stream->read(reinterpret_cast<uint8_t*>(data), beforeIcy);
-    read += ret;
-    pos += ret;
-    len -= ret;
-    data = (void *)(reinterpret_cast<char*>(data) + ret);
-    icyByteCount += ret;
-    if (ret != beforeIcy) return read; // Partial read
+    int ret = 0;
+    if (beforeIcy > 0) {
+      ret = stream->read(reinterpret_cast<uint8_t*>(data), beforeIcy);
+      read += ret;
+      pos += ret;
+      len -= ret;
+      data = (void *)(reinterpret_cast<char*>(data) + ret);
+      icyByteCount += ret;
+      if (ret != beforeIcy) return read; // Partial read
+    }
 
     uint8_t mdSize;
     int mdret = stream->read(&mdSize, 1);
