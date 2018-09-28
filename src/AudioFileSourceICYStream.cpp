@@ -167,6 +167,7 @@ retry:
     int ret = 0;
     if (beforeIcy > 0) {
       ret = stream->read(reinterpret_cast<uint8_t*>(data), beforeIcy);
+      if (ret < 0) ret = 0;
       read += ret;
       pos += ret;
       len -= ret;
@@ -228,6 +229,7 @@ retry:
   }
 
   int ret = stream->read(reinterpret_cast<uint8_t*>(data), len);
+  if (ret < 0) ret = 0;
   read += ret;
   pos += ret;
   icyByteCount += ret;
