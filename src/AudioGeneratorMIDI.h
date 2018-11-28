@@ -18,8 +18,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _AUDIOGENERATORMOD_H
-#define _AUDIOGENERATORMOD_H
+#ifndef _AUDIOGENERATORMIDI_H
+#define _AUDIOGENERATORMIDI_H
 
 #include "AudioGenerator.h"
 
