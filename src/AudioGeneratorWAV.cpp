@@ -117,40 +117,75 @@ bool AudioGeneratorWAV::ReadWAVInfo()
   uint16_t u16;
   int toSkip;
 
+  // WAV specification document:
+  // https://www.aelius.com/njh/wavemetatools/doc/riffmci.pdf
+
   // Header == "RIFF"
   if (!ReadU32(&u32)) return false;
-  if (u32 != 0x46464952) return false; // "RIFF"
+  if (u32 != 0x46464952) {
+    Serial.printf("cannot read WAV, invalid RIFF header, got: %08X \n", (uint32_t) u32);
+    return false;
+  }
+
   // Skip ChunkSize
   if (!ReadU32(&u32)) return false; 
+
   // Format == "WAVE"
   if (!ReadU32(&u32)) return false;
-  if (u32 != 0x45564157) return false; // "WAVE"
+  if (u32 != 0x45564157) {
+    Serial.printf("cannot read WAV, invalid WAVE header, got: %08X \n", (uint32_t) u32);
+    return false;
+  }
 
-  // fmt subchunk has the info on the data format
-  // id == "fmt "
-  if (!ReadU32(&u32)) return false;
-  if (u32 != 0x20746d66) return false; // "fmt "
+  // there might be JUNK or PAD - ignore it by continuing reading until we get to "fmt "
+  while (1) {
+    if (!ReadU32(&u32)) return false;
+    if (u32 == 0x20746d66) break; // 'fmt '
+  };
+
   // subchunk size
   if (!ReadU32(&u32)) return false;
   if (u32 == 16) { toSkip = 0; }
   else if (u32 == 18) { toSkip = 18 - 16; }
   else if (u32 == 40) { toSkip = 40 - 16; }
-  else { return false; } // we only do standard PCM
+  else {
+    Serial.printf("cannot read WAV, appears not to be standard PCM \n");
+    return false;
+  } // we only do standard PCM
+
   // AudioFormat
   if (!ReadU16(&u16)) return false;
-  if (u16 != 1) return false; // we only do standard PCM
+  if (u16 != 1) {
+    Serial.printf("cannot read WAV, AudioFormat appears not to be standard PCM \n");
+    return false;
+  } // we only do standard PCM
+
   // NumChannels
   if (!ReadU16(&channels)) return false;
-  if ((channels<1) || (channels>2)) return false; // Mono or stereo support only
+  if ((channels<1) || (channels>2)) {
+    Serial.printf("cannot read WAV, only mono and stereo are supported \n");
+    return false;
+  } // Mono or stereo support only
+
+
   // SampleRate
   if (!ReadU32(&sampleRate)) return false;
-  if (sampleRate < 1) return false; // Weird rate, punt.  Will need to check w/DAC to see if supported
+  if (sampleRate < 1) {
+    Serial.printf("cannot read WAV, unknown sample rate \n");
+    return false;
+  }  // Weird rate, punt.  Will need to check w/DAC to see if supported
+
   // Ignore byterate and blockalign
   if (!ReadU32(&u32)) return false;
   if (!ReadU16(&u16)) return false;
+
   // Bits per sample
   if (!ReadU16(&bitsPerSample)) return false;
-  if ((bitsPerSample!=8) && (bitsPerSample != 16)) return false; // Only 8 or 16 bits
+  if ((bitsPerSample!=8) && (bitsPerSample != 16)) {
+    Serial.printf("cannot read WAV, only 8 or 16 bits is supported \n");
+    return false;
+  }  // Only 8 or 16 bits
+
   // Skip any extra header
   while (toSkip) {
     uint8_t ign;
@@ -167,7 +202,10 @@ bool AudioGeneratorWAV::ReadWAVInfo()
     if (!ReadU32(&u32)) return false;
     file->seek(u32, SEEK_CUR);
   } while (1);
-  if (!file->isOpen()) return false;
+  if (!file->isOpen()) {
+    Serial.printf("cannot read WAV, file is not open \n");
+    return false;
+  };
 
   // Skip size, read until end of file...
   if (!ReadU32(&u32)) return false;
@@ -175,7 +213,10 @@ bool AudioGeneratorWAV::ReadWAVInfo()
 
   // Now set up the buffer or fail
   buff = reinterpret_cast<uint8_t *>(malloc(buffSize));
-  if (!buff) return false;
+  if (!buff) {
+    Serial.printf("cannot read WAV, failed to set up buffer \n");
+    return false;
+  };
   buffPtr = 0;
   buffLen = 0;
 
