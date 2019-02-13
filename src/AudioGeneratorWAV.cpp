@@ -270,39 +270,39 @@ bool AudioGeneratorWAV::ReadWAVInfo()
 bool AudioGeneratorWAV::begin(AudioFileSource *source, AudioOutput *output)
 {
   if (!source) {
-    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: failed: invalid source"));
+    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: failed: invalid source\n"));
     return false;
   }
   file = source;
   if (!output) {
-    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: invalid output"));
+    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: invalid output\n"));
     return false;
   }
   this->output = output;
   if (!file->isOpen()) {
-    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: file not open"));
+    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: file not open\n"));
     return false;
   } // Error
 
   if (!ReadWAVInfo()) {
-    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: failed during ReadWAVInfo"));
+    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: failed during ReadWAVInfo\n"));
     return false;
   }
 
   if (!output->SetRate( sampleRate )) {
-    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: failed to SetRate in output"));
+    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: failed to SetRate in output\n"));
     return false;
   }
   if (!output->SetBitsPerSample( bitsPerSample )) {
-    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: failed to SetBitsPerSample in output"));
+    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: failed to SetBitsPerSample in output\n"));
     return false;
   }
   if (!output->SetChannels( channels )) {
-    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: failed to SetChannels in output"));
+    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: failed to SetChannels in output\n"));
     return false;
   }
   if (!output->begin()) {
-    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: output's begin did not return true"));
+    Serial.printf_P(PSTR("AudioGeneratorWAV::begin: output's begin did not return true\n"));
     return false;
   }
 
