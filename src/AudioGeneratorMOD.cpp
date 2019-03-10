@@ -70,6 +70,7 @@ bool AudioGeneratorMOD::stop()
   }
   if (file) file->close();
   running = false;
+  output->stop();
   return true;
 }
 
