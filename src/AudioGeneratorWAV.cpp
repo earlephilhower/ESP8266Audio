@@ -44,6 +44,7 @@ bool AudioGeneratorWAV::stop()
   running = false;
   free(buff);
   buff = NULL;
+  output->stop();
   return file->close();
 }
 
