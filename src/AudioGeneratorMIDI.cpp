@@ -585,6 +585,7 @@ done:
 bool AudioGeneratorMIDI::stop()
 {
   StopMIDI();
+  output->stop();
   return true;
 }
 
