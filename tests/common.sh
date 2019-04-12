@@ -101,6 +101,8 @@ function install_ide()
     cd esp8266com
     git clone https://github.com/esp8266/Arduino esp8266
     pushd esp8266/tools
+    git submodule init
+    git submodule update
     python get.py
     export PATH="$ide_path:$ide_path/hardware/esp8266com/esp8266/tools/xtensa-lx106-elf/bin:$PATH"
     popd
@@ -109,6 +111,8 @@ function install_ide()
     cd espressif
     git clone https://github.com/espressif/arduino-esp32 esp32
     pushd esp32/tools
+    git submodule init
+    git submodule update
     python get.py
     export PATH="$ide_path:$ide_path/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin:$PATH"
     popd
