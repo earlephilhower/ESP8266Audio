@@ -33,6 +33,7 @@
 //#ifdef HAVE_CONFIG_H
 #  include "config.h"
 //#endif
+#define PGM_READ_UNALIGNED 0
 #include <Arduino.h>
 #include <pgmspace.h>
 

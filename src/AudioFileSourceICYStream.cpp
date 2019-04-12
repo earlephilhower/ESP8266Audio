@@ -38,7 +38,7 @@ bool AudioFileSourceICYStream::open(const char *url)
 {
   static const char *hdr[] = { "icy-metaint" };
   pos = 0;
-  http.begin(url);
+  http.begin(client, url);
   http.addHeader("Icy-MetaData", "1");
   http.collectHeaders( hdr, 1 );
   http.setReuse(true);

@@ -42,6 +42,7 @@
  **************************************************************************************/
 
 #include "coder.h"
+#define PGM_READ_UNALIGNED 0 // Only support aligned reads, faster
 #include <pgmspace.h>
 
 /* helper macros - see comments in hufftabs.c about the format of the huffman tables */

@@ -37,7 +37,7 @@ AudioFileSourceHTTPStream::AudioFileSourceHTTPStream(const char *url)
 bool AudioFileSourceHTTPStream::open(const char *url)
 {
   pos = 0;
-  http.begin(url);
+  http.begin(client, url);
   http.setReuse(true);
   int code = http.GET();
   if (code != HTTP_CODE_OK) {

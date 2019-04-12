@@ -33,6 +33,8 @@
 #ifndef FLAC__PRIVATE__CRC_H
 #define FLAC__PRIVATE__CRC_H
 
+#define PGM_READ_UNALIGNED 0
+
 #include <pgmspace.h>
 
 #include "../FLAC/ordinals.h"

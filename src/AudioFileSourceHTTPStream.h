@@ -52,6 +52,7 @@ class AudioFileSourceHTTPStream : public AudioFileSource
 
   private:
     virtual uint32_t readInternal(void *data, uint32_t len, bool nonBlock);
+    WiFiClient client;
     HTTPClient http;
     int pos;
     int size;

@@ -162,7 +162,7 @@ void AudioFileSourceBuffer::fill()
       int cnt = src->readNonBlock(&buffer[writePtr], bytesAvailEnd);
       length += cnt;
       writePtr = (writePtr + cnt) % buffSize;
-      if (cnt != bytesAvailEnd) return;
+      if (cnt != (int)bytesAvailEnd) return;
     }
 
     if (readPtr > 1) {
