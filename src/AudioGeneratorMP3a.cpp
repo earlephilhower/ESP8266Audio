@@ -53,6 +53,7 @@ bool AudioGeneratorMP3a::stop()
 {
   if (!running) return true;
   running = false;
+  output->stop();
   return file->close();
 }
 

@@ -126,7 +126,7 @@ bool AudioGeneratorFLAC::stop()
     FLAC__stream_decoder_delete(flac);
   flac = NULL;
   running = false;
-  
+  output->stop();
   return true;
 }
 
