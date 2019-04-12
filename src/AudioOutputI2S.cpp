@@ -82,6 +82,7 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int
     i2s_zero_dma_buffer((i2s_port_t)portNo);
   } 
 #else
+  (void) dma_buf_count;
   (void) use_apll;
   if (!i2sOn) {
     i2s_begin();
