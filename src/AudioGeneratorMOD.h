@@ -53,7 +53,7 @@ class AudioGeneratorMOD : public AudioGenerator
 
   protected:
     int mixerTick;
-    enum {BITDEPTH = 16};
+    enum {BITDEPTH = 15};
     int sampleRate; 
     int fatBufferSize; //(6*1024) // File system buffers per-CHANNEL (i.e. total mem required is 4 * FATBUFFERSIZE)
     enum {DIVIDER = 10};             // Fixed-point mantissa used for integer arithmetic
