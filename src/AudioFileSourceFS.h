@@ -1,6 +1,6 @@
 /*
-  AudioFileSourceSPIFFS
-  Input SPIFFS "file" to be used by AudioGenerator
+  AudioFileSourceFS
+  Input Arduion "file" to be used by AudioGenerator
   
   Copyright (C) 2017  Earle F. Philhower, III
 
@@ -18,20 +18,20 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _AUDIOFILESOURCESPIFFS_H
-#define _AUDIOFILESOURCESPIFFS_H
+#ifndef _AUDIOFILESOURCEFS_H
+#define _AUDIOFILESOURCEFS_H
 
 #include <Arduino.h>
 #include <FS.h>
 
 #include "AudioFileSource.h"
 
-class AudioFileSourceSPIFFS : public AudioFileSource
+class AudioFileSourceFS : public AudioFileSource
 {
   public:
-    AudioFileSourceSPIFFS();
-    AudioFileSourceSPIFFS(const char *filename);
-    virtual ~AudioFileSourceSPIFFS() override;
+    AudioFileSourceFS(FS &fs) { filesystem = &fs; }
+    AudioFileSourceFS(FS &fs, const char *filename);
+    virtual ~AudioFileSourceFS() override;
     
     virtual bool open(const char *filename) override;
     virtual uint32_t read(void *data, uint32_t len) override;
@@ -42,7 +42,8 @@ class AudioFileSourceSPIFFS : public AudioFileSource
     virtual uint32_t getPos() override { if (!f) return 0; else return f.position(); };
 
   private:
-    fs::File f;
+    FS *filesystem;
+    File f;
 };
 
 

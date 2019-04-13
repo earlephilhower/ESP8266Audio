@@ -1,6 +1,6 @@
 AudioFileSource	KEYWORD1
 AudioFileSourceSPIFFS	KEYWORD1
-AudioFileSourceFastROMFS	KEYWORD1
+AudioFileSourceFS	KEYWORD1
 AudioFileSourcePROGMEM	KEYWORD1
 AudioFileSourceHTTPStream	KEYWORD1
 AudioFileSourceICYStream	KEYWORD1
