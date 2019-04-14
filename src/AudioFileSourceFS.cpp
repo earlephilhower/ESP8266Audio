@@ -31,7 +31,9 @@ AudioFileSourceFS::AudioFileSourceFS(FS &fs, const char *filename)
 
 bool AudioFileSourceFS::open(const char *filename)
 {
+#ifndef ESP32
   filesystem->begin();
+#endif
   f = filesystem->open(filename, "r");
   return f;
 }
