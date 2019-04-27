@@ -77,12 +77,11 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int
       i2s_set_pin((i2s_port_t)portNo, NULL);
       i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN);
     } else {
-      SetPinout(26, 25, 22);
+      SetPinout(26, 25, AudioOutputI2S::DOUT);
     }
     i2s_zero_dma_buffer((i2s_port_t)portNo);
   } 
 #else
-  (void) dma_buf_count;
   (void) use_apll;
   if (!i2sOn) {
     i2s_begin();
