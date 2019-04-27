@@ -23,6 +23,8 @@
 
 #include <Arduino.h>
 
+#include "AudioLogger.h"
+
 class AudioStatus
 {
   public:

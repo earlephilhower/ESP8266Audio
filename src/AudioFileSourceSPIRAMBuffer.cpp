@@ -36,7 +36,7 @@ AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source
   length = 0;
   filled = false;
   bytesAvailable = 0;
-  Serial.printf_P(PSTR("SPI RAM buffer size: %u Bytes\n"), ramSize);
+  audioLogger->printf_P(PSTR("SPI RAM buffer size: %u Bytes\n"), ramSize);
 }
 
 AudioFileSourceSPIRAMBuffer::~AudioFileSourceSPIRAMBuffer()
@@ -81,7 +81,7 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
     writePtr = readPtr = 0;
     uint16_t toRead = sizeof(buffer);
     // Fill up completely before returning any data at all
-    Serial.printf_P(PSTR("Buffering...\n"));
+    audioLogger->printf_P(PSTR("Buffering...\n"));
     while (bytesAvailable!=ramSize) {
       length = src->read(buffer, toRead);
       if(length>0) {
@@ -98,10 +98,10 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
     }
     writePtr = bytesAvailable % ramSize;
     filled = true;
-    Serial.printf_P(PSTR("Filling Done !\n"));
+    audioLogger->printf_P(PSTR("Filling Done !\n"));
   }
 
-//  Serial.printf("Buffer: %u%\n", bytesAvailable*100/ramSize);
+//  audioLogger->printf("Buffer: %u%\n", bytesAvailable*100/ramSize);
 
   uint8_t *ptr = reinterpret_cast<uint8_t*>(data);
   uint32_t toReadFromBuffer = (len < bytesAvailable) ? len : bytesAvailable;
@@ -142,7 +142,7 @@ void AudioFileSourceSPIRAMBuffer::fill()
     bytesAvailable+=cnt;
     writePtr = (writePtr + cnt) % ramSize;
 #ifdef SPIBUF_DEBUG
-    Serial.printf_P(PSTR("SockRead: %u | RamAvail: %u\n"), cnt, bytesAvailable);
+    audioLogger->printf_P(PSTR("SockRead: %u | RamAvail: %u\n"), cnt, bytesAvailable);
 #endif
   }
   return;

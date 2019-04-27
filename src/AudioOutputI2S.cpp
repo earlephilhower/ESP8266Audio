@@ -69,9 +69,9 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int
       .dma_buf_len = 64,
       .use_apll = use_apll // Use audio PLL
     };
-    Serial.printf("+%d %p\n", portNo, &i2s_config_dac);
+    audioLogger->printf("+%d %p\n", portNo, &i2s_config_dac);
     if (i2s_driver_install((i2s_port_t)portNo, &i2s_config_dac, 0, NULL) != ESP_OK) {
-      Serial.println("ERROR: Unable to install I2S drives\n");
+      audioLogger->println("ERROR: Unable to install I2S drives\n");
     }
     if (output_mode == INTERNAL_DAC || output_mode == INTERNAL_PDM) {
       i2s_set_pin((i2s_port_t)portNo, NULL);
@@ -100,7 +100,7 @@ AudioOutputI2S::~AudioOutputI2S()
 {
 #ifdef ESP32
   if (i2sOn) {
-    Serial.printf("UNINSTALL I2S\n");
+    audioLogger->printf("UNINSTALL I2S\n");
     i2s_driver_uninstall((i2s_port_t)portNo); //stop & destroy i2s driver
   }
 #else
