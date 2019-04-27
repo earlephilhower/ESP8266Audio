@@ -26,6 +26,8 @@
 #endif
 #include "AudioOutputI2S.h"
 
+int AudioOutputI2S::DOUT = 22;
+
 AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int use_apll)
 {
   this->portNo = port;
