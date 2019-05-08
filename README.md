@@ -154,7 +154,7 @@ AudioGeneratorRTTTL:  Enjoy the pleasures of monophonic, 4-octave ringtones on y
 ## AudioOutput classes
 AudioOutput:  Base class for all output drivers.  Takes a sample at a time and returns true/false if there is buffer space for it.  If it returns false, it is the calling object's (AudioGenerator's) job to keep the data that didn't fit and try again later.
 
-AudioOutputI2S: Interface for any I2S 16-bit DAC.  Sends stereo or mono signals out at whatever frequency set.  Tested with Adafruit's I2SDAC and a Beyond9032 DAC from eBay.  Tested up to 44.1KHz.
+AudioOutputI2S: Interface for any I2S 16-bit DAC.  Sends stereo or mono signals out at whatever frequency set.  Tested with Adafruit's I2SDAC and a Beyond9032 DAC from eBay.  Tested up to 44.1KHz. To use the internal DAC on ESP32, instantiate this class as `AudioOutputI2S(0,1)`, see example `PlayMODFromPROGMEMToDAC` and code in [AudioOutputI2S.cpp](src/AudioOutputI2S.cpp#L29) for details.
 
 AudioOutputI2SNoDAC:  Abuses the I2S interface to play music without a DAC.  Turns it into a 32x (or higher) oversampling delta-sigma DAC.  Use the schematic below to drive a speaker or headphone from the I2STx pin (i.e. Rx).  Note that with this interface, depending on the transistor used, you may need to disconnect the Rx pin from the driver to perform serial uploads.  Mono-only output, of course.
 
