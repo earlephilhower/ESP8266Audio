@@ -281,6 +281,7 @@ void setup()
   strcpy_P(status, PSTR("OK"));
   strcpy_P(title, PSTR("Idle"));
 
+  audioLogger = &Serial;
   file = NULL;
   buff = NULL;
   out = new AudioOutputI2S();

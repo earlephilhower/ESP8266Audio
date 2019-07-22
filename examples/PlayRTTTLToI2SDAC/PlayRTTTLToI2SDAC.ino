@@ -16,6 +16,8 @@ void setup()
   delay(1000);
 
   Serial.printf("RTTTL start\n");
+
+  audioLogger = &Serial;
   file = new AudioFileSourcePROGMEM( rudolph, strlen_P(rudolph) );
   out = new AudioOutputI2S();
   rtttl = new AudioGeneratorRTTTL();

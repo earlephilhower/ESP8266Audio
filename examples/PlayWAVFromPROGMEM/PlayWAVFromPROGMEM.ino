@@ -22,6 +22,8 @@ void setup()
   Serial.begin(115200);
   delay(1000);
   Serial.printf("WAV start\n");
+
+  audioLogger = &Serial;
   file = new AudioFileSourcePROGMEM( viola, sizeof(viola) );
   out = new AudioOutputI2SNoDAC();
   wav = new AudioGeneratorWAV();

@@ -25,6 +25,8 @@ void setup()
   Serial.begin(115200);
   delay(1000);
   Serial.printf("WAV start\n");
+
+  audioLogger = &Serial;
   file[0] = new AudioFileSourcePROGMEM( viola, sizeof(viola) );
   out = new AudioOutputI2S();
   mixer = new AudioOutputMixer(32, out);

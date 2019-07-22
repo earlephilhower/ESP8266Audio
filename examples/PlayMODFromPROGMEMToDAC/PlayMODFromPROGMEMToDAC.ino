@@ -20,6 +20,8 @@ void setup()
   WiFi.mode(WIFI_OFF); //WiFi.forceSleepBegin();
   Serial.begin(115200);
   delay(1000);
+
+  audioLogger = &Serial;
   file = new AudioFileSourcePROGMEM( enigma_mod, sizeof(enigma_mod) );
   // out = new AudioOutputI2S(0, 1); Uncomment this line, comment the next one to use the internal DAC channel 1 (pin25) on ESP32
   out = new AudioOutputI2S();

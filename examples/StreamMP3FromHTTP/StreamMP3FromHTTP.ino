@@ -71,6 +71,7 @@ void setup()
   }
   Serial.println("Connected");
 
+  audioLogger = &Serial;
   file = new AudioFileSourceICYStream(URL);
   file->RegisterMetadataCB(MDCallback, (void*)"ICY");
   buff = new AudioFileSourceBuffer(file, 2048);

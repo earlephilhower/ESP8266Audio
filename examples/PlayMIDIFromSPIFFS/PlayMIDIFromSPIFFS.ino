@@ -27,6 +27,7 @@ void setup()
   Serial.begin(115200);
   Serial.println("Starting up...\n");
 
+  audioLogger = &Serial;
   sf2 = new AudioFileSourceSPIFFS(soundfont);
   mid = new AudioFileSourceSPIFFS(midifile);
   

@@ -51,6 +51,8 @@ void setup()
   delay(1000);
   SPIFFS.begin();
   Serial.printf("Sample MP3 playback begins...\n");
+
+  audioLogger = &Serial;
   file = new AudioFileSourceSPIFFS("/pno-cs.mp3");
   id3 = new AudioFileSourceID3(file);
   id3->RegisterMetadataCB(MDCallback, (void*)"ID3TAG");
