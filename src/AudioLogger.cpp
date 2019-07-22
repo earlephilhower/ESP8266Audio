@@ -1,4 +1,5 @@
 
 #include "AudioLogger.h"
 
-Print* audioLogger = &Serial;
+DevNullOut silencedLogger;
+Print* audioLogger = &silencedLogger;
