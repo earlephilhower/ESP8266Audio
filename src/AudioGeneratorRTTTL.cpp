@@ -257,7 +257,7 @@ bool AudioGeneratorRTTTL::GetNextNote()
   }
   ttlSamples = (rate * dur ) / 1000;
 
-  //Serial.printf("%d %d %d %d %d\n", dur, note, scale, ttlSamplesPerWaveFP10, ttlSamples );
+  //audioLogger->printf("%d %d %d %d %d\n", dur, note, scale, ttlSamplesPerWaveFP10, ttlSamples );
 
   return true;
 }

@@ -121,7 +121,7 @@ enum mad_flow AudioGeneratorMP3::Input()
   int len = buffLen - unused;
   len = file->read(buff + unused, len);
   if (len == 0) {
-    Serial.printf_P(PSTR("MP3 stop, len==0\n"));
+    audioLogger->printf_P(PSTR("MP3 stop, len==0\n"));
     return MAD_FLOW_STOP;
   }
 
@@ -162,7 +162,7 @@ bool AudioGeneratorMP3::GetOneSample(int16_t sample[2])
     
     switch ( mad_synth_frame_onens(synth, frame, nsCount++) ) {
         case MAD_FLOW_STOP:
-        case MAD_FLOW_BREAK: Serial.printf_P(PSTR("msf1ns failed\n"));
+        case MAD_FLOW_BREAK: audioLogger->printf_P(PSTR("msf1ns failed\n"));
           return false; // Either way we're done
         default:
           break; // Do nothing
@@ -201,7 +201,7 @@ retry:
     }
 
     if (!GetOneSample(lastSample)) {
-      Serial.printf_P(PSTR("G1S failed\n"));
+      audioLogger->printf_P(PSTR("G1S failed\n"));
       running = false;
       goto done;
     }
@@ -223,7 +223,7 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output)
   if (!output) return false;
   this->output = output;
   if (!file->isOpen()) {
-    Serial.printf_P(PSTR("MP3 source file not open\n"));
+    audioLogger->printf_P(PSTR("MP3 source file not open\n"));
     return false; // Error
   }
 
@@ -252,7 +252,7 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output)
     p += (sizeof(struct mad_synth)+7) & ~7;
     int neededBytes = p - reinterpret_cast<uint8_t *>(preallocateSpace);
     if (neededBytes > preallocateSize) {
-      Serial.printf_P("OOM error in MP3:  Want %d bytes, have %d bytes preallocated.\n", neededBytes, preallocateSize);
+      audioLogger->printf_P("OOM error in MP3:  Want %d bytes, have %d bytes preallocated.\n", neededBytes, preallocateSize);
       return false;
     }
   } else {
@@ -313,13 +313,13 @@ extern "C" {
     if ((freestack < 512) || (freeheap < 5120)) {
       static int laststack, lastheap;
       if (laststack!=freestack|| lastheap !=freeheap) {
-        Serial.printf_P(PSTR("%s: FREESTACK=%d, FREEHEAP=%d\n"), s, /*t, i,*/ freestack, /*cont_get_free_stack(&g_cont),*/ freeheap);
+        audioLogger->printf_P(PSTR("%s: FREESTACK=%d, FREEHEAP=%d\n"), s, /*t, i,*/ freestack, /*cont_get_free_stack(&g_cont),*/ freeheap);
       }
       if (freestack < 256) {
-        Serial.printf_P(PSTR("out of stack!\n"));
+        audioLogger->printf_P(PSTR("out of stack!\n"));
       }
       if (freeheap < 1024) {
-        Serial.printf_P(PSTR("out of heap!\n"));
+        audioLogger->printf_P(PSTR("out of heap!\n"));
       }
       Serial.flush();
       laststack = freestack;

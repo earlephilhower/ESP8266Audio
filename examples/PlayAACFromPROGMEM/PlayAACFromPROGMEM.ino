@@ -11,7 +11,8 @@ AudioOutputI2S *out;
 void setup()
 {
   Serial.begin(115200);
-  
+
+  audioLogger = &Serial;
   in = new AudioFileSourcePROGMEM(sampleaac, sizeof(sampleaac));
   aac = new AudioGeneratorAAC();
   out = new AudioOutputI2S();

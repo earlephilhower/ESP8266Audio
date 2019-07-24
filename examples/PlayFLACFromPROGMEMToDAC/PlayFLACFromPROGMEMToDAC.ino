@@ -13,6 +13,8 @@ void setup()
 {
   Serial.begin(115200);
   Serial.println("Starting up...\n");
+
+  audioLogger = &Serial;
   file = new AudioFileSourcePROGMEM( sample_flac, sizeof(sample_flac) );
   out = new AudioOutputI2S();
   flac = new AudioGeneratorFLAC();
