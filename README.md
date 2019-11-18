@@ -36,30 +36,30 @@ You can use GIT to pull right from GitHub: see [this README](https://github.com/
 
 ## ESP-32 SPIFFS Errors
 The latest official release of the ESP32-Arduino seems to have broken SPIFFS, but a patch has just been committed to git head.  If you want to run SPIFFS, please follow the directions below, courtesy of @rfestag:
-````
+```sh
 cd ~/Arduino/hardware/espressif/esp32 # Or wherever you have it installed
 git pull # Update to the latest
 cd tools
 python get.py # On my system, I have python3 installed by default, so I had to run python2.7 get.py
 # Re-upload files using the new mkspiffs that is installed
 # Then reload your sketch
-````
+```
 Be sure to use the [ESP32 SPIFFS](https://github.com/me-no-dev/arduino-esp32fs-plugin) upload plugin before running your sketch to upload the data files once the fixed IDE is set up.
 
 ## Installation
 Install the library and the SPI driver library in your ~/Arduino/libraries
-````
+```sh
 mkdir -p ~/Arduino/libraries
 cd ~/Arduino/libraries
 git clone https://github.com/earlephilhower/ESP8266Audio
 git clone https://github.com/Gianbacchio/ESP8266_Spiram
-````
+```
 
 When in the IDE please select the following options on the ESP8266:
-````
+```
 Tools->lwIP Variant->v1.4 Open Source, or V2 Higher Bandwidth
 Tools->CPU Frequency->160MHz
-````
+```
 
 ## Usage
 Create an AudioInputXXX source pointing to your input file, an AudioOutputXXX sink as either an I2S, I2S-sw-DAC, or as a "SerialWAV" which simply writes a WAV file to the Serial port which can be dumped to a file on your development system, and an AudioGeneratorXXX to actually take that input and decode it and send to the output.
@@ -68,7 +68,7 @@ After creation, you need to call the AudioGeneratorXXX::loop() routine from insi
 
 ## Example
 See the examples directory for some simple examples, but the following snippet can play an MP3 file over the simulated I2S DAC:
-````
+```cpp
 #include <Arduino.h>
 #include "AudioFileSourceSPIFFS.h"
 #include "AudioGeneratorMP3.h"
@@ -97,7 +97,7 @@ void loop()
     delay(1000);
   }
 }
-````
+```
 
 ## AudioFileSource classes
 AudioFileSource:  Base class which implements a very simple read-only "file" interface.  Required because it seems everyone has invented their own filesystem on the Arduino with their own unique twist.  Using this wrapper lets that be abstracted and makes the AudioGenerator simpler as it only calls these simple functions.
@@ -112,7 +112,7 @@ AudioFileSourceHTTPStream:  Simple implementation of a streaming HTTP reader for
 AudioFileSourceBuffer is an input source that simpy adds an additional RAM buffer of the output of any other AudioFileSource.  This is particularly useful for web streaming where you need to have 1-2 packets in memory to ensure hiccup-free playback.
 
 Create your standard input file source, create the buffer with the original source as its input, and pass this buffer object to the generator.
-````
+```cpp
 ...
 AudioGeneratorMP3 *mp3;
 AudioFileSourceHTTPStream *file;
@@ -129,7 +129,7 @@ AudioOutputI2SNoDAC *out;
   mp3->begin(buff, out);
 ...
 
-````
+```
 
 ## AudioFileSourceID3 - ID3 stream parser filter with a user-specified callback
 This class, which takes as input any other AudioFileSource and outputs an AudioFileSource suitable for any decoder, automatically parses out ID3 tags from MP3 files.  You need to specify a callback function, which will be called as tags are decoded and allow you to update your UI state with this information.  See the PlayMP3FromSPIFFS example for more information.
@@ -185,7 +185,7 @@ For the best fidelity, and stereo to boot, spend the money on a real I2S DAC.  A
 
 Use the AudioOutputI2S*No*DAC object instead of the AudioOutputI2S in your code, and the following schematic to drive a 2-3W speaker using a single $0.05 NPN 2N3904 transistor:
 
-````
+```
                             2N3904 (NPN)
                             +---------+
                             |         |     +-|
@@ -200,16 +200,16 @@ ESP8266-I2SOUT (Rx) -------------+  |      \ R|
 USB 5V -----------------------------+
 
 You may also want to add a 220uF cap from USB5V to GND just to help filter out any voltage droop during high volume playback.
-````
+```
 If you don't have a 5V source available on your ESP model, you can use the 5V from your USB serial adapter, or even the 3V from the ESP8266 (but it'll be lower volume).  Don't try and drive the speaker without the transistor, the ESP8266 pins can't give enough current to drive even a headphone well and you may end up damaging your device.
 
 Connections are as a follows:
-````
+```
 ESP8266-RX(I2S tx) -- 2N3904 Base
 ESP8266-GND        -- 2N3904 Emitter
 USB-5V             -- Speaker + Terminal
 2N3904-Collector   -- Speaker - Terminal
-````
+```
 
 Basically the transistor acts as a switch and requires only a drive of 1/beta (~1/1000 for the transistor specified) times the speaker current.  As shown you've got a max current of (5-0.7)/8=540mA and a power of 0.54^2 * 8 = ~2.3W into the speaker.
 
