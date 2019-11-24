@@ -57,7 +57,7 @@ AudioFileSourceBuffer::~AudioFileSourceBuffer()
 bool AudioFileSourceBuffer::seek(int32_t pos, int dir)
 {
   if(dir == SEEK_CUR && (readPtr+pos) < length) {
-    readPtr+=pos;
+    readPtr += pos;
     return true;
   } else {
     // Invalidate
