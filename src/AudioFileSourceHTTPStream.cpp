@@ -123,6 +123,7 @@ retry:
 
 bool AudioFileSourceHTTPStream::seek(int32_t pos, int dir)
 {
+  audioLogger->printf_P(PSTR("ERROR! AudioFileSourceHTTPStream::seek not implemented!"));
   (void) pos;
   (void) dir;
   return false;
