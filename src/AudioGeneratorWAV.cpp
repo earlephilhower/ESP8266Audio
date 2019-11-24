@@ -242,10 +242,13 @@ bool AudioGeneratorWAV::ReadWAVInfo()
       Serial.printf_P(PSTR("AudioGeneratorWAV::ReadWAVInfo: failed to read WAV data\n"));
       return false;
     };
-    file->seek(u32, SEEK_CUR);
+    if(!file->seek(u32, SEEK_CUR)) {
+      Serial.printf_P(PSTR("AudioGeneratorWAV::ReadWAVInfo: failed to read WAV data, seek failed\n"));
+      return false;
+    }
   } while (1);
   if (!file->isOpen()) {
-    Serial.printf_P(PSTR("AudioGeneratorWAV::ReadWAVInfo: cannot read WAV, file is not open \n"));
+    Serial.printf_P(PSTR("AudioGeneratorWAV::ReadWAVInfo: cannot read WAV, file is not open\n"));
     return false;
   };
 
