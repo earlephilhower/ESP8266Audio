@@ -7,8 +7,8 @@ matrix:
   include:
     - env:
       - BUILD_TYPE=build
-    - env:
-      - BUILD_TYPE=build_esp32
+#    - env:
+#      - BUILD_TYPE=build_esp32
 
 install:
 
