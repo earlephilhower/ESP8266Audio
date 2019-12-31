@@ -100,21 +100,26 @@ function install_ide()
     cd esp8266com
     git clone https://github.com/esp8266/Arduino esp8266
     pushd esp8266/tools
+    # Set custom warnings for all builds (i.e. could add -Wextra at some point)
+    echo "compiler.c.extra_flags=-Wall -Wextra -Werror $debug_flags" > ../platform.local.txt
+    echo "compiler.cpp.extra_flags=-Wall -Wextra -Werror $debug_flags" >> ../platform.local.txt
+    echo -e "\n----platform.local.txt----"
+    cat ../platform.local.txt
     git submodule init
     git submodule update
     python3 get.py
     export PATH="$ide_path:$ide_path/hardware/esp8266com/esp8266/tools/xtensa-lx106-elf/bin:$PATH"
     popd
-    cd ..
-    mkdir espressif
-    cd espressif
-    git clone https://github.com/espressif/arduino-esp32 esp32
-    pushd esp32/tools
-    git submodule init
-    git submodule update
-    python3 get.py
-    export PATH="$ide_path:$ide_path/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin:$PATH"
-    popd
+#    cd ..
+#    mkdir espressif
+#    cd espressif
+#    git clone https://github.com/espressif/arduino-esp32 esp32
+#    pushd esp32/tools
+#    git submodule init
+#    git submodule update
+#    python3 get.py
+#    export PATH="$ide_path:$ide_path/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin:$PATH"
+#    popd
 }
 
 function run_host_tests()
