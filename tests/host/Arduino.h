@@ -30,6 +30,12 @@ class SerialEmulator {
     void flush() {};
 };
 extern SerialEmulator Serial;
+
+class Print : public SerialEmulator {
+  public:
+    Print() {};
+    ~Print() {};
+};
 #endif
 
 #ifndef ICACHE_RODATA_ATTR

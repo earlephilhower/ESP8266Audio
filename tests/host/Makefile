@@ -31,23 +31,27 @@ libflac=../../src/libflac/md5.c ../../src/libflac/window.c ../../src/libflac/mem
 CCOPTS=-g -Wunused-parameter -Wall -m32 -include Arduino.h
 CPPOPTS=-g -Wunused-parameter -Wall -std=c++11 -m32 -include Arduino.h
 
+.phony: all
+
+all: mp3 aac wav
+
 mp3: FORCE
 	rm -f *.o
 	gcc $(CCOPTS) -c $(libmad) -I ../../src/ -I.
-	g++ $(CPPOPTS) -o mp3 mp3.cpp Serial.cpp *.o ../../src/AudioFileSourceSTDIO.cpp ../../src/AudioOutputSTDIO.cpp ../../src/AudioFileSourceID3.cpp ../../src/AudioFileSourceBuffer.cpp ../../src/AudioGeneratorMP3.cpp ../../src/AudioOutputMixer.cpp -I ../../src/ -I.
+	g++ $(CPPOPTS) -o mp3 mp3.cpp Serial.cpp *.o ../../src/AudioFileSourceSTDIO.cpp ../../src/AudioOutputSTDIO.cpp ../../src/AudioFileSourceID3.cpp ../../src/AudioFileSourceBuffer.cpp ../../src/AudioGeneratorMP3.cpp ../../src/AudioOutputMixer.cpp ../../src/AudioLogger.cpp  -I ../../src/ -I.
 	rm -f *.o
 	echo valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./mp3
 
 aac: FORCE
 	rm -f *.o
 	gcc $(CCOPTS) -DUSE_DEFAULT_STDLIB -c $(libhelix_aac) -I ../../src/ -I.
-	g++ $(CPPOPTS) -o aac aac.cpp Serial.cpp *.o ../../src/AudioFileSourceSTDIO.cpp ../../src/AudioOutputSTDIO.cpp ../../src/AudioFileSourceID3.cpp ../../src/AudioGeneratorAAC.cpp -I ../../src/ -I.
+	g++ $(CPPOPTS) -o aac aac.cpp Serial.cpp *.o ../../src/AudioFileSourceSTDIO.cpp ../../src/AudioOutputSTDIO.cpp ../../src/AudioFileSourceID3.cpp ../../src/AudioGeneratorAAC.cpp  ../../src/AudioLogger.cpp -I ../../src/ -I.
 	rm -f *.o
 	echo valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./aac
 
 wav: FORCE
 	rm -f *.o
-	g++ $(CPPOPTS) -o wav wav.cpp Serial.cpp  ../../src/AudioFileSourceSTDIO.cpp ../../src/AudioOutputSTDIO.cpp ../../src/AudioGeneratorWAV.cpp  -I ../../src/ -I.
+	g++ $(CPPOPTS) -o wav wav.cpp Serial.cpp  ../../src/AudioFileSourceSTDIO.cpp ../../src/AudioOutputSTDIO.cpp ../../src/AudioGeneratorWAV.cpp   ../../src/AudioLogger.cpp -I ../../src/ -I.
 	rm -f *.o
 	echo valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./wav
 
