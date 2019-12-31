@@ -42,7 +42,7 @@ function build_sketches()
     local build_arg=$3
     local build_dir=build.tmp
     mkdir -p $build_dir
-    local build_cmd="python $arduino/$BUILD_PY -p $PWD/$build_dir $build_arg "
+    local build_cmd="python3 $arduino/$BUILD_PY -p $PWD/$build_dir $build_arg "
     local sketches=$(find $srcpath -name *.ino)
     print_size_info >size.log
     export ARDUINO_IDE_PATH=$arduino
@@ -92,7 +92,6 @@ function install_libraries()
 function install_ide()
 {
     local ide_path=$1
-    local core_path=$2
     wget -O arduino.tar.xz https://www.arduino.cc/download.php?f=/arduino-nightly-linux64.tar.xz
     tar xf arduino.tar.xz
     mv arduino-nightly $ide_path
@@ -103,7 +102,7 @@ function install_ide()
     pushd esp8266/tools
     git submodule init
     git submodule update
-    python get.py
+    python3 get.py
     export PATH="$ide_path:$ide_path/hardware/esp8266com/esp8266/tools/xtensa-lx106-elf/bin:$PATH"
     popd
     cd ..
@@ -113,7 +112,7 @@ function install_ide()
     pushd esp32/tools
     git submodule init
     git submodule update
-    python get.py
+    python3 get.py
     export PATH="$ide_path:$ide_path/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin:$PATH"
     popd
 }
@@ -160,9 +159,21 @@ if [ "$BUILD_TYPE" = "build" ]; then
     install_arduino
     build_sketches_with_arduino
 elif [ "$BUILD_TYPE" = "build_esp32" ]; then
-    export BUILD_PY="hardware/espressif/esp32/tools/build.py -b esp32 -v -k  "
+    #export BUILD_PY="hardware/espressif/esp32/tools/build.py -b esp32 -v -k  "
+    #install_arduino
+    #build_sketches_with_arduino
+    sudo apt-get update
+    sudo apt-get upgrade -y python
+    sudo pip install --upgrade pip
+    sudo pip install --upgrade 'urllib3[secure]'
+    export ide_path=$HOME/arduino_ide 
     install_arduino
-    build_sketches_with_arduino
+    export FQBN="espressif:esp32:esp32:PSRAM=enabled,PartitionScheme=huge_app"
+    export GITHUB_WORKSPACE="$TRAVIS_BUILD_DIR"
+    export GITHUB_REPOSITORY="$TRAVIS_REPO_SLUG"
+    source $ide_path/hardware/espressif/esp32/.github/scripts/install-arduino-ide.sh
+    source $ide_path/hardware/espressif/esp32/.github/scripts/install-arduino-core-esp32.sh
+    build_sketches "$FQBN" "$HOME/Arduino/libraries" 0 1
 elif [ "$BUILD_TYPE" = "host_tests" ]; then
     # Run host side tests
     cd $TRAVIS_BUILD_DIR/tests
