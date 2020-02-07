@@ -39,7 +39,7 @@
 #include "AudioOutputSPDIF.h"
 
 // BMC (Biphase Mark Coded) values (bit order reversed, i.e. LSB first)
-static const uint16_t spdif_bmclookup[256] = { 
+static const uint16_t spdif_bmclookup[256] PROGMEM = { 
 	0xcccc, 0x4ccc, 0x2ccc, 0xaccc, 0x34cc, 0xb4cc, 0xd4cc, 0x54cc,
 	0x32cc, 0xb2cc, 0xd2cc, 0x52cc, 0xcacc, 0x4acc, 0x2acc, 0xaacc,
 	0x334c, 0xb34c, 0xd34c, 0x534c, 0xcb4c, 0x4b4c, 0x2b4c, 0xab4c,
@@ -219,8 +219,8 @@ bool AudioOutputSPDIF::ConsumeSample(int16_t sample[2])
 
   uint16_t sample_left = Amplify(ms[LEFTCHANNEL]);
   // BMC encode and flip left channel bits
-  hi = spdif_bmclookup[(uint8_t)(sample_left >> 8)];
-  lo = spdif_bmclookup[(uint8_t)sample_left];
+  hi = pgm_read_word(&spdif_bmclookup[(uint8_t)(sample_left >> 8)]);
+  lo = pgm_read_word(&spdif_bmclookup[(uint8_t)sample_left]);
   // Low word is inverted depending on first bit of high word
   lo ^= (~((int16_t)hi) >> 16);
   buf[0] = ((uint32_t)lo << 16) | hi;
@@ -236,8 +236,8 @@ bool AudioOutputSPDIF::ConsumeSample(int16_t sample[2])
 
   uint16_t sample_right = Amplify(ms[RIGHTCHANNEL]); 
   // BMC encode right channel, similar as above
-  hi = spdif_bmclookup[(uint8_t)(sample_right >> 8)];
-  lo = spdif_bmclookup[(uint8_t)sample_right];
+  hi = pgm_read_word(&spdif_bmclookup[(uint8_t)(sample_right >> 8)]);
+  lo = pgm_read_word(&spdif_bmclookup[(uint8_t)sample_right]);
   lo ^= (~((int16_t)hi) >> 16);
   buf[2] = ((uint32_t)lo << 16) | hi;
   aux = 0xb333 ^ (((uint32_t)((int16_t)lo)) >> 17);
