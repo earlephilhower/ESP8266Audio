@@ -31,9 +31,10 @@
 */
 
 #include <Arduino.h>
-#ifdef ESP32
+#if defined(ESP32)
   #include "driver/i2s.h"
-#else
+  #include "soc/rtc.h"
+#elif defined(ESP8266)
   #include <i2s.h>
 #endif
 #include "AudioOutputSPDIF.h"
@@ -77,7 +78,7 @@ static const uint16_t spdif_bmclookup[256] PROGMEM = {
 AudioOutputSPDIF::AudioOutputSPDIF(int dout_pin, int port, int dma_buf_count)
 {
   this->portNo = port;
-#ifdef ESP32
+#if defined(ESP32)
   // Configure ESP32 I2S to roughly compatible to ESP8266 peripheral
   i2s_config_t i2s_config_spdif = {
     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
@@ -96,8 +97,8 @@ AudioOutputSPDIF::AudioOutputSPDIF(int dout_pin, int port, int dma_buf_count)
   i2s_zero_dma_buffer((i2s_port_t)portNo);
   //SetPinout(I2S_PIN_NO_CHANGE, I2S_PIN_NO_CHANGE, dout_pin);
   SetPinout(25, 32, dout_pin);
-  rate_multiplier = 2; // For 32bit words
-#else
+  rate_multiplier = 2; // 2x32bit words
+#elif defined(ESP8266)
   (void) dout_pin;
   (void) dma_buf_count;
   i2s_begin();
@@ -114,13 +115,13 @@ AudioOutputSPDIF::AudioOutputSPDIF(int dout_pin, int port, int dma_buf_count)
 
 AudioOutputSPDIF::~AudioOutputSPDIF()
 {
-#ifdef ESP32
+#if defined(ESP32)
   if (i2sOn) {
     i2s_stop((i2s_port_t)this->portNo);
     audioLogger->printf("UNINSTALL I2S\n");
     i2s_driver_uninstall((i2s_port_t)this->portNo); //stop & destroy i2s driver
   }
-#else
+#elif defined(ESP8266)
   if (i2sOn) i2s_end();
 #endif
   i2sOn = false;
@@ -128,7 +129,7 @@ AudioOutputSPDIF::~AudioOutputSPDIF()
 
 bool AudioOutputSPDIF::SetPinout(int bclk, int wclk, int dout)
 {
-#ifdef ESP32
+#if defined(ESP32)
   i2s_pin_config_t pins = {
     .bck_io_num = bclk,
     .ws_io_num = wclk,
@@ -150,15 +151,25 @@ bool AudioOutputSPDIF::SetPinout(int bclk, int wclk, int dout)
 
 bool AudioOutputSPDIF::SetRate(int hz)
 {
+  if (hz < 32000) return false;
+  if (hz == this->hertz) return true;
   this->hertz = hz;
-  audioLogger->printf("S/PDIF Set Rate: %d\n", AdjustI2SRate(hz));
+  int adjusted_hz = AdjustI2SRate(hz);
   if (!i2sOn) return false;
-#ifdef ESP32
-  if (i2s_set_sample_rates((i2s_port_t)portNo, AdjustI2SRate(hz)) != ESP_OK) {
+#if defined(ESP32)
+  if (i2s_set_sample_rates((i2s_port_t)portNo, adjusted_hz) == ESP_OK) {
+    if (adjusted_hz == 88200) {
+      // Manually fix the APLL rate for 44100. 
+      // See: https://github.com/espressif/esp-idf/issues/2634
+      // sdm0 = 28, sdm1 = 8, sdm2 = 5, odir = 0 -> 88199.977
+      rtc_clk_apll_enable(1, 28, 8, 5, 0); 
+    }
+  } else {
     audioLogger->println("ERROR changing S/PDIF sample rate");
   } 
-#else
-  i2s_set_rate(AdjustI2SRate(hz));
+#elif defined(ESP8266)
+  i2s_set_rate(adjusted_hz);
+  audioLogger->printf_P(PSTR("S/PDIF real rate set: %.3f\n"), i2s_get_real_rate());
 #endif
   return true;
 }
@@ -243,8 +254,8 @@ bool AudioOutputSPDIF::ConsumeSample(int16_t sample[2])
   aux = 0xb333 ^ (((uint32_t)((int16_t)lo)) >> 17);
   buf[3] = VUCP_PREAMBLE_W | aux;
 
-// Assume DMA buffers are multiples of 16 bytes. Either we write all bytes or none.
-#ifdef ESP32
+#if defined(ESP32)
+  // Assume DMA buffers are multiples of 16 bytes. Either we write all bytes or none.
   uint32_t bytes_written;
   esp_err_t ret = i2s_write((i2s_port_t)portNo, (const char*)&buf, 8 * channels, &bytes_written, 0);
   // If we didn't write all bytes, return false early and do not increment frame_num
@@ -263,7 +274,7 @@ bool AudioOutputSPDIF::ConsumeSample(int16_t sample[2])
 
 bool AudioOutputSPDIF::stop()
 {
-#ifdef ESP32
+#if defined(ESP32)
   i2s_zero_dma_buffer((i2s_port_t)portNo);
 #endif
   frame_num = 0;
