@@ -35,12 +35,20 @@
 
 #include "AudioOutput.h"
 
+#if defined(ESP32)
 #define SPDIF_OUT_PIN_DEFAULT  27
+#define DMA_BUF_COUNT_DEFAULT  8
+#define DMA_BUF_SIZE_DEFAULT   256
+#elif defined(ESP8266)
+#define SPDIF_OUT_PIN_DEFAULT  3
+#define DMA_BUF_COUNT_DEFAULT  32
+#define DMA_BUF_SIZE_DEFAULT   64
+#endif
 
 class AudioOutputSPDIF : public AudioOutput
 {
   public:
-    AudioOutputSPDIF(int dout_pin=SPDIF_OUT_PIN_DEFAULT, int port=0, int dma_buf_count = 8);
+    AudioOutputSPDIF(int dout_pin=SPDIF_OUT_PIN_DEFAULT, int port=0, int dma_buf_count = DMA_BUF_COUNT_DEFAULT);
     virtual ~AudioOutputSPDIF() override;
     bool SetPinout(int bclkPin, int wclkPin, int doutPin);
     virtual bool SetRate(int hz) override;
@@ -65,4 +73,4 @@ class AudioOutputSPDIF : public AudioOutput
     uint8_t rate_multiplier;
 };
 
-#endif
+#endif // _AUDIOOUTPUTSPDIF_H

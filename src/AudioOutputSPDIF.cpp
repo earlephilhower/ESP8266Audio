@@ -14,6 +14,14 @@
    
   Adapted for ESP8266Audio
 
+  NOTE: This module operates I2S at 4x sampling rate, as it needs to 
+        send out each bit as two output symbols, packed into 
+        32-bit words. Even for mono sound, S/PDIF is specified minimum
+        for 2 channels, each as 32-bits sub-frame. This drains I2S 
+        buffers 4x more quickly so you may need 4x bigger output 
+        buffers than usual, configurable with 'dma_buf_count' 
+        constructor parameter.
+
   Copyright (C) 2020 Ivan Kostoski
 
   This program is free software: you can redistribute it and/or modify
@@ -35,7 +43,7 @@
   #include "driver/i2s.h"
   #include "soc/rtc.h"
 #elif defined(ESP8266)
-  #include <i2s.h>
+  #include "driver/SinglePinI2SDriver.h"
 #endif
 #include "AudioOutputSPDIF.h"
 
@@ -88,21 +96,23 @@ AudioOutputSPDIF::AudioOutputSPDIF(int dout_pin, int port, int dma_buf_count)
     .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
     .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // lowest interrupt priority
     .dma_buf_count = dma_buf_count,
-    .dma_buf_len = 256, // 4 x bigger buffers
+    .dma_buf_len = DMA_BUF_SIZE_DEFAULT, // bigger buffers, reduces interrupts
     .use_apll = true // Audio PLL is needed for low clock jitter
   };
   if (i2s_driver_install((i2s_port_t)portNo, &i2s_config_spdif, 0, NULL) != ESP_OK) {
-    audioLogger->println("ERROR: Unable to install I2S drives\n");
+    audioLogger->println(F("ERROR: Unable to install I2S drivers"));
+    return;
   }
   i2s_zero_dma_buffer((i2s_port_t)portNo);
-  //SetPinout(I2S_PIN_NO_CHANGE, I2S_PIN_NO_CHANGE, dout_pin);
-  SetPinout(25, 32, dout_pin);
+  SetPinout(I2S_PIN_NO_CHANGE, I2S_PIN_NO_CHANGE, dout_pin);
   rate_multiplier = 2; // 2x32bit words
 #elif defined(ESP8266)
   (void) dout_pin;
-  (void) dma_buf_count;
-  i2s_begin();
-  rate_multiplier = 4; // For 16bit words
+  if (!I2SDriver.begin(dma_buf_count, DMA_BUF_SIZE_DEFAULT)) {
+    audioLogger->println(F("ERROR: Unable to start I2S driver"));
+    return;
+  }
+  rate_multiplier = 4; // 4x16 bit words
 #endif
   i2sOn = true;
   mono = false;
@@ -110,7 +120,8 @@ AudioOutputSPDIF::AudioOutputSPDIF(int dout_pin, int port, int dma_buf_count)
   channels = 2;
   frame_num = 0;
   SetGain(1.0);
-  SetRate(44100); // Default
+  hertz = 0;
+  SetRate(44100);
 }
 
 AudioOutputSPDIF::~AudioOutputSPDIF()
@@ -122,7 +133,7 @@ AudioOutputSPDIF::~AudioOutputSPDIF()
     i2s_driver_uninstall((i2s_port_t)this->portNo); //stop & destroy i2s driver
   }
 #elif defined(ESP8266)
-  if (i2sOn) i2s_end();
+  if (i2sOn) I2SDriver.stop();
 #endif
   i2sOn = false;
 }
@@ -151,14 +162,14 @@ bool AudioOutputSPDIF::SetPinout(int bclk, int wclk, int dout)
 
 bool AudioOutputSPDIF::SetRate(int hz)
 {
+  if (!i2sOn) return false;
   if (hz < 32000) return false;
   if (hz == this->hertz) return true;
   this->hertz = hz;
-  int adjusted_hz = AdjustI2SRate(hz);
-  if (!i2sOn) return false;
+  int adjustedHz = AdjustI2SRate(hz);
 #if defined(ESP32)
-  if (i2s_set_sample_rates((i2s_port_t)portNo, adjusted_hz) == ESP_OK) {
-    if (adjusted_hz == 88200) {
+  if (i2s_set_sample_rates((i2s_port_t)portNo, adjustedHz) == ESP_OK) {
+    if (adjustedHz == 88200) {
       // Manually fix the APLL rate for 44100. 
       // See: https://github.com/espressif/esp-idf/issues/2634
       // sdm0 = 28, sdm1 = 8, sdm2 = 5, odir = 0 -> 88199.977
@@ -168,8 +179,8 @@ bool AudioOutputSPDIF::SetRate(int hz)
     audioLogger->println("ERROR changing S/PDIF sample rate");
   } 
 #elif defined(ESP8266)
-  i2s_set_rate(adjusted_hz);
-  audioLogger->printf_P(PSTR("S/PDIF real rate set: %.3f\n"), i2s_get_real_rate());
+  I2SDriver.setRate(adjustedHz);
+  audioLogger->printf_P(PSTR("S/PDIF rate set: %.3f\n"), I2SDriver.getActualRate()/4);
 #endif
   return true;
 }
@@ -204,9 +215,6 @@ bool AudioOutputSPDIF::begin()
 bool AudioOutputSPDIF::ConsumeSample(int16_t sample[2])
 {
   if (!i2sOn) return true; // Sink the data
-#ifndef ESP32
-  if (i2s_is_full()) return false;
-#endif 
   int16_t ms[2];
   uint16_t hi, lo, aux;
   uint32_t buf[4];
@@ -260,12 +268,8 @@ bool AudioOutputSPDIF::ConsumeSample(int16_t sample[2])
   esp_err_t ret = i2s_write((i2s_port_t)portNo, (const char*)&buf, 8 * channels, &bytes_written, 0);
   // If we didn't write all bytes, return false early and do not increment frame_num
   if ((ret != ESP_OK) || (bytes_written != (8 * channels))) return false;  
-#else
-  // NOTE: Order of buffer words is different for ESP8266
-  i2s_write_sample_nb(buf[1]);
-  i2s_write_sample_nb(buf[0]);
-  i2s_write_sample_nb(buf[3]);
-  if (!i2s_write_sample_nb(buf[2])) return false; // Return early and do not increment frame_num
+#elif defined(ESP8266)
+  if (!I2SDriver.writeInterleaved(buf)) return false;
 #endif
   // Increment and rotate frame number
   if (++frame_num > 191) frame_num = 0;
@@ -276,6 +280,8 @@ bool AudioOutputSPDIF::stop()
 {
 #if defined(ESP32)
   i2s_zero_dma_buffer((i2s_port_t)portNo);
+#elif defined(ESP8266)
+  I2SDriver.stop();
 #endif
   frame_num = 0;
   return true;
