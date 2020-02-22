@@ -33,6 +33,8 @@
 //#ifdef HAVE_CONFIG_H
 #  include "config.h"
 //#endif
+#include <Arduino.h>
+#include <pgmspace.h>
 
 //#include <stdio.h>
 #include <stdlib.h> /* for malloc() */
@@ -176,6 +178,8 @@ typedef struct FLAC__StreamDecoderPrivate {
  *
  ***********************************************************************/
 
+// Not used in AudioGeneratorFLAC, save some RAM 
+/*
 FLAC_API const char FLAC__StreamDecoderStateString[][48] = {
 	"FLAC__STREAM_DECODER_SEARCH_FOR_METADATA",
 	"FLAC__STREAM_DECODER_READ_METADATA",
@@ -226,8 +230,9 @@ FLAC_API const char FLAC__StreamDecoderWriteStatusString[][48] = {
 	"FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE",
 	"FLAC__STREAM_DECODER_WRITE_STATUS_ABORT"
 };
+*/
 
-FLAC_API const char FLAC__StreamDecoderErrorStatusString[][64] = {
+FLAC_API const char FLAC__StreamDecoderErrorStatusString[][64] PROGMEM = {
 	"FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC",
 	"FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER",
 	"FLAC__STREAM_DECODER_ERROR_STATUS_FRAME_CRC_MISMATCH",
@@ -863,10 +868,12 @@ FLAC_API FLAC__StreamDecoderState FLAC__stream_decoder_get_state(const FLAC__Str
 	return decoder->protected_->state;
 }
 
+/*
 FLAC_API const char *FLAC__stream_decoder_get_resolved_state_string(const FLAC__StreamDecoder *decoder)
 {
 	return &FLAC__StreamDecoderStateString[decoder->protected_->state][0];
 }
+*/
 
 FLAC_API FLAC__bool FLAC__stream_decoder_get_md5_checking(const FLAC__StreamDecoder *decoder)
 {

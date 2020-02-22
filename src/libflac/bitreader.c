@@ -99,7 +99,12 @@ typedef FLAC__uint64 brword;
  * also depends on the CPU cache size and other factors; some twiddling
  * may be necessary to squeeze out the best performance.
  */
+#if defined(ESP8266)
+/* Reduced bitreader buffer, saves some RAM */
+static const unsigned FLAC__BITREADER_DEFAULT_CAPACITY = 8192u / FLAC__BITS_PER_WORD; /* in words */
+#else
 static const unsigned FLAC__BITREADER_DEFAULT_CAPACITY = 65536u / FLAC__BITS_PER_WORD; /* in words */
+#endif
 
 struct FLAC__BitReader {
 	/* any partially-consumed word at the head will stay right-justified as bits are consumed from the left */
