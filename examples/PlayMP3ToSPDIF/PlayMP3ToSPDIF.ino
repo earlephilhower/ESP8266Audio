@@ -44,13 +44,14 @@ void setup()
 {
   Serial.begin(115200);
   delay(1000);
+  Serial.println();
   audioLogger = &Serial;
   SPIFFS.begin();
   file = new AudioFileSourceSPIFFS(); 
   id3 = NULL; 
   out = new AudioOutputSPDIF();
   mp3 = new AudioGeneratorMP3();
-  const char* fileName = NULL;
+  String fileName = "";
 
   // Find first MP3 file in SPIFF and play it
 
@@ -59,7 +60,7 @@ void setup()
   while ((dir = root.openNextFile())) {
     if (String(dir.name()).endsWith(".mp3")) {
       if (file->open(dir.name())) {
-        fileName = dir.name();
+        fileName = String(dir.name());
         break;
       }
     }
@@ -70,18 +71,18 @@ void setup()
   while (dir.next()) {
     if (dir.fileName().endsWith(".mp3")) {
       if (file->open(dir.fileName().c_str())) {
-        fileName = dir.fileName().c_str();
+        fileName = dir.fileName();
         break;
       }
     }
   }
 #endif
 
-  if (fileName != NULL) {
+  if (fileName.length() > 0) {
     id3 = new AudioFileSourceID3(file);
     id3->RegisterMetadataCB(MDCallback, (void*)"ID3TAG");
     mp3->begin(id3, out);
-    Serial.printf("Playback of '%s' begins...\n", fileName);
+    Serial.printf("Playback of '%s' begins...\n", fileName.c_str());
   } else {
     Serial.println("Can't find .mp3 file in SPIFFS");
   }
