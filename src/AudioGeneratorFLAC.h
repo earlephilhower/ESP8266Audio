@@ -81,6 +81,7 @@ class AudioGeneratorFLAC : public AudioGenerator
     FLAC__bool eof_cb(const FLAC__StreamDecoder *decoder);
     FLAC__StreamDecoderWriteStatus write_cb(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[]);
     void metadata_cb(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata);
+    static char error_cb_str[64];
     void error_cb(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status);
 };
 

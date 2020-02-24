@@ -30,6 +30,7 @@ AudioGeneratorFLAC::AudioGeneratorFLAC()
   buff[1] = NULL;
   buffPtr = 0;
   buffLen = 0;
+  running = false;
 }
 
 AudioGeneratorFLAC::~AudioGeneratorFLAC()
@@ -188,9 +189,11 @@ void AudioGeneratorFLAC::metadata_cb(const FLAC__StreamDecoder *decoder, const F
   (void) metadata;
   audioLogger->printf_P(PSTR("Metadata\n"));
 }
+char AudioGeneratorFLAC::error_cb_str[64];
 void AudioGeneratorFLAC::error_cb(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status)
 {
   (void) decoder;
-  cb.st((int)status, FLAC__StreamDecoderErrorStatusString[status]);
+  strncpy_P(error_cb_str, FLAC__StreamDecoderErrorStatusString[status], 64);
+  cb.st((int)status, error_cb_str);
 }
 

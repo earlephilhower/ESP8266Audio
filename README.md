@@ -158,7 +158,7 @@ AudioOutputI2S: Interface for any I2S 16-bit DAC.  Sends stereo or mono signals 
 
 AudioOutputI2SNoDAC:  Abuses the I2S interface to play music without a DAC.  Turns it into a 32x (or higher) oversampling delta-sigma DAC.  Use the schematic below to drive a speaker or headphone from the I2STx pin (i.e. Rx).  Note that with this interface, depending on the transistor used, you may need to disconnect the Rx pin from the driver to perform serial uploads.  Mono-only output, of course.
 
-AudioOutputSPDIF (experimental): Another way to abuse the I2S peripheral to send out BMC encoded S/PDIF bitstream. To interface with S/PDIF receiver it needs optical or coaxial transceiver, for which some examples can be found at https://www.epanorama.net/documents/audio/spdif.html. It should work even with the simplest form with red LED and current limiting resistor, fed into TOSLINK cable. Due to BMC coding, actual symbol rate on the pin is 4x normal I2S data rate and for each 16bit sample it needs to send out 64bits. On ESP32 with APLL it seems to work well, for up to 48KHz sample rate source. On ESP8266, it seems to hit some hardware limits and your mileage may wary. So far, it seems to work only with 32KHz sampling rate (probably due to whole number clock division), which is the minimum sample rate specified for the SPDIF interface.
+AudioOutputSPDIF (experimental): Another way to abuse the I2S peripheral to send out BMC encoded S/PDIF bitstream. To interface with S/PDIF receiver it needs optical or coaxial transceiver, for which some examples can be found at https://www.epanorama.net/documents/audio/spdif.html. It should work even with the simplest form with red LED and current limiting resistor, fed into TOSLINK cable. Minimum sample rate supported by is 32KHz. Due to BMC coding, actual symbol rate on the pin is 4x normal I2S data rate, which drains DMA buffers quickly. See more details inside [AudioOutputSPDIF.cpp](src/AudioOutputSPDIF.cpp#L17)
 
 AudioOutputSerialWAV:  Writes a binary WAV format with headers to the Serial port.  If you capture the serial output to a file you can play it back on your development system.
 
@@ -248,9 +248,7 @@ ESP Pin -------|____|--------+
                              |
 Ground  ---------------------+
 ```
-For ESP8266 with red LED (~1.9Vf drop) you need minimum 150Ohm resistor (12mA max per pin).
-
-On ESP8266 output pin is fixed (GPIO3/RX0), while on ESP32 it is confgurable with `AuditOutputSPDIF(gpio_num)`.
+For ESP8266 with red LED (~1.9Vf drop) you need minimum 150Ohm resistor (12mA max per pin), and output pin is fixed (GPIO3/RX0).On ESP32 it is confgurable with `AudioOutputSPDIF(gpio_num)`.
 
 ## Using external SPI RAM to increase buffer
 A class allows you to use a 23lc1024 SPI RAM from Microchip as input buffer. This chip connects to ESP8266 HSPI port and uses an [external SPI RAM library](https://github.com/Gianbacchio/ESP8266_Spiram).

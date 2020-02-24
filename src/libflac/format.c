@@ -146,6 +146,8 @@ FLAC_API const unsigned FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK = 0x02;
 FLAC_API const unsigned FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK = 0x10;
 FLAC_API const unsigned FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK = 0x40;
 
+// Not used in AudioGeneratorFLAC, possibly save some RAM
+/*
 FLAC_API const char * const FLAC__SubframeTypeString[] = {
 	"CONSTANT",
 	"VERBATIM",
@@ -198,6 +200,7 @@ FLAC_API const char * const FLAC__StreamMetadata_Picture_TypeString[] = {
 	"Band/artist logotype",
 	"Publisher/Studio logotype"
 };
+*/
 
 FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate)
 {
