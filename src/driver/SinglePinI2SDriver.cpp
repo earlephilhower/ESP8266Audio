@@ -31,6 +31,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#if defined(ESP8266)
+
 #include "SinglePinI2SDriver.h"
 
 SinglePinI2SDriver::~SinglePinI2SDriver()
@@ -277,3 +279,5 @@ int SinglePinI2SDriver::getUnderflowCount()
 
 // Global instance
 SinglePinI2SDriver I2SDriver;
+
+#endif // defined(ESP8266)

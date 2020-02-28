@@ -20,9 +20,7 @@
 */
 
 #pragma once
-#if !defined(ESP8266)
-#error "This driver is ESP8266 specific, only include it on ESP8266"
-#endif
+#if defined(ESP8266)
 
 #include <Arduino.h>
 #include "osapi.h"
@@ -83,3 +81,5 @@ class SinglePinI2SDriver
 
 // Global instance
 extern SinglePinI2SDriver I2SDriver;
+
+#endif // defined(ESP8266)
