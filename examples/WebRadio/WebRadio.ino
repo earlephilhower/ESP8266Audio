@@ -421,6 +421,11 @@ void loop()
     } else {
       WebError(&client, 404, NULL, false);
     }
+    // web clients hate when door is violently shut
+    while (client.available()) {
+      PumpDecoder();
+      client.read();
+    }
   }
   PumpDecoder();
   if (client) {
