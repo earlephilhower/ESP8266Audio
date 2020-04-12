@@ -19,6 +19,22 @@
  * $Id: bit.c,v 1.12 2004/01/23 09:41:32 rob Exp $
  */
 
+#ifndef REGISTER
+#if __cplusplus >= 201700L || _GNUC_ >= 7
+#define REGISTER
+#else
+#define REGISTER register
+#endif
+#endif
+
+#ifndef FALLTHROUGH
+#if __cplusplus >= 201700L
+#define FALLTHROUGH [[fallthrough]];
+#else
+#define FALLTHROUGH
+#endif
+#endif
+
 #pragma GCC optimize ("O3")
 
 #include <pgmspace.h>
@@ -32,7 +48,9 @@
 #  define CHAR_BIT  8
 # endif
 
+extern "C" {
 # include "bit.h"
+}
 
 /*
  * This is the lookup table for computing the CRC-check word.
@@ -140,7 +158,7 @@ stack(__FUNCTION__, __FILE__, __LINE__);
  */
 unsigned long mad_bit_read(struct mad_bitptr *bitptr, unsigned int len)
 {
-  register unsigned long value;
+  REGISTER unsigned long value;
 
   if (bitptr->left == CHAR_BIT)
     bitptr->cache = *bitptr->byte;
@@ -202,11 +220,11 @@ stack(__FUNCTION__, __FILE__, __LINE__);
 unsigned short mad_bit_crc(struct mad_bitptr bitptr, unsigned int len,
 			   unsigned short init)
 {
-  register unsigned int crc;
+  REGISTER unsigned int crc;
 stack(__FUNCTION__, __FILE__, __LINE__);
 
   for (crc = init; len >= 32; len -= 32) {
-    register unsigned long data;
+    REGISTER unsigned long data;
 
     data = mad_bit_read(&bitptr, 32);
 
@@ -219,18 +237,21 @@ stack(__FUNCTION__, __FILE__, __LINE__);
   switch (len / 8) {
   case 3: crc = (crc << 8) ^
            crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
+          FALLTHROUGH
   case 2: crc = (crc << 8) ^
            crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
+          FALLTHROUGH
   case 1: crc = (crc << 8) ^
            crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
 
   len %= 8;
+  FALLTHROUGH
 
   case 0: break;
   }
 
   while (len--) {
-    register unsigned int msb;
+    REGISTER unsigned int msb;
 
     msb = mad_bit_read(&bitptr, 1) ^ (crc >> 15);
 

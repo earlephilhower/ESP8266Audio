@@ -30,12 +30,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef REGISTER
+#if __cplusplus >= 201700L || _GNUC_ >= 7
+#define REGISTER
+#else
+#define REGISTER register
+#endif
+#endif
+
+#ifndef FALLTHROUGH
+#if __cplusplus >= 201700L
+#define FALLTHROUGH [[fallthrough]];
+#else
+#define FALLTHROUGH
+#endif
+#endif
+
 //#ifdef HAVE_CONFIG_H
 #  include "config.h"
 //#endif
 
 #include <stdlib.h>
 #include <string.h>
+extern "C"
+{
 #include "private/bitmath.h"
 #include "private/bitreader.h"
 #include "private/crc.h"
@@ -43,6 +61,7 @@
 #include "FLAC/assert.h"
 #include "share/compat.h"
 #include "share/endswap.h"
+}
 
 #pragma GCC optimize ("O3")
 
@@ -123,23 +142,23 @@ struct FLAC__BitReader {
 
 static inline void crc16_update_word_(FLAC__BitReader *br, brword word)
 {
-	register unsigned crc = br->read_crc16;
+	REGISTER unsigned crc = br->read_crc16;
 #if FLAC__BYTES_PER_WORD == 4
 	switch(br->crc16_align) {
-		case  0: crc = FLAC__CRC16_UPDATE((unsigned)(word >> 24), crc);
-		case  8: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 16) & 0xff), crc);
-		case 16: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 8) & 0xff), crc);
+		case  0: crc = FLAC__CRC16_UPDATE((unsigned)(word >> 24), crc); FALLTHROUGH
+		case  8: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 16) & 0xff), crc); FALLTHROUGH
+		case 16: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 8) & 0xff), crc); FALLTHROUGH
 		case 24: br->read_crc16 = FLAC__CRC16_UPDATE((unsigned)(word & 0xff), crc);
 	}
 #elif FLAC__BYTES_PER_WORD == 8
 	switch(br->crc16_align) {
-		case  0: crc = FLAC__CRC16_UPDATE((unsigned)(word >> 56), crc);
-		case  8: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 48) & 0xff), crc);
-		case 16: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 40) & 0xff), crc);
-		case 24: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 32) & 0xff), crc);
-		case 32: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 24) & 0xff), crc);
-		case 40: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 16) & 0xff), crc);
-		case 48: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 8) & 0xff), crc);
+		case  0: crc = FLAC__CRC16_UPDATE((unsigned)(word >> 56), crc); FALLTHROUGH
+		case  8: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 48) & 0xff), crc); FALLTHROUGH
+		case 16: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 40) & 0xff), crc); FALLTHROUGH
+		case 24: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 32) & 0xff), crc); FALLTHROUGH
+		case 32: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 24) & 0xff), crc); FALLTHROUGH
+		case 40: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 16) & 0xff), crc); FALLTHROUGH
+		case 48: crc = FLAC__CRC16_UPDATE((unsigned)((word >> 8) & 0xff), crc); FALLTHROUGH
 		case 56: br->read_crc16 = FLAC__CRC16_UPDATE((unsigned)(word & 0xff), crc);
 	}
 #else
@@ -235,7 +254,7 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 FLAC__BitReader *FLAC__bitreader_new(void)
 {
   stack(__FUNCTION__, __FILE__, __LINE__);
-	FLAC__BitReader *br = calloc(1, sizeof(FLAC__BitReader));
+	FLAC__BitReader *br = (FLAC__BitReader*)calloc(1, sizeof(FLAC__BitReader));
 
 	/* calloc() implies:
 		memset(br, 0, sizeof(FLAC__BitReader));
@@ -271,7 +290,7 @@ FLAC__bool FLAC__bitreader_init(FLAC__BitReader *br, FLAC__BitReaderReadCallback
 	br->words = br->bytes = 0;
 	br->consumed_words = br->consumed_bits = 0;
 	br->capacity = FLAC__BITREADER_DEFAULT_CAPACITY;
-	br->buffer = malloc(sizeof(brword) * br->capacity);
+	br->buffer = (decltype(br->buffer))malloc(sizeof(brword) * br->capacity);
 	if(br->buffer == 0)
 		return false;
 	br->read_callback = rcb;
