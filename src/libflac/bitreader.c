@@ -30,14 +30,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef REGISTER
-#if __cplusplus >= 201700L || _GNUC_ >= 7
-#define REGISTER
-#else
-#define REGISTER register
-#endif
-#endif
-
 //#ifdef HAVE_CONFIG_H
 #  include "config.h"
 //#endif
@@ -131,7 +123,7 @@ struct FLAC__BitReader {
 
 static inline void crc16_update_word_(FLAC__BitReader *br, brword word)
 {
-	REGISTER unsigned crc = br->read_crc16;
+	unsigned crc = br->read_crc16;
 #if FLAC__BYTES_PER_WORD == 4
 	switch(br->crc16_align) {
 		case  0: crc = FLAC__CRC16_UPDATE((unsigned)(word >> 24), crc); /* fall through */

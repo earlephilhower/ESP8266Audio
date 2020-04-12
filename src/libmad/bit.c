@@ -19,14 +19,6 @@
  * $Id: bit.c,v 1.12 2004/01/23 09:41:32 rob Exp $
  */
 
-#ifndef REGISTER
-#if __cplusplus >= 201700L || _GNUC_ >= 7
-#define REGISTER
-#else
-#define REGISTER register
-#endif
-#endif
-
 #pragma GCC optimize ("O3")
 
 #include <pgmspace.h>
@@ -148,7 +140,7 @@ stack(__FUNCTION__, __FILE__, __LINE__);
  */
 unsigned long mad_bit_read(struct mad_bitptr *bitptr, unsigned int len)
 {
-  REGISTER unsigned long value;
+  unsigned long value;
 
   if (bitptr->left == CHAR_BIT)
     bitptr->cache = *bitptr->byte;
@@ -210,11 +202,11 @@ stack(__FUNCTION__, __FILE__, __LINE__);
 unsigned short mad_bit_crc(struct mad_bitptr bitptr, unsigned int len,
 			   unsigned short init)
 {
-  REGISTER unsigned int crc;
+  unsigned int crc;
 stack(__FUNCTION__, __FILE__, __LINE__);
 
   for (crc = init; len >= 32; len -= 32) {
-    REGISTER unsigned long data;
+    unsigned long data;
 
     data = mad_bit_read(&bitptr, 32);
 
@@ -241,7 +233,7 @@ stack(__FUNCTION__, __FILE__, __LINE__);
   }
 
   while (len--) {
-    REGISTER unsigned int msb;
+    unsigned int msb;
 
     msb = mad_bit_read(&bitptr, 1) ^ (crc >> 15);
 
