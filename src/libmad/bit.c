@@ -27,14 +27,6 @@
 #endif
 #endif
 
-#ifndef FALLTHROUGH
-#if __cplusplus >= 201700L
-#define FALLTHROUGH [[fallthrough]];
-#else
-#define FALLTHROUGH
-#endif
-#endif
-
 #pragma GCC optimize ("O3")
 
 #include <pgmspace.h>
@@ -48,9 +40,7 @@
 #  define CHAR_BIT  8
 # endif
 
-extern "C" {
 # include "bit.h"
-}
 
 /*
  * This is the lookup table for computing the CRC-check word.
@@ -237,15 +227,15 @@ stack(__FUNCTION__, __FILE__, __LINE__);
   switch (len / 8) {
   case 3: crc = (crc << 8) ^
            crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
-          FALLTHROUGH
+          /* fall through */
   case 2: crc = (crc << 8) ^
            crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
-          FALLTHROUGH
+          /* fall through */
   case 1: crc = (crc << 8) ^
            crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
 
   len %= 8;
-  FALLTHROUGH
+  /* fall through */
 
   case 0: break;
   }
