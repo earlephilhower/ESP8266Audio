@@ -24,14 +24,14 @@
 
 #include "AudioFileSource.h"
 #include <SPI.h>
-#include <ESP8266Spiram.h> // https://github.com/Gianbacchio/ESP8266_Spiram
+#include "spiram-fast.h"
 
 // #define SPIBUF_DEBUG
 
 class AudioFileSourceSPIRAMBuffer : public AudioFileSource
 {
   public:
-    AudioFileSourceSPIRAMBuffer(AudioFileSource *in, uint8_t csPin, uint32_t bufferBytes);
+    AudioFileSourceSPIRAMBuffer(AudioFileSource *in, uint32_t bufferBytes);
     virtual ~AudioFileSourceSPIRAMBuffer() override;
 
     virtual uint32_t read(void *data, uint32_t len) override;
@@ -47,7 +47,7 @@ class AudioFileSourceSPIRAMBuffer : public AudioFileSource
 
   private:
     AudioFileSource *src;
-    ESP8266Spiram *Spiram;
+    ESP8266SPIRAM ram;
     uint32_t ramSize;
     uint32_t writePtr;
     uint32_t readPtr;

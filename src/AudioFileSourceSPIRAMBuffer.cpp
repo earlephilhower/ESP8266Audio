@@ -24,11 +24,9 @@
 
 #pragma GCC optimize ("O3")
 
-AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source, uint8_t csPin, uint32_t buffSizeBytes)
+AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source, uint32_t buffSizeBytes)
 {
-  Spiram = new ESP8266Spiram(csPin, 40e6);
-  Spiram->begin();
-  Spiram->setSeqMode();
+  ram.begin(20);
   ramSize = buffSizeBytes;
   writePtr = 0;
   readPtr = 0;
@@ -41,6 +39,7 @@ AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source
 
 AudioFileSourceSPIRAMBuffer::~AudioFileSourceSPIRAMBuffer()
 {
+  ram.end();
 }
 
 bool AudioFileSourceSPIRAMBuffer::seek(int32_t pos, int dir)
@@ -85,7 +84,7 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
     while (bytesAvailable!=ramSize) {
       length = src->read(buffer, toRead);
       if(length>0) {
-        Spiram->write(writePtr, buffer, length);
+        ram.writeBytes(writePtr, buffer, length);
         bytesAvailable+=length;
         writePtr = bytesAvailable % ramSize;
         if ((ramSize-bytesAvailable)<toRead) {
@@ -107,7 +106,7 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
   uint32_t toReadFromBuffer = (len < bytesAvailable) ? len : bytesAvailable;
   if (toReadFromBuffer>0) {
      // Pull from buffer until we've got none left or we've satisfied the request
-    Spiram->read(readPtr, ptr, toReadFromBuffer);
+    ram.readBytes(readPtr, ptr, toReadFromBuffer);
     readPtr = (readPtr+toReadFromBuffer) % ramSize;
     bytes = toReadFromBuffer;
     bytesAvailable-=toReadFromBuffer;
@@ -138,7 +137,7 @@ void AudioFileSourceSPIRAMBuffer::fill()
   }
   uint16_t cnt = src->readNonBlock(buffer, sizeof(buffer));
   if (cnt) {
-    Spiram->write(writePtr, buffer, cnt);
+    ram.writeBytes(writePtr, buffer, cnt);
     bytesAvailable+=cnt;
     writePtr = (writePtr + cnt) % ramSize;
 #ifdef SPIBUF_DEBUG

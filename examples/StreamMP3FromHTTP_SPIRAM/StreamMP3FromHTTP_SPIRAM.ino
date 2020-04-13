@@ -73,7 +73,7 @@ void setup()
   file = new AudioFileSourceICYStream(URL);
   file->RegisterMetadataCB(MDCallback, (void*)"ICY");
   // Initialize 23LC1024 SPI RAM buffer with chip select ion GPIO4 and ram size of 128KByte
-  buff = new AudioFileSourceSPIRAMBuffer(file, 4, 131072);
+  buff = new AudioFileSourceSPIRAMBuffer(file, 131072);
   buff->RegisterStatusCB(StatusCallback, (void*)"buffer");
   out = new AudioOutputI2SNoDAC();
   mp3 = new AudioGeneratorMP3();
