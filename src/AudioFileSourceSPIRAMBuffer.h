@@ -25,13 +25,17 @@
 #include "AudioFileSource.h"
 #include <SPI.h>
 #include "spiram-fast.h"
-
+//#define FAKERAM
 // #define SPIBUF_DEBUG
 
 class AudioFileSourceSPIRAMBuffer : public AudioFileSource
 {
   public:
-    AudioFileSourceSPIRAMBuffer(AudioFileSource *in, uint32_t bufferBytes);
+#ifdef FAKERAM
+    AudioFileSourceSPIRAMBuffer(AudioFileSource *in, uint32_t bufferBytes = 2048);
+#else
+    AudioFileSourceSPIRAMBuffer(AudioFileSource *in, uint32_t bufferBytes = 4*1024);
+#endif
     virtual ~AudioFileSourceSPIRAMBuffer() override;
 
     virtual uint32_t read(void *data, uint32_t len) override;
@@ -48,12 +52,14 @@ class AudioFileSourceSPIRAMBuffer : public AudioFileSource
   private:
     AudioFileSource *src;
     ESP8266SPIRAM ram;
-    uint32_t ramSize;
-    uint32_t writePtr;
-    uint32_t readPtr;
-    uint16_t length;
-    uint32_t bytesAvailable;
-    bool filled;
+    size_t ramSize;
+    size_t writePtr;
+    size_t readPtr;
+	bool filled;
+	
+#ifdef FAKERAM
+	char fakeRAM[2048];
+#endif
 };
 
 

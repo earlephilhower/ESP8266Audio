@@ -54,7 +54,7 @@ class ESP8266SPIRAM {
         uint32_t spi_clkval;
 
         typedef enum { sio = 0, dio = 1 } iotype;
-        static constexpr iotype hspi_mode = dio;
+        static constexpr iotype hspi_mode = sio;
 
         static constexpr int read_delay = (hspi_mode == dio) ? 4-1 : 0;
 
@@ -74,7 +74,7 @@ class ESP8266SPIRAM {
         }
 
         // The SPI hardware cannot make the "command" portion dual or quad, only the addr and data
-        // So using the command portion of the cycle will not work.  Comcatenate the address
+        // So using the command portion of the cycle will not work.  Concatenate the address
         // and command into a single 32-bit chunk "address" which will be sent across both bits.
         void spi_writetransaction(int addr, int addr_bits, int dummy_bits, int data_bits, iotype dual)
         {
@@ -121,6 +121,7 @@ class ESP8266SPIRAM {
             while (count > 0) {
                 int toRead = std::min(count, 64);
                 spi_readtransaction((0x03 << 24) | addr, 32-1, read_delay, toRead * 8 - 1, hspi_mode);
+				__asm ( "" ::: "memory" );
                 memcpy(dest, spi1->spi_w, toRead);
                 count -= toRead;
                 dest += toRead;
@@ -134,6 +135,7 @@ class ESP8266SPIRAM {
             while (count > 0) {
                 int toWrite = std::min(count, 64);
                 memcpy(spi1->spi_w, src, toWrite);
+				__asm ( "" ::: "memory" );
                 spi_writetransaction((0x02 << 24) | addr, 32-1, 0, toWrite * 8 - 1, hspi_mode);
                 count -= toWrite;
                 src += toWrite;
