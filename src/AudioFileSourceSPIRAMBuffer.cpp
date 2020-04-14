@@ -29,7 +29,7 @@
 
 AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source, uint32_t buffSizeBytes)
 {
-	ram.begin(5);
+	ram.begin(40);
 	ramSize = buffSizeBytes;
 	writePtr = 0;
 	readPtr = 0;
@@ -69,7 +69,7 @@ uint32_t AudioFileSourceSPIRAMBuffer::getSize()
 
 uint32_t AudioFileSourceSPIRAMBuffer::getPos()
 {
-	return src->getPos();
+	return src->getPos() - (writePtr - readPtr);
 }
 
 uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
@@ -78,7 +78,7 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
 
 	// Check if the buffer isn't empty, otherwise we try to fill completely
 	if (!filled) {
-		audioLogger->printf_P(PSTR("Filling buffer...\n"));
+		cb.st(999, PSTR("Filling buffer..."));
 		uint8_t buffer[256];
 		writePtr = 0;
 		readPtr = 0;
@@ -87,8 +87,6 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
 			int toRead = std::min(ramSize - (writePtr - readPtr), sizeof(buffer));
 			int length = src->read(buffer, toRead);
 			if (length > 0) {
-				if (writePtr==0) { for (int i=0; i<256; i++) Serial.printf("%02x ", buffer[i]); Serial.printf("\n"); }
-				audioLogger->printf_P(PSTR("Preread %d at %d...\n"), length, writePtr);
 #ifdef FAKERAM
 				for (size_t i=0; i<length; i++) fakeRAM[(i+writePtr)%ramSize] = buffer[i];
 #else
@@ -96,42 +94,38 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
 #endif
 				writePtr += length;
 			} else if (length == 0 ) {
-				delay(10); // No data, so just hang out a bit...
+				delay(0); // No data, so just hang out a bit...
 			} else {
 				// EOF, break out of read loop
 				break;
 			}
 		} while ((writePtr - readPtr) < ramSize);
 		filled = true;
-		audioLogger->printf_P(PSTR("Filling completed...\n"));
+		cb.st(999, PSTR("Buffer filled..."));
 	}
-
-//  audioLogger->printf("Buffer: %u%\n", bytesAvailable*100/ramSize);
 
 	// Read up to the entire buffer from RAM
 	uint32_t toReadFromBuffer = std::min(len, writePtr - readPtr);
 	uint8_t *ptr = reinterpret_cast<uint8_t*>(data);
 	if (toReadFromBuffer > 0) {
-//		audioLogger->printf_P(PSTR("Avail: %u, reading %u...\n"), writePtr - readPtr, toReadFromBuffer);
 #ifdef FAKERAM
 		for (size_t i=0; i<toReadFromBuffer; i++) ptr[i] = fakeRAM[(i+readPtr)%ramSize];
 #else
 		ram.readBytes(readPtr % ramSize, ptr, toReadFromBuffer);
 #endif
-		if (readPtr==0) { for (int i=0; i<256; i++) Serial.printf("%02x ", ptr[i]); Serial.printf("\n"); }
 		readPtr += toReadFromBuffer;
 		ptr += toReadFromBuffer;
 		bytes += toReadFromBuffer;
 		len -= toReadFromBuffer;
 	}
 
-  // If len>0 there is no data left in buffer and we try to read more directly from source.
-  // Then, we trigger a complete buffer refill
-  if (len) {
-    bytes += src->read(data, len);
-    filled = false;
-  }
-  return bytes;
+	// If len>0 there is no data left in buffer and we try to read more directly from source.
+	// Then, we trigger a complete buffer refill
+	if (len) {
+		bytes += src->read(data, len);
+		filled = false;
+	}
+	return bytes;
 }
 
 void AudioFileSourceSPIRAMBuffer::fill()
@@ -139,23 +133,23 @@ void AudioFileSourceSPIRAMBuffer::fill()
 	// Make sure the buffer is pre-filled before make partial fill.
 	if (!filled) return;
 
-	uint8_t buffer[128];
-	if ((ramSize - (writePtr - readPtr)) < sizeof(buffer)) {
-		return;
-	}
+	for (auto i=0; i<5; i++) {
+		// Make sure there is at least buffer size free in RAM
+		uint8_t buffer[128];
+		if ((ramSize - (writePtr - readPtr)) < sizeof(buffer)) {
+			return;
+		}
 
-	// Now trying to refill SPI RAM Buffer
-	// Make sure there is at least buffer size free in RAM
-	int cnt = src->readNonBlock(buffer, sizeof(buffer));
-	if (cnt) {
+		int cnt = src->readNonBlock(buffer, sizeof(buffer));
+		if (cnt) {
 #ifdef FAKERAM
-		for (size_t i=0; i<cnt; i++) fakeRAM[(i+writePtr)%ramSize] = buffer[i];
+			for (size_t i=0; i<cnt; i++) fakeRAM[(i+writePtr)%ramSize] = buffer[i];
 #else
-		ram.writeBytes(writePtr % ramSize, buffer, cnt);
+			ram.writeBytes(writePtr % ramSize, buffer, cnt);
 #endif
-		writePtr += cnt;
+			writePtr += cnt;
+		}
 	}
-	return;
 }
 
 bool AudioFileSourceSPIRAMBuffer::loop()
@@ -163,9 +157,13 @@ bool AudioFileSourceSPIRAMBuffer::loop()
 	static uint32_t last = 0;
 	if (!src->loop()) return false;
 	fill();
-	if ((ESP.getCycleCount() - last) > microsecondsToClockCycles(10000000)) {
+	if ((ESP.getCycleCount() - last) > microsecondsToClockCycles(1000000)) {
 		last = ESP.getCycleCount();
-		audioLogger->printf_P(PSTR("Buffering: %d%%  (%d/%d)\n"), ((writePtr - readPtr) * 100)/ramSize, writePtr-readPtr, ramSize);
+			char str[65];
+			memset(str, '#', 64);
+			str[64] = 0;
+			str[((writePtr - readPtr) * 64)/ramSize] = 0;
+			cb.st(((writePtr - readPtr) * 100)/ramSize, str);
 	}
 	return true;
 }

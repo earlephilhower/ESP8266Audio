@@ -79,7 +79,7 @@ class ESP8266SPIRAM {
         void spi_writetransaction(int addr, int addr_bits, int dummy_bits, int data_bits, iotype dual)
         {
             // Ensure no writes are still ongoing
-            while (spi1->spi_cmd & SPIBUSY) { /* busywait */ }
+            while (spi1->spi_cmd & SPIBUSY) { delay(0); }
 
             spi1->spi_addr = addr;
             spi1->spi_user = (addr_bits? SPIUADDR : 0) | (dummy_bits ? SPIUDUMMY : 0) | (data_bits ? SPIUMOSI : 0) | (dual ? SPIUFWDIO : 0);
@@ -93,7 +93,7 @@ class ESP8266SPIRAM {
         uint32_t spi_readtransaction(int addr, int addr_bits, int dummy_bits, int data_bits, iotype dual)
         {
             // Ensure no writes are still ongoing
-            while (spi1->spi_cmd & SPIBUSY) { /* busywait */ }
+            while (spi1->spi_cmd & SPIBUSY) { delay(0); }
 
             spi1->spi_addr = addr;
             spi1->spi_user = (addr_bits? SPIUADDR : 0) | (dummy_bits ? SPIUDUMMY : 0) | SPIUMISO | (dual ? SPIUFWDIO : 0);
@@ -101,7 +101,7 @@ class ESP8266SPIRAM {
             // No need to set spi_user2, insn field never used
             __asm ( "" ::: "memory" );
             spi1->spi_cmd = SPIBUSY;
-            while (spi1->spi_cmd & SPIBUSY) { /* busywait */ }
+            while (spi1->spi_cmd & SPIBUSY) { delay(0); }
             __asm ( "" ::: "memory" );
             return spi1->spi_w[0];
         }
@@ -121,8 +121,13 @@ class ESP8266SPIRAM {
             while (count > 0) {
                 int toRead = std::min(count, 64);
                 spi_readtransaction((0x03 << 24) | addr, 32-1, read_delay, toRead * 8 - 1, hspi_mode);
-				__asm ( "" ::: "memory" );
-                memcpy(dest, spi1->spi_w, toRead);
+                __asm ( "" ::: "memory" );
+                uint32_t work[16]; // FIFO image in RAM that we can byte address
+                int toCopy = (toRead + 3) / 4; // make sure all 32b values updated
+                for (auto i = 0; i < toCopy; i++) {
+                    work[i] = spi1->spi_w[i];
+                }
+                memcpy(dest, work, toRead);
                 count -= toRead;
                 dest += toRead;
                 addr += toRead;
@@ -131,19 +136,26 @@ class ESP8266SPIRAM {
 
         void writeBytes(uint32_t addr, const void *srcV, int count)
         {
-            const uint8_t *src = (const uint8_t*)srcV;
+            uint32_t work[16]; // FIFO image in RAM that we can byte address
+            const uint8_t *src = (const uint8_t *)srcV;
             while (count > 0) {
                 int toWrite = std::min(count, 64);
-                memcpy(spi1->spi_w, src, toWrite);
-				__asm ( "" ::: "memory" );
-                spi_writetransaction((0x02 << 24) | addr, 32-1, 0, toWrite * 8 - 1, hspi_mode);
+                memcpy((void *)work, src, toWrite);
+                int toCopy = (toWrite + 3) / 4; // make sure all 32b values updated
+
+                // Ensure the last SPI is done so we don't overwrite unsent data
+                while (spi1->spi_cmd & SPIBUSY) { delay(0); }
+                for (auto i = 0; i < toCopy; i++) {
+                    spi1->spi_w[i] = work[i];
+                }
+                spi_writetransaction((0x02 << 24) | addr, 32 - 1, 0, toWrite * 8 - 1, hspi_mode);
                 count -= toWrite;
                 src += toWrite;
-                addr += toWrite;
-             }
+				addr += toWrite;
+            }
         }
 
-        void begin(int freqMHz = 20)
+        void begin(int freqMHz = 40)
         {
             if (freqMHz >= 40) {
                 spi_clkval = 0x00001001;
@@ -153,9 +165,11 @@ class ESP8266SPIRAM {
                 spi_clkval = 0x00041001;
             } else if (freqMHz >= 10) {
                 spi_clkval = 0x000c1001;
-            } else { // 5 MHz
+            } else if (freqMHz >= 5) { // 5 MHz
                 spi_clkval = 0x001c1001;
-            }
+            } else {
+				spi_clkval = 0x009c1001;
+			}
             // Manually reset chip from DIO to SIO mode (HW SPI has issues with <8 bits/clocks total output)
             digitalWrite(cs, HIGH);
             digitalWrite(mosi, HIGH);
