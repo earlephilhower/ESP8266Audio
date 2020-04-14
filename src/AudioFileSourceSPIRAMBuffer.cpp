@@ -93,8 +93,6 @@ uint32_t AudioFileSourceSPIRAMBuffer::read(void *data, uint32_t len)
 				ram.writeBytes(writePtr % ramSize, buffer, length);
 #endif
 				writePtr += length;
-			} else if (length == 0 ) {
-				delay(0); // No data, so just hang out a bit...
 			} else {
 				// EOF, break out of read loop
 				break;
