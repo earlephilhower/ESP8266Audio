@@ -85,6 +85,8 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int
   (void) dma_buf_count;
   (void) use_apll;
   if (!i2sOn) {
+    orig_bck = READ_PERI_REG(PERIPHS_IO_MUX_MTDO_U);
+    orig_ws = READ_PERI_REG(PERIPHS_IO_MUX_GPIO2_U);
     i2s_begin();
   }
 #endif
