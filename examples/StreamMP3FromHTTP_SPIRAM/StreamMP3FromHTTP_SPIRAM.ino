@@ -38,16 +38,20 @@ void MDCallback(void *cbData, const char *type, bool isUnicode, const char *stri
   Serial.flush();
 }
 
+
 // Called when there's a warning or error (like a buffer underflow or decode hiccup)
 void StatusCallback(void *cbData, int code, const char *string)
 {
   const char *ptr = reinterpret_cast<const char *>(cbData);
-  // Note that the string may be in PROGMEM, so copy it to RAM for printf
-  char s1[64];
-  strncpy_P(s1, string, sizeof(s1));
-  s1[sizeof(s1)-1]=0;
-  Serial.printf("STATUS(%s) '%d' = '%s'\n", ptr, code, s1);
-  Serial.flush();
+  static uint32_t lastTime = 0;
+  static int lastCode = -99999;
+  uint32_t now = millis();
+  if ((lastCode != code) || (now - lastTime > 1000)) {
+    Serial.printf_P(PSTR("STATUS(%s) '%d' = '%s'\n"), ptr, code, string);
+    Serial.flush();
+    lastTime = now;
+    lastCode = code;
+  }
 }
 
 void setup()
@@ -73,7 +77,7 @@ void setup()
   file = new AudioFileSourceICYStream(URL);
   file->RegisterMetadataCB(MDCallback, (void*)"ICY");
   // Initialize 23LC1024 SPI RAM buffer with chip select ion GPIO4 and ram size of 128KByte
-  buff = new AudioFileSourceSPIRAMBuffer(file, 131072);
+  buff = new AudioFileSourceSPIRAMBuffer(file, 4, 128*1024);
   buff->RegisterStatusCB(StatusCallback, (void*)"buffer");
   out = new AudioOutputI2SNoDAC();
   mp3 = new AudioGeneratorMP3();

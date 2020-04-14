@@ -27,9 +27,9 @@
 
 #pragma GCC optimize ("O3")
 
-AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source, uint32_t buffSizeBytes)
+AudioFileSourceSPIRAMBuffer::AudioFileSourceSPIRAMBuffer(AudioFileSource *source, uint8_t csPin, uint32_t buffSizeBytes)
 {
-	ram.begin(40);
+	ram.begin(40, csPin);
 	ramSize = buffSizeBytes;
 	writePtr = 0;
 	readPtr = 0;

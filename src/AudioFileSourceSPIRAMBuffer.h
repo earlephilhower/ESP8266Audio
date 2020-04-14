@@ -32,9 +32,9 @@ class AudioFileSourceSPIRAMBuffer : public AudioFileSource
 {
   public:
 #ifdef FAKERAM
-    AudioFileSourceSPIRAMBuffer(AudioFileSource *in, uint32_t bufferBytes = 2048);
+    AudioFileSourceSPIRAMBuffer(AudioFileSource *in, uint8_t csPin = 15, uint32_t bufferBytes = 2048);
 #else
-    AudioFileSourceSPIRAMBuffer(AudioFileSource *in, uint32_t bufferBytes = 128*1024);
+    AudioFileSourceSPIRAMBuffer(AudioFileSource *in, uint8_t csPin = 15, uint32_t bufferBytes = 128*1024);
 #endif
     virtual ~AudioFileSourceSPIRAMBuffer() override;
 

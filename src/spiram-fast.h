@@ -1,7 +1,7 @@
 /*
  spiram-fast - Fast, hardcoded interface for SPI-based RAMs, allowing DIO
                mode to be used and speeding up individual SPI operations
-	       significantly.
+               significantly.
 
  Copyright (c) 2020 Earle F. Philhower, III   All rights reserved.
 
@@ -52,6 +52,8 @@ class ESP8266SPIRAM {
         static constexpr uint8_t sck = 14;
 
         uint32_t spi_clkval;
+        uint32_t csPin;
+        bool swCS;
 
         typedef enum { sio = 0, dio = 1 } iotype;
         static constexpr iotype hspi_mode = sio;
@@ -63,7 +65,7 @@ class ESP8266SPIRAM {
             pinMode(sck, SPECIAL);
             pinMode(miso, SPECIAL);
             pinMode(mosi, SPECIAL);
-            pinMode(cs, SPECIAL);
+            pinMode(csPin, swCS ? OUTPUT : SPECIAL );
             spi1->spi_cmd = 0;
             GPMUX &= ~(1 << 9);
             spi1->spi_clock = spi_clkval;
@@ -86,8 +88,16 @@ class ESP8266SPIRAM {
             spi1->spi_user1 = (addr_bits << 26) | (data_bits << 17) | dummy_bits;
             // No need to set spi_user2, insn field never used
             __asm ( "" ::: "memory" );
-            spi1->spi_cmd = SPIBUSY;
-            // The write may continue on in the background
+            if (swCS) {
+                pinMode(csPin, OUTPUT);
+                digitalWrite(csPin, LOW);
+                spi1->spi_cmd = SPIBUSY;
+                while (spi1->spi_cmd & SPIBUSY) { delay(0); }
+                digitalWrite(csPin, HIGH);
+            } else {
+                spi1->spi_cmd = SPIBUSY;
+                // The write may continue on in the background
+            }
         }
 
         uint32_t spi_readtransaction(int addr, int addr_bits, int dummy_bits, int data_bits, iotype dual)
@@ -100,9 +110,16 @@ class ESP8266SPIRAM {
             spi1->spi_user1 = (addr_bits << 26) | (data_bits << 8) | dummy_bits;
             // No need to set spi_user2, insn field never used
             __asm ( "" ::: "memory" );
+            if (swCS) {
+                pinMode(csPin, OUTPUT);
+                digitalWrite(csPin, LOW);
+            }
             spi1->spi_cmd = SPIBUSY;
             while (spi1->spi_cmd & SPIBUSY) { delay(0); }
             __asm ( "" ::: "memory" );
+            if (swCS) {
+                digitalWrite(csPin, HIGH);
+            }
             return spi1->spi_w[0];
         }
 
@@ -136,9 +153,9 @@ class ESP8266SPIRAM {
 
         void writeBytes(uint32_t addr, const void *srcV, int count)
         {
-            uint32_t work[16]; // FIFO image in RAM that we can byte address
             const uint8_t *src = (const uint8_t *)srcV;
             while (count > 0) {
+                uint32_t work[16]; // FIFO image in RAM that we can byte address
                 int toWrite = std::min(count, 64);
                 memcpy((void *)work, src, toWrite);
                 int toCopy = (toWrite + 3) / 4; // make sure all 32b values updated
@@ -151,11 +168,11 @@ class ESP8266SPIRAM {
                 spi_writetransaction((0x02 << 24) | addr, 32 - 1, 0, toWrite * 8 - 1, hspi_mode);
                 count -= toWrite;
                 src += toWrite;
-				addr += toWrite;
+                addr += toWrite;
             }
         }
 
-        void begin(int freqMHz = 40)
+        void begin(int freqMHz, int cs_pin)
         {
             if (freqMHz >= 40) {
                 spi_clkval = 0x00001001;
@@ -165,26 +182,28 @@ class ESP8266SPIRAM {
                 spi_clkval = 0x00041001;
             } else if (freqMHz >= 10) {
                 spi_clkval = 0x000c1001;
-            } else if (freqMHz >= 5) { // 5 MHz
+            } else if (freqMHz >= 5) {
                 spi_clkval = 0x001c1001;
             } else {
-				spi_clkval = 0x009c1001;
-			}
+                spi_clkval = 0x009c1001;
+            }
+            csPin = cs_pin;
+            swCS = csPin != cs;
             // Manually reset chip from DIO to SIO mode (HW SPI has issues with <8 bits/clocks total output)
-            digitalWrite(cs, HIGH);
+            digitalWrite(csPin, HIGH);
             digitalWrite(mosi, HIGH);
             digitalWrite(miso, HIGH);
             digitalWrite(sck, LOW);
-            pinMode(cs, OUTPUT);
+            pinMode(csPin, OUTPUT);
             pinMode(miso, OUTPUT);
             pinMode(mosi, OUTPUT);
             pinMode(sck, OUTPUT);
-            digitalWrite(cs, LOW);
+            digitalWrite(csPin, LOW);
             for (int i = 0; i < 4; i++) {
                 digitalWrite(sck, HIGH);
                 digitalWrite(sck, LOW);
             }
-            digitalWrite(cs, HIGH);
+            digitalWrite(csPin, HIGH);
 
             // Set up the SPI regs
             spi_init();
@@ -202,7 +221,7 @@ class ESP8266SPIRAM {
 
         void end()
         {
-            pinMode(cs, INPUT);
+            pinMode(csPin, INPUT);
             pinMode(miso, INPUT);
             pinMode(mosi, INPUT);
             pinMode(sck, INPUT);
