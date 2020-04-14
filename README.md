@@ -34,25 +34,12 @@ First, make sure you are running the 2.4 or GIT head version of the Arduino libr
 
 You can use GIT to pull right from GitHub: see [this README](https://github.com/esp8266/Arduino/blob/master/README.md#using-git-version) for detailed instructions.
 
-## ESP-32 SPIFFS Errors
-The latest official release of the ESP32-Arduino seems to have broken SPIFFS, but a patch has just been committed to git head.  If you want to run SPIFFS, please follow the directions below, courtesy of @rfestag:
-```sh
-cd ~/Arduino/hardware/espressif/esp32 # Or wherever you have it installed
-git pull # Update to the latest
-cd tools
-python get.py # On my system, I have python3 installed by default, so I had to run python2.7 get.py
-# Re-upload files using the new mkspiffs that is installed
-# Then reload your sketch
-```
-Be sure to use the [ESP32 SPIFFS](https://github.com/me-no-dev/arduino-esp32fs-plugin) upload plugin before running your sketch to upload the data files once the fixed IDE is set up.
-
 ## Installation
-Install the library and the SPI driver library in your ~/Arduino/libraries
+Install the library in your ~/Arduino/libraries
 ```sh
 mkdir -p ~/Arduino/libraries
 cd ~/Arduino/libraries
 git clone https://github.com/earlephilhower/ESP8266Audio
-git clone https://github.com/Gianbacchio/ESP8266_Spiram
 ```
 
 When in the IDE please select the following options on the ESP8266:

@@ -189,6 +189,7 @@ class ESP8266SPIRAM {
             }
             csPin = cs_pin;
             swCS = csPin != cs;
+
             // Manually reset chip from DIO to SIO mode (HW SPI has issues with <8 bits/clocks total output)
             digitalWrite(csPin, HIGH);
             digitalWrite(mosi, HIGH);
@@ -199,9 +200,12 @@ class ESP8266SPIRAM {
             pinMode(mosi, OUTPUT);
             pinMode(sck, OUTPUT);
             digitalWrite(csPin, LOW);
+            delay(1);
             for (int i = 0; i < 4; i++) {
                 digitalWrite(sck, HIGH);
+                delay(1);
                 digitalWrite(sck, LOW);
+                delay(1);
             }
             digitalWrite(csPin, HIGH);
 
