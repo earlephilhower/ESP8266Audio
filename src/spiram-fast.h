@@ -199,6 +199,8 @@ class ESP8266SPIRAM {
             pinMode(miso, OUTPUT);
             pinMode(mosi, OUTPUT);
             pinMode(sck, OUTPUT);
+            digitalWrite(csPin, HIGH);
+            delay(100);
             digitalWrite(csPin, LOW);
             delay(1);
             for (int i = 0; i < 4; i++) {
