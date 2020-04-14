@@ -32,6 +32,10 @@ AudioOutputI2SNoDAC::AudioOutputI2SNoDAC(int port) : AudioOutputI2S(port, false)
   SetOversampling(32);
   lastSamp = 0;
   cumErr = 0;
+#ifndef ESP32
+  WRITE_PERI_REG(PERIPHS_IO_MUX_MTDO_U, orig_bck);
+  WRITE_PERI_REG(PERIPHS_IO_MUX_GPIO2_U, orig_ws);
+#endif
 }
 
 AudioOutputI2SNoDAC::~AudioOutputI2SNoDAC()
