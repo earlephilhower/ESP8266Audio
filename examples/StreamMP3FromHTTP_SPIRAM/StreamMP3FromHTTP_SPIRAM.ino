@@ -16,7 +16,7 @@ const char *SSID = ".....";
 const char *PASSWORD = ".....";
 
 // Randomly picked URL
-const char *URL="http://streaming.shoutcast.com/80sPlanet?lang=en-US";
+const char *URL="http://kvbstreams.dyndns.org:8000/wkvi-am";
 
 AudioGeneratorMP3 *mp3;
 AudioFileSourceICYStream *file;
