@@ -55,13 +55,11 @@ class AudioFileSourceSPIRAMBuffer : public AudioFileSource
     size_t ramSize;
     size_t writePtr;
     size_t readPtr;
-	bool filled;
-	
+    bool filled;
+
 #ifdef FAKERAM
-	char fakeRAM[2048];
+    char fakeRAM[2048];
 #endif
 };
 
-
 #endif
-
