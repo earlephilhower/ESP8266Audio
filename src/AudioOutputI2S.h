@@ -47,6 +47,9 @@ class AudioOutputI2S : public AudioOutput
     int output_mode;
     bool mono;
     bool i2sOn;
+    // We can restore the old values and free up these pins when in NoDAC mode
+    uint32_t orig_bck;
+    uint32_t orig_ws;
 };
 
 #endif

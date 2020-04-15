@@ -12,11 +12,16 @@
 // To run, set your ESP8266 build to 160MHz, update the SSID info, and upload.
 
 // Enter your WiFi setup here:
-const char *SSID = ".....";
-const char *PASSWORD = ".....";
+#ifndef STASSID
+#define STASSID "your-ssid"
+#define STAPSK  "your-password"
+#endif
+
+const char* ssid = STASSID;
+const char* password = STAPSK;
 
 // Randomly picked URL
-const char *URL="http://streaming.shoutcast.com/80sPlanet?lang=en-US";
+const char *URL="http://kvbstreams.dyndns.org:8000/wkvi-am";
 
 AudioGeneratorMP3 *mp3;
 AudioFileSourceICYStream *file;
@@ -29,25 +34,24 @@ void MDCallback(void *cbData, const char *type, bool isUnicode, const char *stri
   const char *ptr = reinterpret_cast<const char *>(cbData);
   (void) isUnicode; // Punt this ball for now
   // Note that the type and string may be in PROGMEM, so copy them to RAM for printf
-  char s1[32], s2[64];
-  strncpy_P(s1, type, sizeof(s1));
-  s1[sizeof(s1)-1]=0;
-  strncpy_P(s2, string, sizeof(s2));
-  s2[sizeof(s2)-1]=0;
-  Serial.printf("METADATA(%s) '%s' = '%s'\n", ptr, s1, s2);
+  Serial.printf_P(PSTR("METADATA(%s) '%s' = '%s'\n"), ptr, type, string);
   Serial.flush();
 }
+
 
 // Called when there's a warning or error (like a buffer underflow or decode hiccup)
 void StatusCallback(void *cbData, int code, const char *string)
 {
   const char *ptr = reinterpret_cast<const char *>(cbData);
-  // Note that the string may be in PROGMEM, so copy it to RAM for printf
-  char s1[64];
-  strncpy_P(s1, string, sizeof(s1));
-  s1[sizeof(s1)-1]=0;
-  Serial.printf("STATUS(%s) '%d' = '%s'\n", ptr, code, s1);
-  Serial.flush();
+  static uint32_t lastTime = 0;
+  static int lastCode = -99999;
+  uint32_t now = millis();
+  if ((lastCode != code) || (now - lastTime > 1000)) {
+    Serial.printf_P(PSTR("STATUS(%s) '%d' = '%s'\n"), ptr, code, string);
+    Serial.flush();
+    lastTime = now;
+    lastCode = code;
+  }
 }
 
 void setup()
@@ -60,7 +64,7 @@ void setup()
   WiFi.softAPdisconnect(true);
   WiFi.mode(WIFI_STA);
   
-  WiFi.begin(SSID, PASSWORD);
+  WiFi.begin(ssid, password);
 
   // Try forever
   while (WiFi.status() != WL_CONNECTED) {
@@ -73,7 +77,7 @@ void setup()
   file = new AudioFileSourceICYStream(URL);
   file->RegisterMetadataCB(MDCallback, (void*)"ICY");
   // Initialize 23LC1024 SPI RAM buffer with chip select ion GPIO4 and ram size of 128KByte
-  buff = new AudioFileSourceSPIRAMBuffer(file, 4, 131072);
+  buff = new AudioFileSourceSPIRAMBuffer(file, 4, 128*1024);
   buff->RegisterStatusCB(StatusCallback, (void*)"buffer");
   out = new AudioOutputI2SNoDAC();
   mp3 = new AudioGeneratorMP3();
