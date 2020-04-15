@@ -1,9 +1,13 @@
 #define PGM_READ_UNALIGNED 0
 
+#ifdef DEBUG
+  #undef NDEBUG
+#else
+  #define NDEBUG
+#endif
+
 /* config.h.  Generated from config.h.in by configure.  */
 /* config.h.in.  Generated from configure.ac by autoheader.  */
-
-#define stack(a,b,c)
 
 /* Define if building universal (internal helper macro) */
 /* #undef AC_APPLE_UNIVERSAL_BUILD */

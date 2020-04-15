@@ -248,7 +248,7 @@ typedef enum {
  *  Using a FLAC__StreamDecoderState as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern FLAC_API const char FLAC__StreamDecoderStateString[][48];
+extern FLAC_API const char * const FLAC__StreamDecoderStateString[];
 
 
 /** Possible return values for the FLAC__stream_decoder_init_*() functions.
@@ -286,7 +286,7 @@ typedef enum {
  *  Using a FLAC__StreamDecoderInitStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern FLAC_API const char FLAC__StreamDecoderInitStatusString[][64];
+extern FLAC_API const char * const FLAC__StreamDecoderInitStatusString[];
 
 
 /** Return values for the FLAC__StreamDecoder read callback.
@@ -317,7 +317,7 @@ typedef enum {
  *  Using a FLAC__StreamDecoderReadStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern FLAC_API const char FLAC__StreamDecoderReadStatusString[][48];
+extern FLAC_API const char * const FLAC__StreamDecoderReadStatusString[];
 
 
 /** Return values for the FLAC__StreamDecoder seek callback.
@@ -340,7 +340,7 @@ typedef enum {
  *  Using a FLAC__StreamDecoderSeekStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern FLAC_API const char FLAC__StreamDecoderSeekStatusString[][48];
+extern FLAC_API const char * const FLAC__StreamDecoderSeekStatusString[];
 
 
 /** Return values for the FLAC__StreamDecoder tell callback.
@@ -363,7 +363,7 @@ typedef enum {
  *  Using a FLAC__StreamDecoderTellStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern FLAC_API const char FLAC__StreamDecoderTellStatusString[][48];
+extern FLAC_API const char * const FLAC__StreamDecoderTellStatusString[];
 
 
 /** Return values for the FLAC__StreamDecoder length callback.
@@ -386,7 +386,7 @@ typedef enum {
  *  Using a FLAC__StreamDecoderLengthStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern FLAC_API const char FLAC__StreamDecoderLengthStatusString[][48];
+extern FLAC_API const char * const FLAC__StreamDecoderLengthStatusString[];
 
 
 /** Return values for the FLAC__StreamDecoder write callback.
@@ -406,7 +406,7 @@ typedef enum {
  *  Using a FLAC__StreamDecoderWriteStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern FLAC_API const char FLAC__StreamDecoderWriteStatusString[][48];
+extern FLAC_API const char * const FLAC__StreamDecoderWriteStatusString[];
 
 
 /** Possible values passed back to the FLAC__StreamDecoder error callback.
@@ -445,7 +445,7 @@ typedef enum {
  *  Using a FLAC__StreamDecoderErrorStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern FLAC_API const char FLAC__StreamDecoderErrorStatusString[][64];
+extern FLAC_API const char * const FLAC__StreamDecoderErrorStatusString[];
 
 
 /***********************************************************************
@@ -920,7 +920,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_get_md5_checking(const FLAC__StreamDeco
  * \param  decoder  A decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
- * \retval unsigned
+ * \retval uint32_t
  *    See above.
  */
 FLAC_API FLAC__uint64 FLAC__stream_decoder_get_total_samples(const FLAC__StreamDecoder *decoder);
@@ -932,10 +932,10 @@ FLAC_API FLAC__uint64 FLAC__stream_decoder_get_total_samples(const FLAC__StreamD
  * \param  decoder  A decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
- * \retval unsigned
+ * \retval uint32_t
  *    See above.
  */
-FLAC_API unsigned FLAC__stream_decoder_get_channels(const FLAC__StreamDecoder *decoder);
+FLAC_API uint32_t FLAC__stream_decoder_get_channels(const FLAC__StreamDecoder *decoder);
 
 /** Get the current channel assignment in the stream being decoded.
  *  Will only be valid after decoding has started and will contain the
@@ -956,10 +956,10 @@ FLAC_API FLAC__ChannelAssignment FLAC__stream_decoder_get_channel_assignment(con
  * \param  decoder  A decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
- * \retval unsigned
+ * \retval uint32_t
  *    See above.
  */
-FLAC_API unsigned FLAC__stream_decoder_get_bits_per_sample(const FLAC__StreamDecoder *decoder);
+FLAC_API uint32_t FLAC__stream_decoder_get_bits_per_sample(const FLAC__StreamDecoder *decoder);
 
 /** Get the current sample rate in Hz of the stream being decoded.
  *  Will only be valid after decoding has started and will contain the
@@ -968,10 +968,10 @@ FLAC_API unsigned FLAC__stream_decoder_get_bits_per_sample(const FLAC__StreamDec
  * \param  decoder  A decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
- * \retval unsigned
+ * \retval uint32_t
  *    See above.
  */
-FLAC_API unsigned FLAC__stream_decoder_get_sample_rate(const FLAC__StreamDecoder *decoder);
+FLAC_API uint32_t FLAC__stream_decoder_get_sample_rate(const FLAC__StreamDecoder *decoder);
 
 /** Get the current blocksize of the stream being decoded.
  *  Will only be valid after decoding has started and will contain the
@@ -980,10 +980,10 @@ FLAC_API unsigned FLAC__stream_decoder_get_sample_rate(const FLAC__StreamDecoder
  * \param  decoder  A decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
- * \retval unsigned
+ * \retval uint32_t
  *    See above.
  */
-FLAC_API unsigned FLAC__stream_decoder_get_blocksize(const FLAC__StreamDecoder *decoder);
+FLAC_API uint32_t FLAC__stream_decoder_get_blocksize(const FLAC__StreamDecoder *decoder);
 
 /** Returns the decoder's current read position within the stream.
  *  The position is the byte offset from the start of the stream.
@@ -1184,7 +1184,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_stream(
  *                            Unless \a file is \c stdin, it will be closed
  *                            when FLAC__stream_decoder_finish() is called.
  *                            Note however that seeking will not work when
- *                            decoding from \c stdout since it is not seekable.
+ *                            decoding from \c stdin since it is not seekable.
  * \param  write_callback     See FLAC__StreamDecoderWriteCallback.  This
  *                            pointer must not be \c NULL.
  * \param  metadata_callback  See FLAC__StreamDecoderMetadataCallback.  This
@@ -1235,7 +1235,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_FILE(
  *                            Unless \a file is \c stdin, it will be closed
  *                            when FLAC__stream_decoder_finish() is called.
  *                            Note however that seeking will not work when
- *                            decoding from \c stdout since it is not seekable.
+ *                            decoding from \c stdin since it is not seekable.
  * \param  write_callback     See FLAC__StreamDecoderWriteCallback.  This
  *                            pointer must not be \c NULL.
  * \param  metadata_callback  See FLAC__StreamDecoderMetadataCallback.  This
@@ -1407,8 +1407,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder);
  *  and is not seekable (i.e. no seek callback was provided or the seek
  *  callback returns \c FLAC__STREAM_DECODER_SEEK_STATUS_UNSUPPORTED), it
  *  is the duty of the client to start feeding data from the beginning of
- *  the stream on the next FLAC__stream_decoder_process() or
- *  FLAC__stream_decoder_process_interleaved() call.
+ *  the stream on the next FLAC__stream_decoder_process_*() call.
  *
  * \param  decoder  A decoder instance.
  * \assert
@@ -1554,6 +1553,16 @@ FLAC_API FLAC__bool FLAC__stream_decoder_skip_single_frame(FLAC__StreamDecoder *
  *    \c true if successful, else \c false.
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_seek_absolute(FLAC__StreamDecoder *decoder, FLAC__uint64 sample);
+
+/** Return client_data from decoder.
+  *  The data pointed to by the pointer should not be modified.
+  *
+  * \param  decoder  A decoder instance.
+  * \retval const void *
+  *    The callee's client data set through FLAC__stream_decoder_init_*().
+  *    Do not modify the contents.
+  */
+FLAC_API const void *FLAC__get_decoder_client_data(FLAC__StreamDecoder *decoder);
 
 /* \} */
 
