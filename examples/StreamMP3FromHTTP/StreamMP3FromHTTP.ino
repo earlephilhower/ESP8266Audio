@@ -13,8 +13,13 @@
 // To run, set your ESP8266 build to 160MHz, update the SSID info, and upload.
 
 // Enter your WiFi setup here:
-const char *SSID = "....";
-const char *PASSWORD = "....";
+#ifndef STASSID
+#define STASSID "your-ssid"
+#define STAPSK  "your-password"
+#endif
+
+const char* ssid = STASSID;
+const char* password = STAPSK;
 
 // Randomly picked URL
 const char *URL="http://streaming.shoutcast.com/80sPlanet?lang=en-US";
@@ -62,7 +67,7 @@ void setup()
   WiFi.softAPdisconnect(true);
   WiFi.mode(WIFI_STA);
   
-  WiFi.begin(SSID, PASSWORD);
+  WiFi.begin(ssid, password);
 
   // Try forever
   while (WiFi.status() != WL_CONNECTED) {
