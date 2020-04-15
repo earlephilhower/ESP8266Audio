@@ -45,9 +45,9 @@
 #endif
 
 /* Will never be emitted for MSVC, GCC, Intel compilers */
-static inline unsigned int FLAC__clz_soft_uint32(FLAC__uint32 word)
+static inline uint32_t FLAC__clz_soft_uint32(FLAC__uint32 word)
 {
-	static const unsigned char byte_to_unary_table[] PROGMEM = {
+	static const uint8_t byte_to_unary_table[] PROGMEM = {
 	8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -72,7 +72,7 @@ static inline unsigned int FLAC__clz_soft_uint32(FLAC__uint32 word)
 		pgm_read_byte(&byte_to_unary_table[word]) + 24;
 }
 
-static inline unsigned int FLAC__clz_uint32(FLAC__uint32 v)
+static inline uint32_t FLAC__clz_uint32(FLAC__uint32 v)
 {
 /* Never used with input 0 */
 	FLAC__ASSERT(v > 0);
@@ -84,7 +84,7 @@ static inline unsigned int FLAC__clz_uint32(FLAC__uint32 v)
 	return __builtin_clz(v);
 #elif defined(_MSC_VER)
 	{
-		unsigned long idx;
+		uint32_t idx;
 		_BitScanReverse(&idx, v);
 		return idx ^ 31U;
 	}
@@ -94,13 +94,13 @@ static inline unsigned int FLAC__clz_uint32(FLAC__uint32 v)
 }
 
 /* Used when 64-bit bsr/clz is unavailable; can use 32-bit bsr/clz when possible */
-static inline unsigned int FLAC__clz_soft_uint64(FLAC__uint64 word)
+static inline uint32_t FLAC__clz_soft_uint64(FLAC__uint64 word)
 {
 	return (FLAC__uint32)(word>>32) ? FLAC__clz_uint32((FLAC__uint32)(word>>32)) :
 		FLAC__clz_uint32((FLAC__uint32)word) + 32;
 }
 
-static inline unsigned int FLAC__clz_uint64(FLAC__uint64 v)
+static inline uint32_t FLAC__clz_uint64(FLAC__uint64 v)
 {
 	/* Never used with input 0 */
 	FLAC__ASSERT(v > 0);
@@ -108,7 +108,7 @@ static inline unsigned int FLAC__clz_uint64(FLAC__uint64 v)
 	return __builtin_clzll(v);
 #elif (defined(__INTEL_COMPILER) || defined(_MSC_VER)) && (defined(_M_IA64) || defined(_M_X64))
 	{
-		unsigned long idx;
+		uint32_t idx;
 		_BitScanReverse64(&idx, v);
 		return idx ^ 63U;
 	}
@@ -118,14 +118,14 @@ static inline unsigned int FLAC__clz_uint64(FLAC__uint64 v)
 }
 
 /* These two functions work with input 0 */
-static inline unsigned int FLAC__clz2_uint32(FLAC__uint32 v)
+static inline uint32_t FLAC__clz2_uint32(FLAC__uint32 v)
 {
 	if (!v)
 		return 32;
 	return FLAC__clz_uint32(v);
 }
 
-static inline unsigned int FLAC__clz2_uint64(FLAC__uint64 v)
+static inline uint32_t FLAC__clz2_uint64(FLAC__uint64 v)
 {
 	if (!v)
 		return 64;
@@ -155,14 +155,14 @@ static inline unsigned int FLAC__clz2_uint64(FLAC__uint64 v)
  * ilog2(18) = 4
  */
 
-static inline unsigned FLAC__bitmath_ilog2(FLAC__uint32 v)
+static inline uint32_t FLAC__bitmath_ilog2(FLAC__uint32 v)
 {
 	FLAC__ASSERT(v > 0);
 #if defined(__INTEL_COMPILER)
 	return _bit_scan_reverse(v);
 #elif defined(_MSC_VER)
 	{
-		unsigned long idx;
+		uint32_t idx;
 		_BitScanReverse(&idx, v);
 		return idx;
 	}
@@ -171,7 +171,7 @@ static inline unsigned FLAC__bitmath_ilog2(FLAC__uint32 v)
 #endif
 }
 
-static inline unsigned FLAC__bitmath_ilog2_wide(FLAC__uint64 v)
+static inline uint32_t FLAC__bitmath_ilog2_wide(FLAC__uint64 v)
 {
 	FLAC__ASSERT(v > 0);
 #if defined(__GNUC__) && (__GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4))
@@ -179,7 +179,7 @@ static inline unsigned FLAC__bitmath_ilog2_wide(FLAC__uint64 v)
 /* Sorry, only supported in x64/Itanium.. and both have fast FPU which makes integer-only encoder pointless */
 #elif (defined(__INTEL_COMPILER) || defined(_MSC_VER)) && (defined(_M_IA64) || defined(_M_X64))
 	{
-		unsigned long idx;
+		uint32_t idx;
 		_BitScanReverse64(&idx, v);
 		return idx;
 	}
@@ -189,7 +189,7 @@ static inline unsigned FLAC__bitmath_ilog2_wide(FLAC__uint64 v)
 	(C) Timothy B. Terriberry (tterribe@xiph.org) 2001-2009 CC0 (Public domain).
 */
 	{
-		static const unsigned char DEBRUIJN_IDX64[64]={
+		static const uint8_t DEBRUIJN_IDX64[64]={
 			0, 1, 2, 7, 3,13, 8,19, 4,25,14,28, 9,34,20,40,
 			5,17,26,38,15,46,29,48,10,31,35,54,21,50,41,57,
 			63, 6,12,18,24,27,33,39,16,37,45,47,30,53,49,56,
@@ -207,6 +207,6 @@ static inline unsigned FLAC__bitmath_ilog2_wide(FLAC__uint64 v)
 #endif
 }
 
-unsigned FLAC__bitmath_silog2(FLAC__int64 v);
+uint32_t FLAC__bitmath_silog2(FLAC__int64 v);
 
 #endif
