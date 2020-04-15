@@ -51,8 +51,10 @@
 /* Whatever other unix that has sys/param.h */
 #elif defined(HAVE_SYS_PARAM_H)
 #include <sys/param.h>
+#if defined(MIN) && defined(MAX)
 #define flac_max(a,b) MAX(a,b)
 #define flac_min(a,b) MIN(a,b)
+#endif
 
 /* Windows VS has them in stdlib.h.. XXX:Untested */
 #elif defined(_MSC_VER)
@@ -61,12 +63,12 @@
 #define flac_min(a,b) __min(a,b)
 #endif
 
-#ifndef MIN
-#define MIN(x,y)	((x) <= (y) ? (x) : (y))
+#ifndef flac_min
+#define flac_min(x,y)	((x) <= (y) ? (x) : (y))
 #endif
 
-#ifndef MAX
-#define MAX(x,y)	((x) >= (y) ? (x) : (y))
+#ifndef flac_max
+#define flac_max(x,y)	((x) >= (y) ? (x) : (y))
 #endif
 
 #endif
