@@ -21,6 +21,14 @@
 
 */
 
+
+#ifndef spiram_fast_h
+#define spiram_fast_h
+
+#include <Arduino.h>
+
+#ifndef ESP32
+
 class ESP8266SPIRAM {
     private:
         typedef struct {
@@ -234,3 +242,126 @@ class ESP8266SPIRAM {
         }
 
 };
+
+#else
+
+#include <SPI.h>
+
+class ESP8266SPIRAM {
+    private:
+        uint8_t csPin;
+        uint32_t freq;
+
+        // The standard HSPI bus pins are used
+        static constexpr uint8_t miso = 12;
+        static constexpr uint8_t mosi = 13;
+        static constexpr uint8_t sck = 14;
+
+    public:
+        ESP8266SPIRAM()
+        {
+            /* noop */
+        }
+        ~ESP8266SPIRAM()
+        {
+            end();
+        }
+        void readBytes(uint32_t addr, void *destV, int count)
+        {
+            uint8_t *dest = (uint8_t *)destV;
+            SPI.beginTransaction(SPISettings(freq, MSBFIRST, SPI_MODE0));
+            pinMode(csPin, OUTPUT);
+            digitalWrite(csPin, LOW);
+            uint32_t cmd = (0x03 << 24) | (addr & ((1<<24)-1));
+            SPI.transfer((uint8_t)(cmd >> 24));
+            SPI.transfer((uint8_t)(cmd >> 16));
+            SPI.transfer((uint8_t)(cmd >> 8));
+            SPI.transfer((uint8_t)(cmd >> 0));
+            while (count--) {
+                *(dest++) = SPI.transfer((uint8_t)0);
+            }
+            pinMode(csPin, OUTPUT);
+            digitalWrite(csPin, HIGH);
+            SPI.endTransaction();
+        }
+
+        void writeBytes(uint32_t addr, const void *srcV, int count)
+        {
+            const uint8_t *src = (const uint8_t *)srcV;
+            SPI.beginTransaction(SPISettings(freq, MSBFIRST, SPI_MODE0));
+            pinMode(csPin, OUTPUT);
+            digitalWrite(csPin, LOW);
+            uint32_t cmd = (0x02 << 24) | (addr & ((1<<24)-1));
+            SPI.transfer((uint8_t)(cmd >> 24));
+            SPI.transfer((uint8_t)(cmd >> 16));
+            SPI.transfer((uint8_t)(cmd >> 8));
+            SPI.transfer((uint8_t)(cmd >> 0));
+            while (count--) {
+                SPI.transfer((uint8_t)*(src++));
+            }
+            pinMode(csPin, OUTPUT);
+            digitalWrite(csPin, HIGH);
+            SPI.endTransaction();
+        }
+
+        void begin(int freqMHz, int cs_pin)
+        {
+            csPin = cs_pin;
+            freq = freqMHz * 1000000;
+
+            SPI.begin();
+
+            // Manually reset chip from DIO to SIO mode (HW SPI has issues with <8 bits/clocks total output)
+            digitalWrite(csPin, HIGH);
+            digitalWrite(mosi, HIGH);
+            digitalWrite(miso, HIGH);
+            digitalWrite(sck, LOW);
+            pinMode(csPin, OUTPUT);
+            pinMode(miso, OUTPUT);
+            pinMode(mosi, OUTPUT);
+            pinMode(sck, OUTPUT);
+            digitalWrite(csPin, HIGH);
+            delay(100);
+            digitalWrite(csPin, LOW);
+            delay(1);
+            for (int i = 0; i < 4; i++) {
+                digitalWrite(sck, HIGH);
+                delay(1);
+                digitalWrite(sck, LOW);
+                delay(1);
+            }
+            digitalWrite(csPin, HIGH);
+
+            pinMode(sck, SPECIAL);
+            pinMode(miso, SPECIAL);
+            pinMode(mosi, SPECIAL);
+            pinMode(csPin, OUTPUT);
+
+            // Enable streaming read/write mode
+            SPI.beginTransaction(SPISettings(freq, MSBFIRST, SPI_MODE0));
+            pinMode(csPin, OUTPUT);
+            digitalWrite(csPin, LOW);
+            SPI.transfer((uint8_t) 0x01);
+            SPI.transfer((uint8_t) 0x40);
+            pinMode(csPin, OUTPUT);
+            digitalWrite(csPin, HIGH);
+            SPI.endTransaction();
+            pinMode(csPin, OUTPUT);
+            digitalWrite(csPin, HIGH);
+        }
+
+        void end()
+        {
+            pinMode(csPin, INPUT);
+            pinMode(miso, INPUT);
+            pinMode(mosi, INPUT);
+            pinMode(sck, INPUT);
+            SPI.end();
+        }
+
+};
+
+#endif  // ESP32
+
+
+#endif
