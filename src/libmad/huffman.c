@@ -51,7 +51,7 @@
 # endif
 
 static
-const union huffquad const hufftabA[] PROGMEM = {
+union huffquad const hufftabA[] PROGMEM = {
   /* 0000 */ PTR(16, 2),
   /* 0001 */ PTR(20, 2),
   /* 0010 */ PTR(24, 1),
@@ -91,7 +91,7 @@ const union huffquad const hufftabA[] PROGMEM = {
 };
 
 static
-const union huffquad const hufftabB[] PROGMEM = {
+union huffquad const hufftabB[] PROGMEM = {
   /* 0000 */ V(1, 1, 1, 1, 4),
   /* 0001 */ V(1, 1, 1, 0, 4),
   /* 0010 */ V(1, 1, 0, 1, 4),
@@ -127,12 +127,12 @@ const union huffquad const hufftabB[] PROGMEM = {
 # endif
 
 static
-const union huffpair const hufftab0[]  PROGMEM = {
+union huffpair const hufftab0[]  PROGMEM = {
   /*      */ V(0, 0, 0)
 };
 
 static
-const union huffpair const hufftab1[]  PROGMEM = {
+union huffpair const hufftab1[]  PROGMEM = {
   /* 000  */ V(1, 1, 3),
   /* 001  */ V(0, 1, 3),
   /* 010  */ V(1, 0, 2),
@@ -144,7 +144,7 @@ const union huffpair const hufftab1[]  PROGMEM = {
 };
 
 static
-const union huffpair const hufftab2[]  PROGMEM = {
+union huffpair const hufftab2[]  PROGMEM = {
   /* 000  */ PTR(8, 3),
   /* 001  */ V(1, 1, 3),
   /* 010  */ V(0, 1, 3),
@@ -166,7 +166,7 @@ const union huffpair const hufftab2[]  PROGMEM = {
 };
 
 static
-const union huffpair const hufftab3[]  PROGMEM = {
+union huffpair const hufftab3[]  PROGMEM = {
   /* 000  */ PTR(8, 3),
   /* 001  */ V(1, 0, 3),
   /* 010  */ V(1, 1, 2),
@@ -188,7 +188,7 @@ const union huffpair const hufftab3[]  PROGMEM = {
 };
 
 static
-const union huffpair const hufftab5[]  PROGMEM = {
+union huffpair const hufftab5[]  PROGMEM = {
   /* 000  */ PTR(8, 4),
   /* 001  */ V(1, 1, 3),
   /* 010  */ V(0, 1, 3),
@@ -222,7 +222,7 @@ const union huffpair const hufftab5[]  PROGMEM = {
 };
 
 static
-const union huffpair const hufftab6[]  PROGMEM = {
+union huffpair const hufftab6[]  PROGMEM = {
   /* 0000 */ PTR(16, 3),
   /* 0001 */ PTR(24, 1),
   /* 0010 */ PTR(26, 1),
@@ -260,7 +260,7 @@ const union huffpair const hufftab6[]  PROGMEM = {
 };
 
 static
-const union huffpair const hufftab7[]  PROGMEM = {
+union huffpair const hufftab7[]  PROGMEM = {
   /* 0000 */ PTR(16, 4),
   /* 0001 */ PTR(32, 4),
   /* 0010 */ PTR(48, 2),
@@ -425,7 +425,7 @@ union huffpair const hufftab8[]  PROGMEM = {
 };
 # else
 static
-const union huffpair const hufftab8[]  PROGMEM = {
+union huffpair const hufftab8[]  PROGMEM = {
   /* 0000 */ PTR(16, 4),
   /* 0001 */ PTR(32, 4),
   /* 0010 */ V(1, 2, 4),
@@ -510,7 +510,7 @@ const union huffpair const hufftab8[]  PROGMEM = {
 # endif
 
 static
-const union huffpair const hufftab9[]  PROGMEM = {
+union huffpair const hufftab9[]  PROGMEM = {
   /* 0000 */ PTR(16, 4),
   /* 0001 */ PTR(32, 3),
   /* 0010 */ PTR(40, 2),
@@ -582,7 +582,7 @@ const union huffpair const hufftab9[]  PROGMEM = {
 };
 
 static
-const union huffpair const hufftab10[]  PROGMEM = {
+union huffpair const hufftab10[]  PROGMEM = {
   /* 0000 */ PTR(16, 4),
   /* 0001 */ PTR(32, 4),
   /* 0010 */ PTR(48, 2),
@@ -720,7 +720,7 @@ const union huffpair const hufftab10[]  PROGMEM = {
 };
 
 static
-const union huffpair const hufftab11[]  PROGMEM = {
+union huffpair const hufftab11[]  PROGMEM = {
   /* 0000 */ PTR(16, 4),
   /* 0001 */ PTR(32, 4),
   /* 0010 */ PTR(48, 4),
@@ -856,7 +856,7 @@ const union huffpair const hufftab11[]  PROGMEM = {
 };
 
 static
-const union huffpair const hufftab12[]  PROGMEM = {
+union huffpair const hufftab12[]  PROGMEM = {
   /* 0000 */ PTR(16, 4),
   /* 0001 */ PTR(32, 4),
   /* 0010 */ PTR(48, 4),
@@ -984,7 +984,7 @@ const union huffpair const hufftab12[]  PROGMEM = {
 };
 
 static
-const union huffpair const hufftab13[]  PROGMEM = {
+union huffpair const hufftab13[]  PROGMEM = {
   /* 0000 */ PTR(16, 4),
   /* 0001 */ PTR(32, 4),
   /* 0010 */ PTR(48, 4),
@@ -1510,7 +1510,7 @@ const union huffpair const hufftab13[]  PROGMEM = {
 };
 
 static
-const union huffpair const hufftab15[]  PROGMEM = {
+union huffpair const hufftab15[]  PROGMEM = {
   /* 0000 */ PTR(16, 4),
   /* 0001 */ PTR(32, 4),
   /* 0010 */ PTR(48, 4),
@@ -2018,7 +2018,7 @@ const union huffpair const hufftab15[]  PROGMEM = {
 };
 
 static
-const union huffpair const hufftab16[]  PROGMEM = {
+union huffpair const hufftab16[]  PROGMEM = {
   /* 0000 */ PTR(16, 4),
   /* 0001 */ PTR(32, 4),
   /* 0010 */ PTR(48, 4),
@@ -2552,7 +2552,7 @@ const union huffpair const hufftab16[]  PROGMEM = {
 };
 
 static
-const union huffpair const hufftab24[]  PROGMEM = {
+union huffpair const hufftab24[]  PROGMEM = {
   /* 0000 */ PTR(16, 4),
   /* 0001 */ PTR(32, 4),
   /* 0010 */ PTR(48, 4),
@@ -3074,7 +3074,7 @@ const union huffpair const hufftab24[]  PROGMEM = {
 
 union huffquad const *const mad_huff_quad_table[2] PROGMEM = { hufftabA, hufftabB };
 
-const struct hufftable const mad_huff_pair_table[32] PROGMEM = {
+struct hufftable const mad_huff_pair_table[32] PROGMEM = {
   /*  0 */ { hufftab0,   0, 0 },
   /*  1 */ { hufftab1,   0, 3 },
   /*  2 */ { hufftab2,   0, 3 },

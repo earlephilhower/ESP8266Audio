@@ -140,7 +140,7 @@ stack(__FUNCTION__, __FILE__, __LINE__);
  */
 unsigned long mad_bit_read(struct mad_bitptr *bitptr, unsigned int len)
 {
-  register unsigned long value;
+  unsigned long value;
 
   if (bitptr->left == CHAR_BIT)
     bitptr->cache = *bitptr->byte;
@@ -202,11 +202,11 @@ stack(__FUNCTION__, __FILE__, __LINE__);
 unsigned short mad_bit_crc(struct mad_bitptr bitptr, unsigned int len,
 			   unsigned short init)
 {
-  register unsigned int crc;
+  unsigned int crc;
 stack(__FUNCTION__, __FILE__, __LINE__);
 
   for (crc = init; len >= 32; len -= 32) {
-    register unsigned long data;
+    unsigned long data;
 
     data = mad_bit_read(&bitptr, 32);
 
@@ -219,18 +219,21 @@ stack(__FUNCTION__, __FILE__, __LINE__);
   switch (len / 8) {
   case 3: crc = (crc << 8) ^
            crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
+          /* Falls Through. */
   case 2: crc = (crc << 8) ^
            crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
+          /* Falls Through. */
   case 1: crc = (crc << 8) ^
            crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
 
   len %= 8;
+  /* Falls Through. */
 
   case 0: break;
   }
 
   while (len--) {
-    register unsigned int msb;
+    unsigned int msb;
 
     msb = mad_bit_read(&bitptr, 1) ^ (crc >> 15);
 

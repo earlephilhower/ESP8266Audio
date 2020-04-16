@@ -123,23 +123,23 @@ struct FLAC__BitReader {
 
 static inline void crc16_update_word_(FLAC__BitReader *br, brword word)
 {
-	register uint32_t crc = br->read_crc16;
+	unsigned crc = br->read_crc16;
 #if FLAC__BYTES_PER_WORD == 4
 	switch(br->crc16_align) {
-		case  0: crc = FLAC__CRC16_UPDATE((uint32_t)(word >> 24), crc);
-		case  8: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 16) & 0xff), crc);
-		case 16: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 8) & 0xff), crc);
+		case  0: crc = FLAC__CRC16_UPDATE((uint32_t)(word >> 24), crc); /* Falls Through. */
+		case  8: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 16) & 0xff), crc); /* Falls Through. */
+		case 16: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 8) & 0xff), crc); /* Falls Through. */
 		case 24: br->read_crc16 = FLAC__CRC16_UPDATE((uint32_t)(word & 0xff), crc);
 	}
 #elif FLAC__BYTES_PER_WORD == 8
 	switch(br->crc16_align) {
-		case  0: crc = FLAC__CRC16_UPDATE((uint32_t)(word >> 56), crc);
-		case  8: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 48) & 0xff), crc);
-		case 16: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 40) & 0xff), crc);
-		case 24: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 32) & 0xff), crc);
-		case 32: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 24) & 0xff), crc);
-		case 40: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 16) & 0xff), crc);
-		case 48: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 8) & 0xff), crc);
+		case  0: crc = FLAC__CRC16_UPDATE((uint32_t)(word >> 56), crc); /* Falls Through. */
+		case  8: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 48) & 0xff), crc); /* Falls Through. */
+		case 16: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 40) & 0xff), crc); /* Falls Through. */
+		case 24: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 32) & 0xff), crc); /* Falls Through. */
+		case 32: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 24) & 0xff), crc); /* Falls Through. */
+		case 40: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 16) & 0xff), crc); /* Falls Through. */
+		case 48: crc = FLAC__CRC16_UPDATE((uint32_t)((word >> 8) & 0xff), crc); /* Falls Through. */
 		case 56: br->read_crc16 = FLAC__CRC16_UPDATE((uint32_t)(word & 0xff), crc);
 	}
 #else
@@ -233,7 +233,7 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 
 FLAC__BitReader *FLAC__bitreader_new(void)
 {
-	FLAC__BitReader *br = calloc(1, sizeof(FLAC__BitReader));
+	FLAC__BitReader *br = (FLAC__BitReader*)calloc(1, sizeof(FLAC__BitReader));
 
 	/* calloc() implies:
 		memset(br, 0, sizeof(FLAC__BitReader));
@@ -268,7 +268,7 @@ FLAC__bool FLAC__bitreader_init(FLAC__BitReader *br, FLAC__BitReaderReadCallback
 	br->words = br->bytes = 0;
 	br->consumed_words = br->consumed_bits = 0;
 	br->capacity = FLAC__BITREADER_DEFAULT_CAPACITY;
-	br->buffer = malloc(sizeof(brword) * br->capacity);
+	br->buffer = (brword*)malloc(sizeof(brword) * br->capacity);
 	if(br->buffer == 0)
 		return false;
 	br->read_callback = rcb;
