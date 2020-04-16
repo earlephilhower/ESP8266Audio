@@ -298,8 +298,8 @@ struct tsf
 	struct tsf_preset* presets;
 	struct tsf_voice* voices;
 
-	int fontSamplesOffset;
-	int fontSampleCount;
+	unsigned int fontSamplesOffset;
+	unsigned int fontSampleCount;
 	struct tsf_channels* channels;
 	float* outputSamples;
 

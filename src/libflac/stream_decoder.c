@@ -547,7 +547,7 @@ static FLAC__StreamDecoderInitStatus init_FILE_internal_(
 		is_ogg
 	);
 }
-#endif
+
 FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_FILE(
 	FLAC__StreamDecoder *decoder,
 	FILE *file,
@@ -559,7 +559,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_FILE(
 {
 	return init_FILE_internal_(decoder, file, write_callback, metadata_callback, error_callback, client_data, /*is_ogg=*/false);
 }
-
+#endif
 FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_FILE(
 	FLAC__StreamDecoder *decoder,
 	FILE *file,
