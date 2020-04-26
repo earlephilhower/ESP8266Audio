@@ -112,6 +112,11 @@ enum mad_flow AudioGeneratorMP3::Input()
     memmove(buff, stream->next_frame, unused);
     stream->next_frame = NULL;
   }
+
+  if (finishing && (unused == buffLen - 1)) {
+    return MAD_FLOW_STOP;
+  }
+
   if (unused == buffLen) {
     // Something wicked this way came, throw it all out and try again
     unused = 0;
@@ -121,8 +126,7 @@ enum mad_flow AudioGeneratorMP3::Input()
   int len = buffLen - unused;
   len = file->read(buff + unused, len);
   if (len == 0) {
-    audioLogger->printf_P(PSTR("MP3 stop, len==0\n"));
-    return MAD_FLOW_STOP;
+    finishing = true;
   }
 
   mad_stream_buffer(stream, buff, len + unused);
@@ -238,6 +242,7 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output)
   lastRate = 0;
   lastChannels = 0;
   lastReadPos = 0;
+  finishing = false;
 
   // Allocate all large memory chunks
   if (preallocateSpace) {

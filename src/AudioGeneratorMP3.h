@@ -45,6 +45,7 @@ class AudioGeneratorMP3 : public AudioGenerator
     int lastReadPos;
     unsigned int lastRate;
     int lastChannels;
+    bool finishing;
     
     // Decoding bits
     bool madInitted;
