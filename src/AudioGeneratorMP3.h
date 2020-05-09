@@ -43,9 +43,9 @@ class AudioGeneratorMP3 : public AudioGenerator
     const int buffLen = 0x600; // Slightly larger than largest MP3 frame
     unsigned char *buff;
     int lastReadPos;
+    int lastBuffLen;
     unsigned int lastRate;
     int lastChannels;
-    bool finishing;
     
     // Decoding bits
     bool madInitted;
