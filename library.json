@@ -1,7 +1,7 @@
 {
     "name": "ESP8266Audio",
     "description": "Audio file format and I2S DAC library",
-    "keywords": "ESP8266, ESP32, MP3, AAC, WAV, MOD, FLAC, RTTTL, MIDI, I2S, DAC, Delta-Sigma",
+    "keywords": "ESP8266, ESP32, MP3, AAC, WAV, MOD, FLAC, RTTTL, MIDI, I2S, DAC, Delta-Sigma, TTS",
     "authors": [
         {
             "name": "Earle F. Philhower, III",
@@ -14,7 +14,7 @@
         "type": "git",
          "url": "https://github.com/earlephilhower/ESP8266Audio"
     },
-    "version": "1.2",
+    "version": "1.4",
     "homepage": "https://github.com/earlephilhower/ESP8266Audio",
     "dependencies": {
         "SPI": "1.0"

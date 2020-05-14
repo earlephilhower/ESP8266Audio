@@ -16,6 +16,7 @@ AudioGeneratorMOD	KEYWORD1
 AudioGeneratorMIDI	KEYWORD1
 AudioGeneratorMP3	KEYWORD1
 AudioGeneratorRTTTL	KEYWORD1
+AudioGeneratorTalkie	KEYWORD1
 AudioGeneratorWAV	KEYWORD1
 AudioOutput	KEYWORD1
 AudioOutputI2S	KEYWORD1
