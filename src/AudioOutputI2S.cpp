@@ -30,6 +30,7 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int
 {
   this->portNo = port;
   this->i2sOn = false;
+  this->dma_buf_count = dma_buf_count;
   if (output_mode != EXTERNAL_I2S && output_mode != INTERNAL_DAC && output_mode != INTERNAL_PDM) {
     output_mode = EXTERNAL_I2S;
   }
@@ -195,6 +196,19 @@ bool AudioOutputI2S::ConsumeSample(int16_t sample[2])
 #else
   uint32_t s32 = ((Amplify(ms[RIGHTCHANNEL]))<<16) | (Amplify(ms[LEFTCHANNEL]) & 0xffff);
   return i2s_write_sample_nb(s32); // If we can't store it, return false.  OTW true
+#endif
+}
+
+void AudioOutputI2S::flush() {
+#ifdef ESP32
+  // makes sure that all stored DMA samples are consumed / played
+  int buffersize = 64 * this->dma_buf_count;
+  int16_t samples[2] = {0x0,0x0};
+  for (int i=0;i<buffersize; i++) {
+    while (!ConsumeSample(samples)) {
+      delay(10);
+    }
+  }
 #endif
 }
 

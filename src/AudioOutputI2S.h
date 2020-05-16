@@ -34,6 +34,7 @@ class AudioOutputI2S : public AudioOutput
     virtual bool SetChannels(int channels) override;
     virtual bool begin() override;
     virtual bool ConsumeSample(int16_t sample[2]) override;
+    virtual void flush() override;
     virtual bool stop() override;
     
     bool SetOutputModeMono(bool mono);  // Force mono output no matter the input
@@ -47,6 +48,7 @@ class AudioOutputI2S : public AudioOutput
     int output_mode;
     bool mono;
     bool i2sOn;
+    int dma_buf_count;
     // We can restore the old values and free up these pins when in NoDAC mode
     uint32_t orig_bck;
     uint32_t orig_ws;
