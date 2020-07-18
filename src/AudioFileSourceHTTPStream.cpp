@@ -1,7 +1,7 @@
 /*
   AudioFileSourceHTTPStream
   Streaming HTTP source
-  
+
   Copyright (C) 2017  Earle F. Philhower, III
 
   This program is free software: you can redistribute it and/or modify
@@ -38,6 +38,7 @@ bool AudioFileSourceHTTPStream::open(const char *url)
 {
   pos = 0;
   http.begin(client, url);
+  http.setFollowRedirects(true);
   http.setReuse(true);
   int code = http.GET();
   if (code != HTTP_CODE_OK) {
