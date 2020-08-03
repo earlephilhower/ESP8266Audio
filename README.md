@@ -19,6 +19,8 @@ If you have a neat use for this library, [I'd love to hear about it](mailto:earl
 
 My personal use of the ESP8266Audio library is only to drive a 3D-printed, network-time-setting alarm clock for my kids which can play an MP3 instead of a bell to wake them up, called [Psychoclock](https://github.com/earlephilhower/psychoclock).
 
+Harald Sattler has built a neat German [word clock with MP3 alarm](http://www.harald-sattler.de/html/mini-wecker.htm). Detailed discussion on the process and models are included.
+
 Erich Heinemann has developed a Stomper (instrument for playing samples in real-time during a live stage performance) that you can find more info about [here](https://github.com/ErichHeinemann/hman-stomper).
 
 Dagnall53 has integrated this into a really neat MQTT based model train controller to add sounds to his set.  More info is available [here](https://github.com/dagnall53/ESPMQTTRocnetSound), including STL files for 3D printed components!
