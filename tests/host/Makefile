@@ -1,4 +1,3 @@
-all: mp3 aac wav
 
 libmad=../../src/libmad/decoder.c ../../src/libmad/frame.c ../../src/libmad/bit.c ../../src/libmad/stream.c ../../src/libmad/fixed.c \
 ../../src/libmad/timer.c ../../src/libmad/layer3.c ../../src/libmad/synth.c ../../src/libmad/huffman.c ../../src/libmad/version.c
@@ -33,7 +32,7 @@ CPPOPTS=-g -Wunused-parameter -Wall -std=c++11 -m32 -include Arduino.h
 
 .phony: all
 
-all: mp3 aac wav
+all: mp3 aac wav midi
 
 mp3: FORCE
 	rm -f *.o
@@ -54,6 +53,12 @@ wav: FORCE
 	g++ $(CPPOPTS) -o wav wav.cpp Serial.cpp  ../../src/AudioFileSourceSTDIO.cpp ../../src/AudioOutputSTDIO.cpp ../../src/AudioGeneratorWAV.cpp   ../../src/AudioLogger.cpp -I ../../src/ -I.
 	rm -f *.o
 	echo valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./wav
+
+midi: FORCE
+	rm -f *.o
+	g++ $(CPPOPTS) -o midi midi.cpp Serial.cpp  ../../src/AudioFileSourceSTDIO.cpp ../../src/AudioOutputSTDIO.cpp ../../src/AudioGeneratorMIDI.cpp   ../../src/AudioLogger.cpp -I ../../src/ -I.
+	rm -f *.o
+	echo valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./midi
 
 clean:
 	rm -f mp3 aac wav *.o
