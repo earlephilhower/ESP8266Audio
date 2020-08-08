@@ -23,7 +23,6 @@ int main(int argc, char **argv)
     midi->begin(midifile, out);
     while (midi->loop()) { /*noop*/ }
     midi->stop();
-    out->stop();
 
     delete out;
     delete midi;
