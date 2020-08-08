@@ -135,7 +135,8 @@ function install_esp32()
     echo "compiler.cpp.extra_flags=-Wall -Wextra -Werror $debug_flags" >> platform.local.txt
     echo -e "\n----platform.local.txt----"
     cat platform.local.txt
-    git submodule --init --recursive
+    git submodule init
+    git submodule update
     cd tools
     python3 get.py
     export PATH="$ide_path/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin/:$PATH"
@@ -159,7 +160,6 @@ function build_sketches_with_arduino()
 {
     # Compile sketches
     echo -e "travis_fold:start:sketch_test"
-#    build_sketches $HOME/arduino_ide $TRAVIS_BUILD_DIR/libraries "-l $HOME/Arduino/libraries"
     build_sketches $HOME/arduino_ide $HOME/Arduino/libraries "-l $HOME/Arduino/libraries"
     echo -e "travis_fold:end:sketch_test"
     # Generate size report
@@ -189,6 +189,6 @@ elif [ "$BUILD_TYPE" = "build_esp32" ]; then
     export GITHUB_REPOSITORY="$TRAVIS_REPO_SLUG"
     source $ide_path/hardware/espressif/esp32/.github/scripts/install-arduino-ide.sh
     source $ide_path/hardware/espressif/esp32/.github/scripts/install-arduino-core-esp32.sh
-    build_sketches "$FQBN" "$HOME/Arduino/libraries" "$BUILD_MOD" "$BUILD_REM"
+    build_sketches "$FQBN" "$HOME/Arduino/libraries" "$BUILD_REM" "$BUILD_MOD"
 fi
 
