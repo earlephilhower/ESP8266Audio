@@ -48,7 +48,7 @@ jobs:
         TRAVIS_BUILD_DIR: ${{ github.workspace }}
         TRAVIS_TAG: ${{ github.ref }}
       run: |
-        sudo apt-get install valgrind lcov gcc-multilib
+        sudo apt-get install valgrind lcov gcc-multilib g++-multilib
         cd ./tests/host/ && make
         cd ./tests/host/ && valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./mp3
         cd ./tests/host/ && valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./aac
