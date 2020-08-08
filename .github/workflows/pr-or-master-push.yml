@@ -35,7 +35,7 @@ jobs:
 # Run host test suite under valgrind for runtime checking of code.
   host-tests:
     name: Host tests
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
       with:
@@ -48,6 +48,8 @@ jobs:
         TRAVIS_BUILD_DIR: ${{ github.workspace }}
         TRAVIS_TAG: ${{ github.ref }}
       run: |
+        sudo dpkg --add-architecture i386
+        sudo apt-get update
         sudo apt-get install valgrind lcov gcc-multilib g++-multilib libc6-dbg:i386
         cd ./tests/host/
         make
