@@ -16,7 +16,6 @@ int main(int argc, char **argv)
     wav->begin(in, out);
     while (wav->loop()) { /*noop*/ }
     wav->stop();
-    out->stop();
 
     delete wav;
     delete out;

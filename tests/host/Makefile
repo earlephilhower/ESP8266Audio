@@ -61,6 +61,6 @@ midi: FORCE
 	echo valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./midi
 
 clean:
-	rm -f mp3 aac wav *.o
+	rm -f mp3 aac wav midi *.o
 
 FORCE:
