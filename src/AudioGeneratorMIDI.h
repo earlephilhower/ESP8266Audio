@@ -29,7 +29,7 @@
 class AudioGeneratorMIDI : public AudioGenerator
 {
   public:
-    AudioGeneratorMIDI() { freq=44100; };
+    AudioGeneratorMIDI() { freq=44100; running = false; };
     virtual ~AudioGeneratorMIDI() override {};
     bool SetSoundfont(AudioFileSource *newsf2) {
       if (isRunning()) return false;
