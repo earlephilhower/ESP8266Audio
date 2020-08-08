@@ -2,7 +2,12 @@
 // https://github.com/going-digital/Talkie/blob/master/Talkie/examples/Vocab_US_Clock/Vocab_US_Clock.ino
 // Released under GPL v2
 
-#include <ESP8266WiFi.h>
+#ifdef ESP32
+    #include <WiFi.h>
+#else
+    #include <ESP8266WiFi.h>
+#endif
+
 #include <time.h>
 #include "AudioFileSourcePROGMEM.h"
 #include "AudioGeneratorTalkie.h"
@@ -109,7 +114,7 @@ AudioGeneratorTalkie *talkie;
 AudioOutputI2S *out;
 
 
-bool getLocalTime(struct tm * info, uint32_t ms) {
+bool GetLocalTime(struct tm * info, uint32_t ms) {
   uint32_t count = ms / 10;
   time_t now;
 
@@ -156,7 +161,7 @@ void setup()
   do {
     tmstruct.tm_year = 0;
     Serial.printf(".");
-    getLocalTime(&tmstruct, 5000);
+    GetLocalTime(&tmstruct, 5000);
     delay(100);
   } while (tmstruct.tm_year < 100);
   
@@ -170,7 +175,7 @@ void loop()
 {
   struct tm tmstruct ;
   tmstruct.tm_year = 0;
-  getLocalTime(&tmstruct, 5000);
+  GetLocalTime(&tmstruct, 5000);
   Serial.printf("\nNow is : %d-%02d-%02d %02d:%02d:%02d\n",
                 tmstruct.tm_year + 1900, tmstruct.tm_mon + 1,
                 tmstruct.tm_mday, tmstruct.tm_hour,

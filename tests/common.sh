@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#set -x # echo on
+set -ex
 
 function print_size_info()
 {
@@ -93,9 +93,16 @@ function install_libraries()
 function install_ide()
 {
     local ide_path=$1
-    wget -O arduino.tar.xz https://www.arduino.cc/download.php?f=/arduino-nightly-linux64.tar.xz
+    wget -q -O arduino.tar.xz https://www.arduino.cc/download.php?f=/arduino-nightly-linux64.tar.xz
     tar xf arduino.tar.xz
     mv arduino-nightly $ide_path
+    export PATH="$ide_path:$PATH"
+}
+
+function install_esp8266()
+{
+    local ide_path=$1
+    mkdir -p $ide_path/hardware
     cd $ide_path/hardware
     mkdir esp8266com
     cd esp8266com
@@ -109,28 +116,33 @@ function install_ide()
     git submodule init
     git submodule update
     python3 get.py
-    export PATH="$ide_path:$ide_path/hardware/esp8266com/esp8266/tools/xtensa-lx106-elf/bin:$PATH"
+    export PATH="$ide_path/hardware/esp8266com/esp8266/tools/xtensa-lx106-elf/bin:$PATH"
     popd
-#    cd ..
-#    mkdir espressif
-#    cd espressif
-#    git clone https://github.com/espressif/arduino-esp32 esp32
-#    pushd esp32/tools
-#    git submodule init
-#    git submodule update
-#    python3 get.py
-#    export PATH="$ide_path:$ide_path/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin:$PATH"
-#    popd
+
 }
 
-function run_host_tests()
+function install_esp32()
 {
-    pushd host
-    make
-    make clean-objects
+    local ide_path=$1
+    sudo pip install pyserial
+    cd $ide_path/hardware
+    mkdir espressif
+    cd espressif
+    git clone https://github.com/espressif/arduino-esp32.git esp32
+    pushd esp32
+    # Set custom warnings for all builds (i.e. could add -Wextra at some point)
+    echo "compiler.c.extra_flags=-Wall -Wextra -Werror $debug_flags" > platform.local.txt
+    echo "compiler.cpp.extra_flags=-Wall -Wextra -Werror $debug_flags" >> platform.local.txt
+    echo -e "\n----platform.local.txt----"
+    cat platform.local.txt
+    git submodule init
+    git submodule update
+    cd tools
+    python3 get.py
+    export PATH="$ide_path/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin/:$PATH"
     popd
-}
 
+}
 
 function install_arduino()
 {
@@ -148,10 +160,8 @@ function build_sketches_with_arduino()
 {
     # Compile sketches
     echo -e "travis_fold:start:sketch_test"
-#    build_sketches $HOME/arduino_ide $TRAVIS_BUILD_DIR/libraries "-l $HOME/Arduino/libraries"
     build_sketches $HOME/arduino_ide $HOME/Arduino/libraries "-l $HOME/Arduino/libraries"
     echo -e "travis_fold:end:sketch_test"
-
     # Generate size report
     echo -e "travis_fold:start:size_report"
     cat size.log
@@ -168,26 +178,17 @@ fi
 if [ "$BUILD_TYPE" = "build" ]; then
     export BUILD_PY="hardware/esp8266com/esp8266/tools/build.py -b generic -s 4M1M -v -k "
     install_arduino
+    install_esp8266 "$HOME/arduino_ide"
     build_sketches_with_arduino
 elif [ "$BUILD_TYPE" = "build_esp32" ]; then
-    #export BUILD_PY="hardware/espressif/esp32/tools/build.py -b esp32 -v -k  "
-    #install_arduino
-    #build_sketches_with_arduino
-    sudo apt-get update
-    sudo apt-get upgrade -y python
-    sudo pip install --upgrade pip
-    sudo pip install --upgrade 'urllib3[secure]'
-    export ide_path=$HOME/arduino_ide 
     install_arduino
+    install_esp32 "$HOME/arduino_ide"
+    export ide_path=$HOME/arduino_ide 
     export FQBN="espressif:esp32:esp32:PSRAM=enabled,PartitionScheme=huge_app"
     export GITHUB_WORKSPACE="$TRAVIS_BUILD_DIR"
     export GITHUB_REPOSITORY="$TRAVIS_REPO_SLUG"
     source $ide_path/hardware/espressif/esp32/.github/scripts/install-arduino-ide.sh
     source $ide_path/hardware/espressif/esp32/.github/scripts/install-arduino-core-esp32.sh
-    build_sketches "$FQBN" "$HOME/Arduino/libraries" 0 1
-elif [ "$BUILD_TYPE" = "host_tests" ]; then
-    # Run host side tests
-    cd $TRAVIS_BUILD_DIR/tests
-    run_host_tests
+    build_sketches "$FQBN" "$HOME/Arduino/libraries" "$BUILD_REM" "$BUILD_MOD"
 fi
 
