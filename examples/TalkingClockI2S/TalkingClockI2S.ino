@@ -2,7 +2,12 @@
 // https://github.com/going-digital/Talkie/blob/master/Talkie/examples/Vocab_US_Clock/Vocab_US_Clock.ino
 // Released under GPL v2
 
-#include <ESP8266WiFi.h>
+#ifdef ESP32
+    #include <WiFi.h>
+#else
+    #include <ESP8266WiFi.h>
+#endif
+
 #include <time.h>
 #include "AudioFileSourcePROGMEM.h"
 #include "AudioGeneratorTalkie.h"
