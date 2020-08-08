@@ -16,6 +16,9 @@ jobs:
   build-esp8266:
     name: Build ESP8266
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        chunk: [0, 1]
     steps:
     - uses: actions/checkout@v2
       with:
@@ -28,6 +31,8 @@ jobs:
         TRAVIS_BUILD_DIR: ${{ github.workspace }}
         TRAVIS_TAG: ${{ github.ref }}
         BUILD_TYPE: build
+        BUILD_MOD: 2
+        BUILD_REM: ${{ matrix.chunk }}
       run: |
         bash ./tests/common.sh
 

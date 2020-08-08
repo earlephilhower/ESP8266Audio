@@ -41,12 +41,18 @@ function build_sketches()
     local srcpath=$2
     local build_arg=$3
     local build_dir=build.tmp
+    local build_mod=$BUILD_MOD
+    local build_rem=$BUILD_REM
     mkdir -p $build_dir
     local build_cmd="python3 $arduino/$BUILD_PY -p $PWD/$build_dir $build_arg "
     local sketches=$(find $srcpath -name *.ino)
     print_size_info >size.log
     export ARDUINO_IDE_PATH=$arduino
     for sketch in $sketches; do
+        testcnt=$(( ($testcnt + 1) % $build_mod ))
+        if [ $testcnt -ne $build_rem ]; then
+            continue  # Not ours to do
+        fi
         rm -rf $build_dir/*
         local sketchdir=$(dirname $sketch)
         local sketchdirname=$(basename $sketchdir)
@@ -153,6 +159,11 @@ function build_sketches_with_arduino()
 }
 
 set -e
+
+if [ "$BUILD_MOD" == "" ]; then
+    export BUILD_MOD=1
+    export BUILD_REM=0
+fi
 
 if [ "$BUILD_TYPE" = "build" ]; then
     export BUILD_PY="hardware/esp8266com/esp8266/tools/build.py -b generic -s 4M1M -v -k "
