@@ -96,6 +96,7 @@ function install_ide()
     wget -q -O arduino.tar.xz https://www.arduino.cc/download.php?f=/arduino-nightly-linux64.tar.xz
     tar xf arduino.tar.xz
     mv arduino-nightly $ide_path
+    export PATH="$ide_path:$PATH"
 }
 
 function install_esp8266()
@@ -115,7 +116,7 @@ function install_esp8266()
     git submodule init
     git submodule update
     python3 get.py
-    export PATH="$ide_path:$ide_path/hardware/esp8266com/esp8266/tools/xtensa-lx106-elf/bin:$PATH"
+    export PATH="$ide_path/hardware/esp8266com/esp8266/tools/xtensa-lx106-elf/bin:$PATH"
     popd
 
 }
@@ -137,20 +138,10 @@ function install_esp32()
     git submodule --init --recursive
     cd tools
     python3 get.py
-    export PATH="$ide_path:$ide_path/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin/:$PATH"
+    export PATH="$ide_path/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin/:$PATH"
     popd
 
 }
-
-
-function run_host_tests()
-{
-    pushd host
-    make
-    make clean-objects
-    popd
-}
-
 
 function install_arduino()
 {
@@ -199,9 +190,5 @@ elif [ "$BUILD_TYPE" = "build_esp32" ]; then
     source $ide_path/hardware/espressif/esp32/.github/scripts/install-arduino-ide.sh
     source $ide_path/hardware/espressif/esp32/.github/scripts/install-arduino-core-esp32.sh
     build_sketches "$FQBN" "$HOME/Arduino/libraries" "$BUILD_MOD" "$BUILD_REM"
-elif [ "$BUILD_TYPE" = "host_tests" ]; then
-    # Run host side tests
-    cd $TRAVIS_BUILD_DIR/tests
-    run_host_tests
 fi
 
