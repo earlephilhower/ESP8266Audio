@@ -1,0 +1,55 @@
+# Run whenever a PR is generated or updated.
+
+# Most jobs check out the code, ensure Python3 is installed, and for build
+# tests the ESP8266 toolchain is cached when possible to speed up execution.
+
+name: ESP8266 Arduino CI
+
+on:
+    push:
+        branches:
+          - master
+    pull_request:
+
+jobs:
+
+    build-esp8266:
+    name: Build ESP8266
+    runs-on: ubuntu-latest
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Build Sketches
+      env:
+        TRAVIS_BUILD_DIR: ${{ github.workspace }}
+        TRAVIS_TAG: ${{ github.ref }}
+        BUILD_TYPE: build
+      run: |
+        bash ./tests/common.sh
+
+
+# Run host test suite under valgrind for runtime checking of code.
+  host-tests:
+    name: Host tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Run host tests
+      env:
+        TRAVIS_BUILD_DIR: ${{ github.workspace }}
+        TRAVIS_TAG: ${{ github.ref }}
+      run: |
+        sudo apt-get install valgrind lcov
+        cd ./tests/host/ && make
+        cd ./tests/host/ && valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./mp3
+        cd ./tests/host/ && valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./aac
+        cd ./tests/host/ && valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./wav
+        cd ./tests/host/ && valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./midi

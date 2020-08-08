@@ -82,11 +82,6 @@ function install_libraries()
     mkdir -p $HOME/Arduino/libraries
     cp -a $TRAVIS_BUILD_DIR $HOME/Arduino/libraries/ESP8266Audio
     git clone https://github.com/earlephilhower/ESP8266SAM $HOME/Arduino/libraries/ESP8266SAM
-    git clone https://github.com/earlephilhower/ESP8266FastROMFS $HOME/Arduino/libraries/ESP8266FastROMFS
-    git clone https://github.com/Gianbacchio/ESP8266_Spiram $HOME/Arduino/libraries/ESP8266_Spiram
-    # Following libs are not to be tested, just used.
-    rm -rf $HOME/Arduino/libraries/ESP8266_Spiram/examples
-    rm -rf $HOME/Arduino/libraries/ESP8266FastROMFS/examples
 }
 
 function install_ide()
