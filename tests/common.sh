@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#set -x # echo on
+set -ex
 
 function print_size_info()
 {
@@ -93,7 +93,7 @@ function install_libraries()
 function install_ide()
 {
     local ide_path=$1
-    wget -O arduino.tar.xz https://www.arduino.cc/download.php?f=/arduino-nightly-linux64.tar.xz
+    wget -q -O arduino.tar.xz https://www.arduino.cc/download.php?f=/arduino-nightly-linux64.tar.xz
     tar xf arduino.tar.xz
     mv arduino-nightly $ide_path
 }
