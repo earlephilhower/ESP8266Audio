@@ -37,7 +37,7 @@ jobs:
         bash ./tests/common.sh
 
 
-  build-esp8266:
+  build-esp32:
     name: Build ESP-32
     runs-on: ubuntu-latest
     strategy:
