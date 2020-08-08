@@ -53,3 +53,4 @@ jobs:
         cd ./tests/host/ && valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./aac
         cd ./tests/host/ && valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./wav
         cd ./tests/host/ && valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./midi
+
