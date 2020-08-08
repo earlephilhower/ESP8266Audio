@@ -49,9 +49,10 @@ jobs:
         TRAVIS_TAG: ${{ github.ref }}
       run: |
         sudo apt-get install valgrind lcov gcc-multilib g++-multilib
-        cd ./tests/host/ && make
-        cd ./tests/host/ && valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./mp3
-        cd ./tests/host/ && valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./aac
-        cd ./tests/host/ && valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./wav
-        cd ./tests/host/ && valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./midi
+        cd ./tests/host/
+        make
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./mp3
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./aac
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./wav
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./midi
 
