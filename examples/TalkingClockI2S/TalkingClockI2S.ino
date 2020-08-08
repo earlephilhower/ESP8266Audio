@@ -114,7 +114,7 @@ AudioGeneratorTalkie *talkie;
 AudioOutputI2S *out;
 
 
-bool getLocalTime(struct tm * info, uint32_t ms) {
+bool GetLocalTime(struct tm * info, uint32_t ms) {
   uint32_t count = ms / 10;
   time_t now;
 
@@ -161,7 +161,7 @@ void setup()
   do {
     tmstruct.tm_year = 0;
     Serial.printf(".");
-    getLocalTime(&tmstruct, 5000);
+    GetLocalTime(&tmstruct, 5000);
     delay(100);
   } while (tmstruct.tm_year < 100);
   
@@ -175,7 +175,7 @@ void loop()
 {
   struct tm tmstruct ;
   tmstruct.tm_year = 0;
-  getLocalTime(&tmstruct, 5000);
+  GetLocalTime(&tmstruct, 5000);
   Serial.printf("\nNow is : %d-%02d-%02d %02d:%02d:%02d\n",
                 tmstruct.tm_year + 1900, tmstruct.tm_mon + 1,
                 tmstruct.tm_mday, tmstruct.tm_hour,
