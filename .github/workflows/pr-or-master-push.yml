@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chunk: [0, 1]
+        chunk: [0, 1, 2, 3, 4]
     steps:
     - uses: actions/checkout@v2
       with:
@@ -31,7 +31,7 @@ jobs:
         TRAVIS_BUILD_DIR: ${{ github.workspace }}
         TRAVIS_TAG: ${{ github.ref }}
         BUILD_TYPE: build
-        BUILD_MOD: 2
+        BUILD_MOD: 5
         BUILD_REM: ${{ matrix.chunk }}
       run: |
         bash ./tests/common.sh
