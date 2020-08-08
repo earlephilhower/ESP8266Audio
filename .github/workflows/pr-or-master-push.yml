@@ -53,8 +53,8 @@ jobs:
         sudo apt-get install valgrind lcov gcc-multilib g++-multilib libc6-dbg:i386
         cd ./tests/host/
         make
-        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./mp3
-        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./aac
-        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./wav
-        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./midi
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./mp3
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./aac
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./wav
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./midi
 
