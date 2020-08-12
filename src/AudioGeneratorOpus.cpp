@@ -84,7 +84,7 @@ bool AudioGeneratorOpus::loop()
       if (ret == OP_HOLE) {
         // fprintf(stderr,"\nHole detected! Corrupt file segment?\n");
         continue;
-      } else if (ret < 0) {
+      } else if (ret <= 0) {
         running = false;
         goto done;
       }
@@ -119,7 +119,6 @@ bool AudioGeneratorOpus::isRunning()
 {
   return running;
 }
-
 
 int AudioGeneratorOpus::read_cb(unsigned char *_ptr, int _nbytes) {
   if (_nbytes == 0) return 0;
