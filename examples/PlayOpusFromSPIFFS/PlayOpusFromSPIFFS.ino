@@ -15,7 +15,7 @@ void setup()
   WiFi.mode(WIFI_OFF); 
   Serial.begin(115200);
   delay(1000);
-  LittleFS.begin();
+  SPIFFS.begin();
   Serial.printf("Sample Opus playback begins...\n");
 
   audioLogger = &Serial;
