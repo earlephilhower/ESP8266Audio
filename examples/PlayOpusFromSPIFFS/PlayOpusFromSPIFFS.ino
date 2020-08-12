@@ -1,5 +1,10 @@
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
+#ifdef ESP32
+    #include <WiFi.h>
+    #include "SPIFFS.h"
+#else
+    #include <ESP8266WiFi.h>
+#endif
 #include "AudioFileSourceSPIFFS.h"
 #include "AudioGeneratorOpus.h"
 #include "AudioOutputI2S.h"
