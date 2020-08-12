@@ -109,7 +109,7 @@ void op_fatal_impl(const char *_str,const char *_file,int _line);
  (OP_MIN(_offset,OP_INT64_MAX-(_amount))+(_amount))
 
 /*The maximum channel count for any mapping we'll actually decode.*/
-# define OP_NCHANNELS_MAX (8)
+# define OP_NCHANNELS_MAX (2)
 
 /*Initial state.*/
 # define  OP_NOTOPEN   (0)
