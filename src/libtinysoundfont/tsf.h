@@ -493,7 +493,7 @@ TSFDEF tsf* tsf_load_memory(const void* buffer, int size)
 {
 	struct tsf_stream stream = { TSF_NULL, (int(*)(void*,void*,unsigned int))&tsf_stream_memory_read, (int(*)(void*))&tsf_stream_memory_tell, (int(*)(void*,unsigned int))&tsf_stream_memory_skip, (int(*)(void*,unsigned int))&tsf_stream_memory_seek, (int(*)(void*))&tsf_stream_memory_close, (int(*)(void*))&tsf_stream_memory_size };
 	struct tsf_stream_memory* f = (struct tsf_stream_memory*)TSF_MALLOC(sizeof(struct tsf_stream_memory));
-        f->pos = 0;
+	f->pos = 0;
 	f->buffer = (const char*)buffer;
 	f->total = size;
 	stream.data = f;
