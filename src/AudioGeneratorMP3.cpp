@@ -302,7 +302,7 @@ extern "C" {
   {
     return 8192;
   }
-#elif defined(ESP8266)
+#elif defined(ESP8266) && !defined(CORE_MOCK)
   #include <cont.h>
   extern cont_t g_cont;
 
