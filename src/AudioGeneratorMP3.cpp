@@ -29,11 +29,9 @@ AudioGeneratorMP3::AudioGeneratorMP3()
   buff = NULL;
   nsCountMax = 1152/32;
   madInitted = false;
-  preallocateSpace = NULL;
-  preallocateSize = 0;
 }
 
-AudioGeneratorMP3::AudioGeneratorMP3(void *space, int size)
+AudioGeneratorMP3::AudioGeneratorMP3(void *space, int size): preallocateSpace(space), preallocateSize(size)
 {
   running = false;
   file = NULL;
@@ -41,8 +39,20 @@ AudioGeneratorMP3::AudioGeneratorMP3(void *space, int size)
   buff = NULL;
   nsCountMax = 1152/32;
   madInitted = false;
-  preallocateSpace = space;
-  preallocateSize = size;
+}
+
+AudioGeneratorMP3::AudioGeneratorMP3(void *buff, int buffSize, void *stream, int streamSize, void *frame, int frameSize, void *synth, int synthSize):
+    preallocateSpace(buff), preallocateSize(buffSize),
+    preallocateStreamSpace(stream), preallocateStreamSize(streamSize),
+    preallocateFrameSpace(frame), preallocateFrameSize(frameSize),
+    preallocateSynthSpace(synth), preallocateSynthSize(synthSize)
+{
+  running = false;
+  file = NULL;
+  output = NULL;
+  buff = NULL;
+  nsCountMax = 1152/32;
+  madInitted = false;
 }
 
 AudioGeneratorMP3::~AudioGeneratorMP3()
@@ -243,7 +253,23 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output)
   lastBuffLen = 0;
 
   // Allocate all large memory chunks
-  if (preallocateSpace) {
+  if (preallocateStreamSize + preallocateFrameSize + preallocateSynthSize) {
+    if (preallocateSize >= preAllocBuffSize() &&
+        preallocateStreamSize >= preAllocStreamSize() &&
+        preallocateFrameSize >= preAllocFrameSize() &&
+        preallocateSynthSize >= preAllocSynthSize()) {
+      buff = reinterpret_cast<unsigned char *>(preallocateSpace);
+      stream = reinterpret_cast<struct mad_stream *>(preallocateStreamSpace);
+      frame = reinterpret_cast<struct mad_frame *>(preallocateFrameSpace);
+      synth = reinterpret_cast<struct mad_synth *>(preallocateSynthSpace);
+    }
+    else {
+      audioLogger->printf_P("OOM error in MP3:  Want %d/%d/%d/%d bytes, have %d/%d/%d/%d bytes preallocated.\n",
+          preAllocBuffSize(), preAllocStreamSize(), preAllocFrameSize(), preAllocSynthSize(),
+          preallocateSize, preallocateStreamSize, preallocateFrameSize, preallocateSynthSize);
+      return false;
+    }
+  } else if (preallocateSpace) {
     uint8_t *p = reinterpret_cast<uint8_t *>(preallocateSpace);
     buff = reinterpret_cast<unsigned char *>(p);
     p += (buffLen+7) & ~7;

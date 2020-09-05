@@ -30,17 +30,30 @@ class AudioGeneratorMP3 : public AudioGenerator
   public:
     AudioGeneratorMP3();
     AudioGeneratorMP3(void *preallocateSpace, int preallocateSize);
+    AudioGeneratorMP3(void *buff, int buffSize, void *stream, int streamSize, void *frame, int frameSize, void *synth, int synthSize);
     virtual ~AudioGeneratorMP3() override;
     virtual bool begin(AudioFileSource *source, AudioOutput *output) override;
     virtual bool loop() override;
     virtual bool stop() override;
     virtual bool isRunning() override;
     
-  protected:   
-    void *preallocateSpace;
-    int preallocateSize;
+    static constexpr int preAllocSize () { return preAllocBuffSize() + preAllocStreamSize() + preAllocFrameSize() + preAllocSynthSize(); }
+    static constexpr int preAllocBuffSize () { return ((buffLen + 7) & ~7); }
+    static constexpr int preAllocStreamSize () { return ((sizeof(struct mad_stream) + 7) & ~7); }
+    static constexpr int preAllocFrameSize () { return (sizeof(struct mad_frame) + 7) & ~7; }
+    static constexpr int preAllocSynthSize () { return (sizeof(struct mad_synth) + 7) & ~7; }
 
-    const int buffLen = 0x600; // Slightly larger than largest MP3 frame
+  protected:   
+    void *preallocateSpace = nullptr;
+    int preallocateSize = 0;
+    void *preallocateStreamSpace = nullptr;
+    int preallocateStreamSize = 0;
+    void *preallocateFrameSpace = nullptr;
+    int preallocateFrameSize = 0;
+    void *preallocateSynthSpace = nullptr;
+    int preallocateSynthSize = 0;
+
+    static constexpr int buffLen = 0x600; // Slightly larger than largest MP3 frame
     unsigned char *buff;
     int lastReadPos;
     int lastBuffLen;
