@@ -224,7 +224,6 @@ retry:
         return false;
       }
 
-      static int unrecoverable = 0;
       if (!DecodeNextFrame()) {
         if (stream->error == MAD_ERROR_BUFLEN) {
           // randomly seeking can lead to endless

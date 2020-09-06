@@ -76,6 +76,8 @@ class AudioGeneratorMP3 : public AudioGenerator
     bool DecodeNextFrame();
     bool GetOneSample(int16_t sample[2]);
 
+  private:
+    int unrecoverable = 0;
 };
 
 #endif
