@@ -119,7 +119,12 @@ enum mad_flow AudioGeneratorMP3::Input()
 
   if (stream->next_frame) {
     unused = lastBuffLen - (stream->next_frame - buff);
-    memmove(buff, stream->next_frame, unused);
+    if (unused < 0) {
+      desync();
+      unused = 0;
+    } else {
+      memmove(buff, stream->next_frame, unused);
+    }
     stream->next_frame = NULL;
   }
 
@@ -135,6 +140,10 @@ enum mad_flow AudioGeneratorMP3::Input()
     // Can't read any from the file, and we don't have anything left.  It's done....
     return MAD_FLOW_STOP;
   }
+  if (len < 0) {
+    desync();
+    unused = 0;
+  }
 
   lastBuffLen = len + unused;
   mad_stream_buffer(stream, buff, lastBuffLen);
@@ -142,6 +151,15 @@ enum mad_flow AudioGeneratorMP3::Input()
   return MAD_FLOW_CONTINUE;
 }
 
+void AudioGeneratorMP3::desync ()
+{
+    if (stream) {
+        stream->next_frame = nullptr;
+        stream->this_frame = nullptr;
+        stream->sync = 0;
+    }
+    lastBuffLen = 0;
+}
 
 bool AudioGeneratorMP3::DecodeNextFrame()
 {
@@ -272,13 +290,13 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output)
   } else if (preallocateSpace) {
     uint8_t *p = reinterpret_cast<uint8_t *>(preallocateSpace);
     buff = reinterpret_cast<unsigned char *>(p);
-    p += (buffLen+7) & ~7;
+    p += preAllocBuffSize();
     stream = reinterpret_cast<struct mad_stream *>(p);
-    p += (sizeof(struct mad_stream)+7) & ~7;
+    p += preAllocStreamSize();
     frame = reinterpret_cast<struct mad_frame *>(p);
-    p += (sizeof(struct mad_frame)+7) & ~7;
+    p += preAllocFrameSize();
     synth = reinterpret_cast<struct mad_synth *>(p);
-    p += (sizeof(struct mad_synth)+7) & ~7;
+    p += preAllocSynthSize();
     int neededBytes = p - reinterpret_cast<uint8_t *>(preallocateSpace);
     if (neededBytes > preallocateSize) {
       audioLogger->printf_P("OOM error in MP3:  Want %d bytes, have %d bytes preallocated.\n", neededBytes, preallocateSize);

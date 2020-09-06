@@ -36,7 +36,8 @@ class AudioGeneratorMP3 : public AudioGenerator
     virtual bool loop() override;
     virtual bool stop() override;
     virtual bool isRunning() override;
-    
+    virtual void desync () override;
+
     static constexpr int preAllocSize () { return preAllocBuffSize() + preAllocStreamSize() + preAllocFrameSize() + preAllocSynthSize(); }
     static constexpr int preAllocBuffSize () { return ((buffLen + 7) & ~7); }
     static constexpr int preAllocStreamSize () { return ((sizeof(struct mad_stream) + 7) & ~7); }
