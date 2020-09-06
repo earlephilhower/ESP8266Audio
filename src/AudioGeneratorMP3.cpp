@@ -29,11 +29,9 @@ AudioGeneratorMP3::AudioGeneratorMP3()
   buff = NULL;
   nsCountMax = 1152/32;
   madInitted = false;
-  preallocateSpace = NULL;
-  preallocateSize = 0;
 }
 
-AudioGeneratorMP3::AudioGeneratorMP3(void *space, int size)
+AudioGeneratorMP3::AudioGeneratorMP3(void *space, int size): preallocateSpace(space), preallocateSize(size)
 {
   running = false;
   file = NULL;
@@ -41,8 +39,20 @@ AudioGeneratorMP3::AudioGeneratorMP3(void *space, int size)
   buff = NULL;
   nsCountMax = 1152/32;
   madInitted = false;
-  preallocateSpace = space;
-  preallocateSize = size;
+}
+
+AudioGeneratorMP3::AudioGeneratorMP3(void *buff, int buffSize, void *stream, int streamSize, void *frame, int frameSize, void *synth, int synthSize):
+    preallocateSpace(buff), preallocateSize(buffSize),
+    preallocateStreamSpace(stream), preallocateStreamSize(streamSize),
+    preallocateFrameSpace(frame), preallocateFrameSize(frameSize),
+    preallocateSynthSpace(synth), preallocateSynthSize(synthSize)
+{
+  running = false;
+  file = NULL;
+  output = NULL;
+  buff = NULL;
+  nsCountMax = 1152/32;
+  madInitted = false;
 }
 
 AudioGeneratorMP3::~AudioGeneratorMP3()
@@ -109,7 +119,12 @@ enum mad_flow AudioGeneratorMP3::Input()
 
   if (stream->next_frame) {
     unused = lastBuffLen - (stream->next_frame - buff);
-    memmove(buff, stream->next_frame, unused);
+    if (unused < 0) {
+      desync();
+      unused = 0;
+    } else {
+      memmove(buff, stream->next_frame, unused);
+    }
     stream->next_frame = NULL;
   }
 
@@ -125,6 +140,10 @@ enum mad_flow AudioGeneratorMP3::Input()
     // Can't read any from the file, and we don't have anything left.  It's done....
     return MAD_FLOW_STOP;
   }
+  if (len < 0) {
+    desync();
+    unused = 0;
+  }
 
   lastBuffLen = len + unused;
   mad_stream_buffer(stream, buff, lastBuffLen);
@@ -132,6 +151,16 @@ enum mad_flow AudioGeneratorMP3::Input()
   return MAD_FLOW_CONTINUE;
 }
 
+void AudioGeneratorMP3::desync ()
+{
+    audioLogger->printf_P(PSTR("MP3:desync\n"));
+    if (stream) {
+        stream->next_frame = nullptr;
+        stream->this_frame = nullptr;
+        stream->sync = 0;
+    }
+    lastBuffLen = 0;
+}
 
 bool AudioGeneratorMP3::DecodeNextFrame()
 {
@@ -196,6 +225,17 @@ retry:
       }
 
       if (!DecodeNextFrame()) {
+        if (stream->error == MAD_ERROR_BUFLEN) {
+          // randomly seeking can lead to endless
+          // and unrecoverable "MAD_ERROR_BUFLEN" loop
+          audioLogger->printf_P(PSTR("MP3:ERROR_BUFLEN %d\n"), unrecoverable);
+          if (++unrecoverable >= 3) {
+            unrecoverable = 0;
+            return (running = false);
+          }
+        } else {
+          unrecoverable = 0;
+        }
         goto retry;
       }
       samplePtr = 9999;
@@ -243,16 +283,32 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output)
   lastBuffLen = 0;
 
   // Allocate all large memory chunks
-  if (preallocateSpace) {
+  if (preallocateStreamSize + preallocateFrameSize + preallocateSynthSize) {
+    if (preallocateSize >= preAllocBuffSize() &&
+        preallocateStreamSize >= preAllocStreamSize() &&
+        preallocateFrameSize >= preAllocFrameSize() &&
+        preallocateSynthSize >= preAllocSynthSize()) {
+      buff = reinterpret_cast<unsigned char *>(preallocateSpace);
+      stream = reinterpret_cast<struct mad_stream *>(preallocateStreamSpace);
+      frame = reinterpret_cast<struct mad_frame *>(preallocateFrameSpace);
+      synth = reinterpret_cast<struct mad_synth *>(preallocateSynthSpace);
+    }
+    else {
+      audioLogger->printf_P("OOM error in MP3:  Want %d/%d/%d/%d bytes, have %d/%d/%d/%d bytes preallocated.\n",
+          preAllocBuffSize(), preAllocStreamSize(), preAllocFrameSize(), preAllocSynthSize(),
+          preallocateSize, preallocateStreamSize, preallocateFrameSize, preallocateSynthSize);
+      return false;
+    }
+  } else if (preallocateSpace) {
     uint8_t *p = reinterpret_cast<uint8_t *>(preallocateSpace);
     buff = reinterpret_cast<unsigned char *>(p);
-    p += (buffLen+7) & ~7;
+    p += preAllocBuffSize();
     stream = reinterpret_cast<struct mad_stream *>(p);
-    p += (sizeof(struct mad_stream)+7) & ~7;
+    p += preAllocStreamSize();
     frame = reinterpret_cast<struct mad_frame *>(p);
-    p += (sizeof(struct mad_frame)+7) & ~7;
+    p += preAllocFrameSize();
     synth = reinterpret_cast<struct mad_synth *>(p);
-    p += (sizeof(struct mad_synth)+7) & ~7;
+    p += preAllocSynthSize();
     int neededBytes = p - reinterpret_cast<uint8_t *>(preallocateSpace);
     if (neededBytes > preallocateSize) {
       audioLogger->printf_P("OOM error in MP3:  Want %d bytes, have %d bytes preallocated.\n", neededBytes, preallocateSize);
