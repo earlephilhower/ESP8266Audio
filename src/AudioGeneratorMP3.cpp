@@ -153,6 +153,7 @@ enum mad_flow AudioGeneratorMP3::Input()
 
 void AudioGeneratorMP3::desync ()
 {
+    audioLogger->printf_P(PSTR("MP3:desync\n"));
     if (stream) {
         stream->next_frame = nullptr;
         stream->this_frame = nullptr;
@@ -223,7 +224,20 @@ retry:
         return false;
       }
 
+      static int unrecoverable = 0;
       if (!DecodeNextFrame()) {
+        if (stream->error == MAD_ERROR_BUFLEN) {
+          // randomly seeking can lead to endless
+          // and unrecoverable "MAD_ERROR_BUFLEN" loop
+          audioLogger->printf_P(PSTR("MP3:ERROR_BUFLEN %d\n"), unrecoverable);
+          Serial.flush();
+          if (++unrecoverable >= 3) {
+            unrecoverable = 0;
+            return (running = false);
+          }
+        } else {
+          unrecoverable = 0;
+        }
         goto retry;
       }
       samplePtr = 9999;
