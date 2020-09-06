@@ -229,7 +229,6 @@ retry:
           // randomly seeking can lead to endless
           // and unrecoverable "MAD_ERROR_BUFLEN" loop
           audioLogger->printf_P(PSTR("MP3:ERROR_BUFLEN %d\n"), unrecoverable);
-          Serial.flush();
           if (++unrecoverable >= 3) {
             unrecoverable = 0;
             return (running = false);
