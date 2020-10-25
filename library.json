@@ -17,7 +17,10 @@
     "version": "1.5.1",
     "homepage": "https://github.com/earlephilhower/ESP8266Audio",
     "dependencies": {
-        "SPI": "1.0"
+        "SPI": "1.0",
+        "SPIFFS": "1.0",
+        "HTTPClient": "1.0",
+        "WiFiClientSecure": "1.0"
     },
     "frameworks": "Arduino",
     "examples": [
