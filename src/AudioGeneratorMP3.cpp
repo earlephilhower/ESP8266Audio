@@ -231,7 +231,8 @@ retry:
           audioLogger->printf_P(PSTR("MP3:ERROR_BUFLEN %d\n"), unrecoverable);
           if (++unrecoverable >= 3) {
             unrecoverable = 0;
-            return (running = false);
+            stop();
+            return running;
           }
         } else {
           unrecoverable = 0;
@@ -268,6 +269,9 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output)
     audioLogger->printf_P(PSTR("MP3 source file not open\n"));
     return false; // Error
   }
+
+  // Reset error count from previous file
+  unrecoverable = 0;
 
   output->SetBitsPerSample(16); // Constant for MP3 decoder
   output->SetChannels(2);
