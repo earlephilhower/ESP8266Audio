@@ -46,12 +46,12 @@ class AudioOutputULP : public AudioOutput
     int activeDACs = 3; // 1:DAC1; 2:DAC2; 3:both;
     bool stereoOutput = true;
     const int opcodeCount = 18;
-    const int dacTableStart1 = 2048 - 512;
-    const int dacTableStart2 = dacTableStart1 - 512;
-    int totalSampleWords = 2048 - 512 - 512 - (opcodeCount + 1); // add 512 for mono
+    const uint32_t dacTableStart1 = 2048 - 512;
+    const uint32_t dacTableStart2 = dacTableStart1 - 512;
+    uint32_t totalSampleWords = 2048 - 512 - 512 - (opcodeCount + 1); // add 512 for mono
     const int totalSamples = totalSampleWords * 2;
-    const int indexAddress = opcodeCount;
-    const int bufferStart = indexAddress + 1;
+    const uint32_t indexAddress = opcodeCount;
+    const uint32_t bufferStart = indexAddress + 1;
 };
 
 #else

@@ -77,8 +77,8 @@ bool AudioOutputULP::begin()
   Serial.print("Real RTC clock: ");
   Serial.println(rtc_fast_freq_hz);
 
-  int dt = (rtc_fast_freq_hz / hertz) - loopCycles;
-  int dt2 = 0;
+  uint32_t dt = (rtc_fast_freq_hz / hertz) - loopCycles;
+  uint32_t dt2 = 0;
   if(!stereoOutput){
     dt = (rtc_fast_freq_hz / hertz) - loopHalfCycles1;
     dt2 = (rtc_fast_freq_hz / hertz) - loopHalfCycles2;
@@ -192,7 +192,7 @@ bool AudioOutputULP::ConsumeSample(int16_t sample[2])
   ms[1] = sample[1];
   MakeSampleStereo16( ms );
 
-  /TODO: needs improvement (counting is different here with respect to ULP code)
+  // TODO: needs improvement (counting is different here with respect to ULP code)
   int currentSample = RTC_SLOW_MEM[indexAddress] & 0xffff;
   int currentWord = currentSample >> 1;
 
