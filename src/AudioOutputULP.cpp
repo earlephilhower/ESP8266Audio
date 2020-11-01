@@ -20,17 +20,16 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "AudioOutputULP.h"
-
 #ifdef ESP32
 
+#include "AudioOutputULP.h"
 #include <esp32/ulp.h>
 #include <driver/rtc_io.h>
 #include <driver/dac.h>
 #include <soc/rtc.h>
 #include <math.h>
 
-uint32_t create_I_WR_REG(int reg, int low_bit, int high_bit, int val){
+uint32_t create_I_WR_REG(uint32_t reg, uint32_t low_bit, uint32_t high_bit, uint32_t val){
     typedef union {ulp_insn_t ulp_ins; uint32_t ulp_bin;} ulp_union;
     const ulp_insn_t singleinstruction[] = {I_WR_REG(reg, low_bit, high_bit, val)};
     ulp_union recover_ins;
@@ -38,7 +37,7 @@ uint32_t create_I_WR_REG(int reg, int low_bit, int high_bit, int val){
     return (uint32_t)(recover_ins.ulp_bin);
 }
 
-uint32_t create_I_BXI(int imm_pc){
+uint32_t create_I_BXI(uint32_t imm_pc){
     typedef union {ulp_insn_t ulp_ins; uint32_t ulp_bin;} ulp_union;
     const ulp_insn_t singleinstruction[] = {I_BXI(imm_pc)};
     ulp_union recover_ins;
