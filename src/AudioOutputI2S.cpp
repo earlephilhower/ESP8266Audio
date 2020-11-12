@@ -87,9 +87,9 @@ bool AudioOutputI2S::SetPinout()
     i2s_set_pin((i2s_port_t)portNo, &pins);
     return true;
   #else
-    (void)bclk;
-    (void)wclk;
-    (void)dout;
+    (void)bclkPin;
+    (void)wclkPin;
+    (void)doutPin;
     return false;
   #endif
 }
@@ -261,7 +261,7 @@ bool AudioOutputI2S::stop()
 {
   if (!i2sOn)
     return false;
-    
+
   #ifdef ESP32
     i2s_zero_dma_buffer((i2s_port_t)portNo);
   #endif
