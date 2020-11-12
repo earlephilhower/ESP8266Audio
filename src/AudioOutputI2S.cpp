@@ -208,7 +208,7 @@ bool AudioOutputI2S::ConsumeSample(int16_t sample[2])
 {
 
   //return if we haven't called ::begin yet
-  if (i2sOn)
+  if (!i2sOn)
     return false;
 
   int16_t ms[2];
@@ -259,9 +259,9 @@ void AudioOutputI2S::flush()
 
 bool AudioOutputI2S::stop()
 {
-  //return if we haven't called ::begin yet
-  if (i2sOn)
+  if (!i2sOn)
     return false;
+    
   #ifdef ESP32
     i2s_zero_dma_buffer((i2s_port_t)portNo);
   #endif
