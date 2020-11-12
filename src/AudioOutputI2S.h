@@ -43,15 +43,21 @@ class AudioOutputI2S : public AudioOutput
     enum : int { EXTERNAL_I2S = 0, INTERNAL_DAC = 1, INTERNAL_PDM = 2 };
 
   protected:
+    bool SetPinout();
     virtual int AdjustI2SRate(int hz) { return hz; }
     uint8_t portNo;
     int output_mode;
     bool mono;
     bool i2sOn;
     int dma_buf_count;
+    int use_apll;
     // We can restore the old values and free up these pins when in NoDAC mode
     uint32_t orig_bck;
     uint32_t orig_ws;
+    
+    uint8_t bclkPin;
+    uint8_t wclkPin;
+    uint8_t doutPin;
 };
 
 #endif
