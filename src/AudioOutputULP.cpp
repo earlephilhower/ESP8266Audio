@@ -205,11 +205,13 @@ bool AudioOutputULP::ConsumeSample(int16_t sample[2])
   if(waitingOddSample){ // always true for stereo because samples are consumed in pairs
     if(lastFilledWord != currentWord) // accept sample if writing index lastFilledWord has not reached index of output sample
     {
-      unsigned int w = ms[0];
+      unsigned int w;
       if(stereoOutput){
+        w = ms[0];
         w |= ms[1] << 8;
       } else {
-        w |= bufferedOddSample << 8;
+        w = bufferedOddSample;
+        w |= ms[0] << 8;
         bufferedOddSample = 128;
         waitingOddSample = false;
       }
