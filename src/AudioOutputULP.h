@@ -18,8 +18,16 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Instructions:
+// AudioOutputULP out = new AudioOutputULP(); // stereo
 // Connect left channel on pin 25
 // Connect right channel on pin 26
+// OR
+// Connect mono channel on either of them (stereo samples are downmixed)
+// AudioOutputULP out = new AudioOutputULP(1); // mono, only DAC 1
+// OR
+// AudioOutputULP out = new AudioOutputULP(2); // mono, only DAC 2
+
 
 #ifndef _AUDIOOUTPUTULP_H
 #define _AUDIOOUTPUTULP_H
