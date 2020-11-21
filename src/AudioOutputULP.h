@@ -2,8 +2,6 @@
   AudioOutputULP
   Outputs to ESP32 DAC through the ULP, freeing I2S for other uses
   
-  v 0.0.1 (2020-10-01)
-  
   Copyright (C) 2020  Martin Laclaustra, based on bitluni's code
 
   This program is free software: you can redistribute it and/or modify
