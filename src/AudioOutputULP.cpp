@@ -2,8 +2,6 @@
   AudioOutputULP
   Outputs to ESP32 DAC through the ULP, freeing I2S for other uses
   
-  v 0.0.1 (2020-10-01)
-  
   Copyright (C) 2020  Martin Laclaustra, based on bitluni's code
 
   This program is free software: you can redistribute it and/or modify
@@ -70,8 +68,8 @@ bool AudioOutputULP::begin()
   int retAddress1 = 9;
   int retAddress2 = 14;
 
-  int loopCycles = 120;
-  int loopHalfCycles1 = 76;
+  int loopCycles = 134;
+  int loopHalfCycles1 = 90;
   int loopHalfCycles2 = 44;
   
   Serial.print("Real RTC clock: ");
@@ -121,10 +119,14 @@ bool AudioOutputULP::begin()
     //jump to the dac opcode
     I_BXR(R2), // 4
     //here we get back from writing the second sample
+    //load 0x8080 as sample
+    I_MOVI(R1, 0x8080), // 6
+    //write 0x8080 in the sample buffer
+    I_ST(R1, R0, indexAddress), // 8
     //increment the sample index
     I_ADDI(R0, R0, 1), // 6
     //if reached end of the buffer, jump relative to index reset
-    I_BGE(-14, totalSampleWords), // 4
+    I_BGE(-16, totalSampleWords), // 4
     //wait to get the right sample rate (2 cycles more to compensate the index reset)
     I_DELAY((unsigned int)dt + 2), // 8 + dt
     //if not, jump absolute to where index is written to memory
@@ -205,11 +207,13 @@ bool AudioOutputULP::ConsumeSample(int16_t sample[2])
   if(waitingOddSample){ // always true for stereo because samples are consumed in pairs
     if(lastFilledWord != currentWord) // accept sample if writing index lastFilledWord has not reached index of output sample
     {
-      unsigned int w = ms[0];
+      unsigned int w;
       if(stereoOutput){
+        w = ms[0];
         w |= ms[1] << 8;
       } else {
-        w |= bufferedOddSample << 8;
+        w = bufferedOddSample;
+        w |= ms[0] << 8;
         bufferedOddSample = 128;
         waitingOddSample = false;
       }

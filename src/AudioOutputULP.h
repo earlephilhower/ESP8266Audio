@@ -2,8 +2,6 @@
   AudioOutputULP
   Outputs to ESP32 DAC through the ULP, freeing I2S for other uses
   
-  v 0.0.1 (2020-10-01)
-  
   Copyright (C) 2020  Martin Laclaustra, based on bitluni's code
 
   This program is free software: you can redistribute it and/or modify
@@ -20,8 +18,16 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Instructions:
+// AudioOutputULP out = new AudioOutputULP(); // stereo
 // Connect left channel on pin 25
 // Connect right channel on pin 26
+// OR
+// Connect mono channel on either of them (stereo samples are downmixed)
+// AudioOutputULP out = new AudioOutputULP(1); // mono, only DAC 1
+// OR
+// AudioOutputULP out = new AudioOutputULP(2); // mono, only DAC 2
+
 
 #ifndef _AUDIOOUTPUTULP_H
 #define _AUDIOOUTPUTULP_H
@@ -45,7 +51,7 @@ class AudioOutputULP : public AudioOutput
     bool waitingOddSample = true; // must be set to false for mono output
     int activeDACs = 3; // 1:DAC1; 2:DAC2; 3:both;
     bool stereoOutput = true;
-    const int opcodeCount = 18;
+    const int opcodeCount = 20;
     const uint32_t dacTableStart1 = 2048 - 512;
     const uint32_t dacTableStart2 = dacTableStart1 - 512;
     uint32_t totalSampleWords = 2048 - 512 - 512 - (opcodeCount + 1); // add 512 for mono
