@@ -68,8 +68,8 @@ bool AudioOutputULP::begin()
   int retAddress1 = 9;
   int retAddress2 = 14;
 
-  int loopCycles = 120;
-  int loopHalfCycles1 = 76;
+  int loopCycles = 134;
+  int loopHalfCycles1 = 90;
   int loopHalfCycles2 = 44;
   
   Serial.print("Real RTC clock: ");
@@ -119,10 +119,14 @@ bool AudioOutputULP::begin()
     //jump to the dac opcode
     I_BXR(R2), // 4
     //here we get back from writing the second sample
+    //load 0x8080 as sample
+    I_MOVI(R1, 0x8080), // 6
+    //write 0x8080 in the sample buffer
+    I_ST(R1, R0, indexAddress), // 8
     //increment the sample index
     I_ADDI(R0, R0, 1), // 6
     //if reached end of the buffer, jump relative to index reset
-    I_BGE(-14, totalSampleWords), // 4
+    I_BGE(-16, totalSampleWords), // 4
     //wait to get the right sample rate (2 cycles more to compensate the index reset)
     I_DELAY((unsigned int)dt + 2), // 8 + dt
     //if not, jump absolute to where index is written to memory

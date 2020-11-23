@@ -51,7 +51,7 @@ class AudioOutputULP : public AudioOutput
     bool waitingOddSample = true; // must be set to false for mono output
     int activeDACs = 3; // 1:DAC1; 2:DAC2; 3:both;
     bool stereoOutput = true;
-    const int opcodeCount = 18;
+    const int opcodeCount = 20;
     const uint32_t dacTableStart1 = 2048 - 512;
     const uint32_t dacTableStart2 = dacTableStart1 - 512;
     uint32_t totalSampleWords = 2048 - 512 - 512 - (opcodeCount + 1); // add 512 for mono
