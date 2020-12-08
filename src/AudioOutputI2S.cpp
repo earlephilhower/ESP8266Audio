@@ -199,7 +199,9 @@ bool AudioOutputI2S::begin(bool txDAC)
     #if I2S_HAS_BEGIN_RXTXDAC
       i2s_rxtxdac_begin(false, true, txDAC);
     #else
-      (void)txDAC;
+      if (!txDAC) {
+        audioLogger->printf_P(PSTR("I2SNoDAC: esp8266 arduino core should be upgraded to avoid conflicts with SPI\n"));
+      }
       i2s_begin();
     #endif
     }
