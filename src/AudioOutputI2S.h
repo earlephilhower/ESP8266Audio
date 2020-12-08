@@ -32,11 +32,12 @@ class AudioOutputI2S : public AudioOutput
     virtual bool SetRate(int hz) override;
     virtual bool SetBitsPerSample(int bits) override;
     virtual bool SetChannels(int channels) override;
-    virtual bool begin() override;
+    virtual bool begin() override { return begin(true); }
     virtual bool ConsumeSample(int16_t sample[2]) override;
     virtual void flush() override;
     virtual bool stop() override;
     
+    bool begin (bool txDAC);
     bool SetOutputModeMono(bool mono);  // Force mono output no matter the input
 
     enum : int { APLL_AUTO = -1, APLL_ENABLE = 1, APLL_DISABLE = 0 };

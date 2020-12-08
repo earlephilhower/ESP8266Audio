@@ -129,7 +129,7 @@ bool AudioOutputI2S::SetOutputModeMono(bool mono)
   return true;
 }
 
-bool AudioOutputI2S::begin()
+bool AudioOutputI2S::begin(bool txDAC)
 {
   #ifdef ESP32
     if (!i2sOn)
@@ -196,7 +196,12 @@ bool AudioOutputI2S::begin()
     {
       orig_bck = READ_PERI_REG(PERIPHS_IO_MUX_MTDO_U);
       orig_ws = READ_PERI_REG(PERIPHS_IO_MUX_GPIO2_U);
+    #if I2S_HAS_BEGIN_RXTXDAC
+      i2s_rxtxdac_begin(false, true, txDAC);
+    #else
+      (void)txDAC;
       i2s_begin();
+    #endif
     }
   #endif
   i2sOn = true;
