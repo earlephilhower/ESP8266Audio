@@ -215,7 +215,7 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len)
       char value[64];
       uint32_t i;
       bool isUnicode = (id3.getByte()==1) ? true : false;
-      for (i=0; i<framesize-1; i++) {
+      for (i=0; i<(uint32_t)framesize-1; i++) {
         if (i<sizeof(value)-1) value[i] = id3.getByte();
         else (void)id3.getByte();
       }
