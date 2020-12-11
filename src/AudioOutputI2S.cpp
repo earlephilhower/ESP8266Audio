@@ -197,12 +197,16 @@ bool AudioOutputI2S::begin(bool txDAC)
       orig_bck = READ_PERI_REG(PERIPHS_IO_MUX_MTDO_U);
       orig_ws = READ_PERI_REG(PERIPHS_IO_MUX_GPIO2_U);
     #ifdef I2S_HAS_BEGIN_RXTX_DRIVE_CLOCKS
-      i2s_rxtxdrive_begin(false, true, false, txDAC);
+      if (!i2s_rxtxdrive_begin(false, true, false, txDAC)) {
+        return false;
+      }
     #else
+      if (!i2s_rxtx_begin(false, true)) {
+        return false;
+      }
       if (!txDAC) {
         audioLogger->printf_P(PSTR("I2SNoDAC: esp8266 arduino core should be upgraded to avoid conflicts with SPI\n"));
       }
-      i2s_begin();
     #endif
     }
   #endif
