@@ -129,7 +129,7 @@ bool AudioOutputI2S::SetOutputModeMono(bool mono)
   return true;
 }
 
-bool AudioOutputI2S::begin()
+bool AudioOutputI2S::begin(bool txDAC)
 {
   #ifdef ESP32
     if (!i2sOn)
@@ -196,7 +196,18 @@ bool AudioOutputI2S::begin()
     {
       orig_bck = READ_PERI_REG(PERIPHS_IO_MUX_MTDO_U);
       orig_ws = READ_PERI_REG(PERIPHS_IO_MUX_GPIO2_U);
-      i2s_begin();
+    #ifdef I2S_HAS_BEGIN_RXTX_DRIVE_CLOCKS
+      if (!i2s_rxtxdrive_begin(false, true, false, txDAC)) {
+        return false;
+      }
+    #else
+      if (!i2s_rxtx_begin(false, true)) {
+        return false;
+      }
+      if (!txDAC) {
+        audioLogger->printf_P(PSTR("I2SNoDAC: esp8266 arduino core should be upgraded to avoid conflicts with SPI\n"));
+      }
+    #endif
     }
   #endif
   i2sOn = true;
