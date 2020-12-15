@@ -117,10 +117,11 @@ bool AudioFileSourceUnsync::eof()
 
 
 
-AudioFileSourceID3::AudioFileSourceID3(AudioFileSource *src)
+AudioFileSourceID3::AudioFileSourceID3(AudioFileSource *src, bool skip)
 {
   this->src = src;
   this->checked = false;
+  this->skip = skip;
 }
 
 AudioFileSourceID3::~AudioFileSourceID3()
@@ -170,6 +171,13 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len)
   id3Size |= buff[8];
   id3Size = id3Size << 7;
   id3Size |= buff[9];
+
+  // Return now to the player if we want to skip ID3 parsing.
+  if(skip){
+    // Advance to the end of ID3 tag
+    src->seek(id3Size + 10, 0);
+    return src->read(data, len);
+  }
   // Every read from now may be unsync'd
   AudioFileSourceUnsync id3(src, id3Size, unsync);
 
@@ -234,7 +242,7 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len)
         cb.md("Year", isUnicode, value);
       } else if ( (frameid[0]=='T' && frameid[1]=='R' && frameid[2]=='C' && frameid[3] == 'K') ||
                   (frameid[0]=='T' && frameid[1]=='R' && frameid[2]=='K' && rev==2) ) {
-        cb.md("track", isUnicode, value);
+        cb.md("Track", isUnicode, value);
       } else if ( (frameid[0]=='T' && frameid[1]=='P' && frameid[2]=='O' && frameid[3] == 'S') ||
                   (frameid[0]=='T' && frameid[1]=='P' && frameid[2]=='A' && rev==2) ) {
         cb.md("Set", isUnicode, value);

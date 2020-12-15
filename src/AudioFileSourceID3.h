@@ -28,7 +28,7 @@
 class AudioFileSourceID3 : public AudioFileSource
 {
   public:
-    AudioFileSourceID3(AudioFileSource *src);
+    AudioFileSourceID3(AudioFileSource *src, bool skip = false);
     virtual ~AudioFileSourceID3() override;
     
     virtual uint32_t read(void *data, uint32_t len) override;
@@ -41,6 +41,7 @@ class AudioFileSourceID3 : public AudioFileSource
   private:
     AudioFileSource *src;
     bool checked;
+    bool skip;
 };
 
 
