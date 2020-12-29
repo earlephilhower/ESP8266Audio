@@ -83,6 +83,8 @@ AudioFileSourceICYStream::~AudioFileSourceICYStream()
 
 uint32_t AudioFileSourceICYStream::readInternal(void *data, uint32_t len, bool nonBlock)
 {
+  // Ensure we can't possibly read 2 ICY headers in a single go #355
+  len = std::min((int)(icyMetaInt >> 1), (int)len);
 retry:
   if (!http.connected()) {
     cb.st(STATUS_DISCONNECTED, PSTR("Stream disconnected"));
