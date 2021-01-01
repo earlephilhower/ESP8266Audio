@@ -8,27 +8,27 @@
 #include "AudioFileSourceICYStream.h"
 #include "AudioFileSourceBuffer.h"
 #include "AudioGeneratorMP3.h"
-#include "AudioOutputNull.h"
+#include "AudioOutputNullSlow.h"
 
 // To run, set your ESP8266 build to 160MHz, update the SSID info, and upload.
 
 // Enter your WiFi setup here:
 #ifndef STASSID
-#define STASSID ""
-#define STAPSK  ""
+#define STASSID "your-ssid"
+#define STAPSK  "your-password"
 #endif
 
 const char* ssid = STASSID;
 const char* password = STAPSK;
 
 // Randomly picked URL
-const char *URL="http://icecast.radiofrance.fr/franceinter-lofi.mp3";
-//const char *URL="http://kvbstreams.dyndns.org:8000/wkvi-am";
+const char *URL="http://kvbstreams.dyndns.org:8000/wkvi-am";
+//const char *URL="http://icecast.radiofrance.fr/franceinter-lofi.mp3";
 
 AudioGeneratorMP3 *mp3;
 AudioFileSourceICYStream *file;
 AudioFileSourceBuffer *buff;
-AudioOutputNull *out;
+AudioOutputNullSlow *out;
 
 // Called when a metadata event occurs (i.e. an ID3 tag, an ICY block, etc.
 void MDCallback(void *cbData, const char *type, bool isUnicode, const char *string)
@@ -80,9 +80,9 @@ void setup()
   audioLogger = &Serial;
   file = new AudioFileSourceICYStream(URL);
   file->RegisterMetadataCB(MDCallback, (void*)"ICY");
-  buff = new AudioFileSourceBuffer(file, 4096);
+  buff = new AudioFileSourceBuffer(file, 2048);
   buff->RegisterStatusCB(StatusCallback, (void*)"buffer");
-  out = new AudioOutputNull();
+  out = new AudioOutputNullSlow(44100);
   mp3 = new AudioGeneratorMP3();
   mp3->RegisterStatusCB(StatusCallback, (void*)"mp3");
   mp3->begin(buff, out);
