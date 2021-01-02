@@ -30,12 +30,14 @@ class AudioOutputNullSlow : public AudioOutput
     ~AudioOutputNullSlow() {};
     virtual bool begin() { samples = 0; startms = millis(); return true; }
     virtual bool ConsumeSample(int16_t sample[2]) {
-        (void)sample;
-        samples++;
-        usleep(1000000/hertz);
         // return false (= output buffer full)
         // sometimes to let the main loop running
-        return (samples & ((1<<12)-1)) != 0;
+        constexpr int everylog2 = 10;
+        if ((++samples & ((1<<everylog2)-1)) == 0) {
+            delay(1000/(hertz >> everylog2));
+            return false;
+        }
+        return true;
     }
     virtual bool stop() { endms = millis(); return true; };
     unsigned long GetMilliseconds() { return endms - startms; }
