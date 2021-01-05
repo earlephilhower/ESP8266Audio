@@ -30,7 +30,7 @@ else
     echo "  $0 diff"
     echo "  AUDIO=a VALGRIND=v $0"
     echo "     a=1 play sound (use padsp, open /dev/dsp)"
-    echo "     v=1 run in native mode"
+    echo "     v=1 run in native mode (FORCE32=0) with valgrind"
     echo "variable ESP8266ARDUINO must point to esp8266 Arduino core directory"
     echo ""
     [ "$1" = "-h" ] && exit 0
