@@ -1,7 +1,7 @@
 /*
   AudioOutput
   Base class of an audio output player
-  
+
   Copyright (C) 2017  Earle F. Philhower, III
 
   This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 
 #include "AudioOutput.h"
 
-class AudioOutputNullSlow : public AudioOutput 
+class AudioOutputNullSlow : public AudioOutput
 {
   public:
     AudioOutputNullSlow() { };
@@ -61,7 +61,7 @@ class AudioOutputNullSlow : public AudioOutput
         }
         lastchannels = channels;
       }
-      
+
       if (lastchannels > 0 && hertz && lasthertz != hertz) {
         Serial.printf("FREQ=%d\n", hertz);
         int arg = hertz*4/lastchannels;      /* sampling rate */
@@ -71,8 +71,8 @@ class AudioOutputNullSlow : public AudioOutput
           exit(1);
         }
         lasthertz = hertz;
-      }        
-      
+      }
+
       if (bps && lastbps != bps) {
         Serial.printf("BPS=%d\n", bps);
         int arg = bps;      /* sample size */
@@ -86,7 +86,7 @@ class AudioOutputNullSlow : public AudioOutput
         }
         lastbps = bps;
       }
-      
+
       if ((++samples & ((1<<9)-1)) == 0) {
         // let the main loop a chance to run
         return false;
@@ -96,7 +96,7 @@ class AudioOutputNullSlow : public AudioOutput
         perror("doing sound");
         exit(1);
       }
-      
+
       return true;
     }
 
