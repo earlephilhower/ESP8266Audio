@@ -9,6 +9,7 @@ fi
 
 THISLIB=$(pwd)/../..
 MAD=$(ls ${THISLIB}/src/libmad/*.c)
+PAGER=${PAGER:-less}
 
 cd ${ESP8266ARDUINO}/tests/host
 
@@ -19,7 +20,7 @@ if [ "$1" = "clean" ]; then
     exit 0
 elif [ "$1" = diff ]; then
     cd ${THISLIB}/examples
-    diff -u StreamMP3FromHTTP/StreamMP3FromHTTP.ino ${ino}/${ino}.ino
+    diff -u StreamMP3FromHTTP/StreamMP3FromHTTP.ino ${ino}/${ino}.ino | ${PAGER}
     exit 0
 else
     echo ""
@@ -27,30 +28,39 @@ else
     echo "  $0"
     echo "  $0 clean"
     echo "  $0 diff"
-    echo "  FORCE32=0 $0   (run with valgrind)"
-    echo "  FORCE32=1 $0   (run in 32 bits)"
+    echo "  AUDIO=a VALGRIND=v $0"
+    echo "     a=1 play sound (use padsp, open /dev/dsp)"
+    echo "     v=1 run in native mode"
     echo "variable ESP8266ARDUINO must point to esp8266 Arduino core directory"
     echo ""
     [ "$1" = "-h" ] && exit 0
     sleep 1
 fi
 
-[ -z "${FORCE32}" ] && FORCE32=0
 
-if [ "${FORCE32}" = 0 ]; then
-    run=valgrind
-else
-    run=
+run=""
+
+[ -z "${FORCE32}" ] && FORCE32=0
+[ -z "${AUDIO}" ] && AUDIO=1
+
+if [ "${AUDIO}" = 1 ]; then
+    run="${run} padsp"
 fi
+
+if [ "${VALGRIND}" = 1 ]; then
+    FORCE32=0
+    run="$run valgrind"
+fi
+
+touch ${THISLIB}/examples/${ino}/${ino}.ino # rebuild
 
 eval make FORCE32=${FORCE32} -j \
     USERCSOURCES=\"${MAD}\" \
     USERCXXSOURCES=\"${THISLIB}/src/AudioFileSourceBuffer.cpp ${THISLIB}/src/AudioLogger.cpp ${THISLIB}/src/AudioGeneratorMP3.cpp ${THISLIB}/src/AudioFileSourceICYStream.cpp ${THISLIB}/src/AudioFileSourceHTTPStream.cpp\" \
-    USERCFLAGS=\"-I${THISLIB}/src/\" \
+    USERCFLAGS=\"-I${THISLIB}/src/ -DAUDIO=${AUDIO}\" \
     ${THISLIB}/examples/${ino}/${ino}
 
 set -x
 
 $run ./bin/${ino}/${ino} "$@"
 stty sane
-
