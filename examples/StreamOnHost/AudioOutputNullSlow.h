@@ -26,7 +26,7 @@
 class AudioOutputNullSlow : public AudioOutput 
 {
   public:
-    AudioOutputNullSlow(int hertz) { SetRate(hertz); };
+    AudioOutputNullSlow() { };
     ~AudioOutputNullSlow() {};
     virtual bool begin() { samples = 0; startms = millis(); return true; }
     virtual bool ConsumeSample(int16_t sample[2]) {
@@ -34,7 +34,10 @@ class AudioOutputNullSlow : public AudioOutput
         // sometimes to let the main loop running
         constexpr int everylog2 = 10;
         if ((++samples & ((1<<everylog2)-1)) == 0) {
-            delay(1000/(hertz >> everylog2));
+            if (hertz > 0) {
+                // simulate real time
+                delay(1000/(hertz >> everylog2));
+            }
             return false;
         }
         return true;
