@@ -28,10 +28,10 @@ const char* ssid = STASSID;
 const char* password = STAPSK;
 
 // Randomly picked URL
-const char *URL="http://kvbstreams.dyndns.org:8000/wkvi-am";
+//const char *URL="http://kvbstreams.dyndns.org:8000/wkvi-am";
 //const char *URL="http://stream2.pvpjamz.com:8706/stream";
 // that one is not well decoded:
-//const char *URL="http://icecast.radiofrance.fr/franceinter-lofi.mp3";
+const char *URL="http://icecast.radiofrance.fr/franceinter-lofi.mp3";
 
 AudioGeneratorMP3 *mp3;
 AudioFileSourceICYStream *file;
@@ -86,8 +86,10 @@ void setup()
   Serial.println("Connected");
 
   audioLogger = &Serial;
-  file = new AudioFileSourceICYStream(URL);
+  file = new AudioFileSourceICYStream();
   file->RegisterMetadataCB(MDCallback, (void*)"ICY");
+  file->useHTTP10();
+  file->open(URL);
   buff = new AudioFileSourceBuffer(file, 2048);
   buff->RegisterStatusCB(StatusCallback, (void*)"buffer");
   out = new AudioOutputNullSlow();
