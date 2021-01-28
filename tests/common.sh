@@ -93,11 +93,9 @@ function install_libraries()
 function install_ide()
 {
     local ide_path=$1
-    local idever='1.8.10'
-    local ideurl="https://downloads.arduino.cc/arduino-$idever"
-    wget -q -O arduino.tar.xz "${ideurl}-linux64.tar.xz"
+    wget -q -O arduino.tar.xz https://www.arduino.cc/download.php?f=/arduino-nightly-linux64.tar.xz
     tar xf arduino.tar.xz
-    mv arduino-${idever} $ide_path
+    mv arduino-nightly $ide_path
     export PATH="$ide_path:$PATH"
 }
 
