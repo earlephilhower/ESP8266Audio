@@ -47,6 +47,7 @@ class AudioFileSourceHTTPStream : public AudioFileSource
     virtual uint32_t getSize() override;
     virtual uint32_t getPos() override;
     bool SetReconnect(int tries, int delayms) { reconnectTries = tries; reconnectDelayMs = delayms; return true; }
+    void useHTTP10 () { http.useHTTP10(true); }
 
     enum { STATUS_HTTPFAIL=2, STATUS_DISCONNECTED, STATUS_RECONNECTING, STATUS_RECONNECTED, STATUS_NODATA };
 
