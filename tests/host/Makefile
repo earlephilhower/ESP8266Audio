@@ -78,8 +78,8 @@ libflac=../../src/libflac/md5.c ../../src/libflac/window.c ../../src/libflac/mem
 ../../src/libflac/bitreader.c ../../src/libflac/bitmath.c ../../src/libflac/stream_decoder.c ../../src/libflac/float.c
 
 
-CCOPTS=-g -Wunused-parameter -Wall -m32 -include Arduino.h
-CPPOPTS=-g -Wunused-parameter -Wall -std=c++11 -m32 -include Arduino.h
+CCOPTS=-g -Wunused-parameter -Wall -m32 -include Arduino.h -Wstack-usage=300
+CPPOPTS=-g -Wunused-parameter -Wall -std=c++11 -m32 -Wstack-usage=300 -include Arduino.h
 
 .phony: all
 
