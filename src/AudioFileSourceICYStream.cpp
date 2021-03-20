@@ -40,7 +40,15 @@ bool AudioFileSourceICYStream::open(const char *url)
 {
   static const char *hdr[] = { "icy-metaint", "icy-name", "icy-genre", "icy-br" };
   pos = 0;
-  http.begin(client, url);
+  UrlParser* urlParser = new UrlParser();
+  urlParser->parse(url);
+  String fullpath=urlParser->getPath();
+  if (urlParser->getQuery()!=NULL) {
+    fullpath=fullpath+"?"+urlParser->getQuery();
+  }
+  http.begin(client, urlParser->getHost(), urlParser->getPort(), fullpath, urlParser->isHTTPS());
+  delete urlParser;
+
   http.addHeader("Icy-MetaData", "1");
   http.collectHeaders( hdr, 4 );
   http.setReuse(true);

@@ -28,6 +28,7 @@
   #include <ESP8266HTTPClient.h>
 #endif
 #include "AudioFileSource.h"
+#include "url_parser.h"
 
 class AudioFileSourceHTTPStream : public AudioFileSource
 {
