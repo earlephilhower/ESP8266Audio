@@ -18,8 +18,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _AUDIOFILESOURCEHTTPSTREAM_H
-#define _AUDIOFILESOURCEHTTPSTREAM_H
+#if defined(ESP32) || defined(ESP8266)
+#pragma once
 
 #include <Arduino.h>
 #ifdef ESP32
