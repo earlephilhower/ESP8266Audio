@@ -231,7 +231,9 @@ bool AudioOutputI2S::begin(bool txDAC)
   #elif defined(ARDUINO_ARCH_RP2040)
     (void)txDAC;
     if (!i2sOn) {
-        I2S.begin(hertz, bclkPin, doutPin);
+        I2S.setBCLK(bclkPin);
+	I2S.setDOUT(doutPin);
+        I2S.begin(hertz);
     }
   #endif
   i2sOn = true;
