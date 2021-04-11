@@ -34,7 +34,7 @@ class AudioFileSourceFunction : public AudioFileSource {
         // audio data follows here...
       } data;
     };
-    uint8_t bytes[];
+    uint8_t bytes[44];
   } wav_header;
 
   union Uint8AndInt8 {
