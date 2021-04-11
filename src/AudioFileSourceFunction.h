@@ -2,8 +2,10 @@
 #define _AUDIOFILESOURCEFUNCTION_H
 
 #include <Arduino.h>
-#include <ESP8266Audio.h>
+#include <vector>
 #include <functional>
+
+#include "AudioFileSource.h"
 
 class AudioFileSourceFunction : public AudioFileSource {
   union WavHeader {
