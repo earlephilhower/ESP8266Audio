@@ -3,6 +3,8 @@
 #include "AudioGeneratorWAV.h"
 #include "AudioOutputI2SNoDAC.h"
 
+float hz = 440.f;
+
 AudioGeneratorWAV* wav;
 AudioFileSourceFunction* file;
 AudioOutputI2SNoDAC* out;
@@ -23,10 +25,10 @@ void setup() {
   // bit/sample : default = 16 (8, 16, 32)
 
   // ===== set your sound function =====
-  file->addAudioGenerators([](const float time) {
-    float v = sin(TWO_PI * 440.f * time);  // C
-    v *= fmod(time, 1.f);                  // change linear
-    v *= 0.5;                              // scale
+  file->addAudioGenerators([&](const float time) {
+    float v = sin(TWO_PI * hz * time);  // generate sine wave
+    v *= fmod(time, 1.f);               // change linear
+    v *= 0.5;                           // scale
     return v;
   });
   //
