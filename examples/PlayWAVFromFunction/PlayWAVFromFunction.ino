@@ -5,6 +5,14 @@
 
 float hz = 440.f;
 
+// pre-defined function can also be used to generate the wave
+float sine_wave(const float time) {
+  float v = sin(TWO_PI * hz * time);  // C
+  v *= fmod(time, 1.f);               // change linear
+  v *= 0.5;                           // scale
+  return v;
+};
+
 AudioGeneratorWAV* wav;
 AudioFileSourceFunction* file;
 AudioOutputI2SNoDAC* out;
@@ -51,6 +59,9 @@ void setup() {
   //     return 0.25 * sin(TWO_PI * 550.f * time) * fmod(time, 1.f); // E
   //   }
   // );
+  //
+  // you can also use the pre-defined function
+  // file->addAudioGenerators(sine_wave);
 
   out = new AudioOutputI2SNoDAC();
   wav = new AudioGeneratorWAV();
