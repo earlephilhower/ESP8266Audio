@@ -71,7 +71,7 @@ uint32_t AudioFileSourceFunction::read(void* data, uint32_t len) {
       i += 1;
     } else {
       // data bytes
-      float time = (float)p / (float)wav_header.format.avg_bytes_per_sec;
+      float time = (float)(p - sizeof(WavHeader)) / (float)wav_header.format.avg_bytes_per_sec;
       float v = funcs[0](time);
       for (size_t ch = 0; ch < wav_header.format.channels; ++ch) {
         if (!is_unique && ch > 0)
