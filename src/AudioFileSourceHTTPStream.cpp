@@ -24,16 +24,58 @@
 
 AudioFileSourceHTTPStream::AudioFileSourceHTTPStream()
 {
+ // init_ascii_to_hex();
   pos = 0;
   reconnectTries = 0;
   saveURL[0] = 0;
+  next_chunk = 0;
 }
 
 AudioFileSourceHTTPStream::AudioFileSourceHTTPStream(const char *url)
 {
+  //init_ascii_to_hex();
   saveURL[0] = 0;
   reconnectTries = 0;
+  next_chunk = 0;
   open(url);
+
+}
+
+int AudioFileSourceHTTPStream::convertHexToInt(const char *str)
+{
+  int result = 0;
+  while(*str)
+  {
+    if(!((*str <= '9' && *str >= '0') || (*str <= 'f' && *str >= 'a')))
+    {
+      audioLogger->printf("Character not HEX");
+      return -1;
+    }
+    result = (result << 4) | ascii_to_hex[*str];
+    ++str; 
+  }
+
+  return result;
+}
+
+bool AudioFileSourceHTTPStream::verifyCrlf()
+{
+  
+  uint8_t crlf[3];
+  
+  client.read(crlf, 2);
+  crlf[2] = 0;
+  
+  String crlfString = "\r\n";
+  return crlfString == String((char*)crlf);
+}
+
+int AudioFileSourceHTTPStream::getChunkSize()
+{
+  String length = client.readStringUntil('\r');
+  String lf = client.readStringUntil('\n');
+  
+  return  convertHexToInt(length.c_str());
 }
 
 bool AudioFileSourceHTTPStream::open(const char *url)
@@ -44,12 +86,37 @@ bool AudioFileSourceHTTPStream::open(const char *url)
 #ifndef ESP32
   http.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
 #endif
+  const char* headers[] = { "Transfer-Encoding" };
+  http.collectHeaders( headers, 1 );
   int code = http.GET();
   if (code != HTTP_CODE_OK) {
     http.end();
     cb.st(STATUS_HTTPFAIL, PSTR("Can't open HTTP request"));
     return false;
   }
+  if (http.hasHeader("Transfer-Encoding")) {
+    audioLogger->printf_P(PSTR("Transfer-Encoding: %s\n"), http.header("Transfer-Encoding").c_str());
+    if(http.header("Transfer-Encoding") == String("chunked")) {
+      
+      next_chunk = getChunkSize();
+      if(-1 == next_chunk) 
+      {
+        return false;
+      }
+      is_chunked = true;
+      readImpl = &AudioFileSourceHTTPStream::readChunked;
+    } else {
+      is_chunked = false;
+      readImpl = &AudioFileSourceHTTPStream::readRegular;
+    }
+
+  } else {
+    readImpl = &AudioFileSourceHTTPStream::readRegular;
+    audioLogger->printf_P(PSTR("No Transfer-Encoding\n"));
+    is_chunked = false;
+  }
+ 
+
   size = http.getSize();
   strncpy(saveURL, url, sizeof(saveURL));
   saveURL[sizeof(saveURL)-1] = 0;
@@ -61,13 +128,58 @@ AudioFileSourceHTTPStream::~AudioFileSourceHTTPStream()
   http.end();
 }
 
+uint32_t AudioFileSourceHTTPStream::readRegular(void *data, uint32_t len, bool nonBlock)
+{
+  return readInternal(data, len, nonBlock);
+}
+
+uint32_t AudioFileSourceHTTPStream::readChunked(void *data, uint32_t len, bool nonBlock)
+{
+  uint32_t bytesRead = 0;
+  uint32_t pos = 0;
+  
+  while(len > 0)
+  {
+    if(len >= next_chunk)
+    {
+      while (next_chunk)
+      {
+        bytesRead = readInternal(data + pos, next_chunk, nonBlock);
+        next_chunk -= bytesRead;
+        pos += bytesRead;
+      }
+      len -= pos;
+      if(!verifyCrlf())
+      {
+        audioLogger->printf("Couldn't read CRLF after chunk, something is wrong !!\n");
+        return 0;
+      }
+      next_chunk = getChunkSize();
+    }
+    else
+    {
+      bytesRead = readInternal(data + pos, len, nonBlock);
+      next_chunk -= bytesRead;
+      len -= bytesRead;
+      pos += bytesRead;
+    }
+    
+  }
+  
+  
+  return pos;
+}
+
 uint32_t AudioFileSourceHTTPStream::read(void *data, uint32_t len)
 {
   if (data==NULL) {
     audioLogger->printf_P(PSTR("ERROR! AudioFileSourceHTTPStream::read passed NULL data\n"));
     return 0;
   }
-  return readInternal(data, len, false);
+  //return readInternal(data, len, false);
+  
+  return (this->*readImpl)(data, len, false);
+
 }
 
 uint32_t AudioFileSourceHTTPStream::readNonBlock(void *data, uint32_t len)
@@ -76,7 +188,8 @@ uint32_t AudioFileSourceHTTPStream::readNonBlock(void *data, uint32_t len)
     audioLogger->printf_P(PSTR("ERROR! AudioFileSourceHTTPStream::readNonBlock passed NULL data\n"));
     return 0;
   }
-  return readInternal(data, len, true);
+  return (this->*readImpl)(data, len, true);
+
 }
 
 uint32_t AudioFileSourceHTTPStream::readInternal(void *data, uint32_t len, bool nonBlock)
