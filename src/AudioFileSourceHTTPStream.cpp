@@ -36,10 +36,23 @@ AudioFileSourceHTTPStream::AudioFileSourceHTTPStream(const char *url)
   open(url);
 }
 
+void AudioFileSourceHTTPStream::setClient(WiFiClient *client)
+{
+  this->client = client;
+}
+
+void AudioFileSourceHTTPStream::setAuthorization(const char *user, const char *password)
+{
+  http.setAuthorization(user, password);
+}
+
 bool AudioFileSourceHTTPStream::open(const char *url)
 {
   pos = 0;
-  http.begin(client, url);
+  if (client == nullptr) {
+    client = new WiFiClient();
+  }
+  http.begin(*client, url);
   http.setReuse(true);
 #ifndef ESP32
   http.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
