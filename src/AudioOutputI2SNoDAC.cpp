@@ -95,8 +95,14 @@ bool AudioOutputI2SNoDAC::ConsumeSample(int16_t sample[2])
 
   // Either send complete pulse stream or nothing
 #ifdef ESP32
-  if (!i2s_write_bytes((i2s_port_t)portNo, (const char *)dsBuff, sizeof(uint32_t) * (oversample/32), 0))
+//"i2s_write_bytes" has been removed in the ESP32 Arduino 2.0.0,  use "i2s_write" instead.
+//  if (!i2s_write_bytes((i2s_port_t)portNo, (const char *)dsBuff, sizeof(uint32_t) * (oversample/32), 0))
+
+  size_t i2s_bytes_written;
+  i2s_write((i2s_port_t)portNo, (const char *)dsBuff, sizeof(uint32_t) * (oversample/32), &i2s_bytes_written, 0);
+  if (!i2s_bytes_written){
     return false;
+  }
 #elif defined(ESP8266)
   if (!i2s_write_sample_nb(dsBuff[0])) return false; // No room at the inn
   // At this point we've sent in first of possibly 8 32-bits, need to send
