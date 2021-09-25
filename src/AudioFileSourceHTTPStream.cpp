@@ -87,7 +87,7 @@ bool AudioFileSourceHTTPStream::open(const char *url)
   }
   if (http.hasHeader("Transfer-Encoding")) {
     audioLogger->printf_P(PSTR("Transfer-Encoding: %s\n"), http.header("Transfer-Encoding").c_str());
-    if(http.header("Transfer-Encoding") == String("chunked")) {
+    if(http.header("Transfer-Encoding") == String(PSTR("chunked"))) {
       
       next_chunk = getChunkSize();
       if(-1 == next_chunk) 
@@ -142,7 +142,7 @@ uint32_t AudioFileSourceHTTPStream::readChunked(void *data, uint32_t len, bool n
       len -= pos;
       if(!verifyCrlf())
       {
-        audioLogger->printf("Couldn't read CRLF after chunk, something is wrong !!\n");
+        audioLogger->printf(PSTR("Couldn't read CRLF after chunk, something is wrong !!\n"));
         return 0;
       }
       next_chunk = getChunkSize();
