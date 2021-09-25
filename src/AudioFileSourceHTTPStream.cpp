@@ -49,8 +49,7 @@ bool AudioFileSourceHTTPStream::verifyCrlf()
   client.read(crlf, 2);
   crlf[2] = 0;
   
-  String crlfString = "\r\n";
-  return crlfString == String((char*)crlf);
+  return !strncmp("\r\n", reinterpret_cast<const char*>(crlf), 2);
 }
 
 int AudioFileSourceHTTPStream::getChunkSize()
