@@ -24,7 +24,6 @@
 
 AudioFileSourceHTTPStream::AudioFileSourceHTTPStream()
 {
- // init_ascii_to_hex();
   pos = 0;
   reconnectTries = 0;
   saveURL[0] = 0;
@@ -33,7 +32,6 @@ AudioFileSourceHTTPStream::AudioFileSourceHTTPStream()
 
 AudioFileSourceHTTPStream::AudioFileSourceHTTPStream(const char *url)
 {
-  //init_ascii_to_hex();
   saveURL[0] = 0;
   reconnectTries = 0;
   next_chunk = 0;
@@ -167,7 +165,6 @@ uint32_t AudioFileSourceHTTPStream::read(void *data, uint32_t len)
     audioLogger->printf_P(PSTR("ERROR! AudioFileSourceHTTPStream::read passed NULL data\n"));
     return 0;
   }
-  //return readInternal(data, len, false);
   
   return (this->*readImpl)(data, len, false);
 
