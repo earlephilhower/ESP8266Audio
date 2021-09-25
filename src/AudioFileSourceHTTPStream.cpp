@@ -41,23 +41,6 @@ AudioFileSourceHTTPStream::AudioFileSourceHTTPStream(const char *url)
 
 }
 
-int AudioFileSourceHTTPStream::convertHexToInt(const char *str)
-{
-  int result = 0;
-  while(*str)
-  {
-    if(!((*str <= '9' && *str >= '0') || (*str <= 'f' && *str >= 'a')))
-    {
-      audioLogger->printf("Character not HEX");
-      return -1;
-    }
-    result = (result << 4) | ascii_to_hex[*str];
-    ++str; 
-  }
-
-  return result;
-}
-
 bool AudioFileSourceHTTPStream::verifyCrlf()
 {
   
@@ -75,7 +58,16 @@ int AudioFileSourceHTTPStream::getChunkSize()
   String length = client.readStringUntil('\r');
   String lf = client.readStringUntil('\n');
   
-  return  convertHexToInt(length.c_str());
+  unsigned int val = 0;
+  auto ret = sscanf(length.c_str(), "%x", &val);
+  if(ret)
+  {
+    return val;
+  }
+  else
+  {
+    return -1;
+  }
 }
 
 bool AudioFileSourceHTTPStream::open(const char *url)
