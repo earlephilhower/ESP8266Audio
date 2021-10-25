@@ -160,11 +160,13 @@ AudioOutputNull:  Just dumps samples to /dev/null.  Used for speed testing as it
 ## I2S DACs
 I've used both the Adafruit [I2S +3W amp DAC](https://www.adafruit.com/product/3006) and a generic PCM5102 based DAC with success.  The biggest problems I've seen from users involve pinouts from the ESP8266 for GPIO and hooking up all necessary pins on the DAC board. The essential pins are:
 
-ESP8266 pin | I2S pin
-------------|--------
-D4          | LRC
-D8          | BCLK
-RX          | DIN
+I2S pin | Common label* | ESP8266 pin 
+--------|---------------|-------------
+LRC     | D4            | GPIO2
+BCLK    | D8            | GPIO15
+DIN     | RX            | GPIO3
+
+\* The "common label" column applies to common NodeMCU and D1 Mini development boards. Unfortunately some manufacturers use different mappings so the labels listed here might not apply to your particular model.
 
 ### Adafruit I2S DAC
 This is quite simple and only needs the GND, VIN, LRC, BCLK< and DIN pins to be wired.  Be sure to use +5V on the VIN to get the loudest sound.  See the [Adafruit example page](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp) for more info.
