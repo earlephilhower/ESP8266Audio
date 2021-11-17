@@ -172,7 +172,7 @@ unsigned int AudioGeneratorMIDI::buffer_int32 (int offset) {
 
 unsigned long AudioGeneratorMIDI::get_varlen (int *ptr) {
   /* Get a 1-4 byte variable-length value and adjust the pointer past it.
-    These are a succession of 7-bit values with a MSB bit of zero marking the end */
+    These are a succession of 7-bit values with an MSB bit of zero marking the end */
 
   unsigned long val;
   int i, byte;
