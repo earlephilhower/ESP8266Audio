@@ -364,7 +364,7 @@ void AudioGeneratorMIDI::PrepareMIDI(AudioFileSource *src)
 int AudioGeneratorMIDI::PlayMIDI()
 {
   /* Continue processing all tracks, in an order based on the simulated time.
-    This is not unlike multiway merging used for tape sorting algoritms in the 50's! */
+    This is not unlike multiway merging used for tape sorting algorithms in the 50's! */
 
   do {                         /* while there are still track notes to process */
     static struct track_status *trk;
