@@ -100,7 +100,7 @@ AudioFileSourcePROGMEM:  Reads a file from a PROGMEM array.  Under UNIX you can 
 AudioFileSourceHTTPStream:  Simple implementation of a streaming HTTP reader for ShoutCast-type MP3 streaming.  Not yet resilient, and at 44.1khz 128bit stutters due to CPU limitations, but it works more or less.
 
 ## AudioFileSourceBuffer - Double buffering, useful for HTTP streams
-AudioFileSourceBuffer is an input source that simpy adds an additional RAM buffer of the output of any other AudioFileSource.  This is particularly useful for web streaming where you need to have 1-2 packets in memory to ensure hiccup-free playback.
+AudioFileSourceBuffer is an input source that simply adds an additional RAM buffer of the output of any other AudioFileSource.  This is particularly useful for web streaming where you need to have 1-2 packets in memory to ensure hiccup-free playback.
 
 Create your standard input file source, create the buffer with the original source as its input, and pass this buffer object to the generator.
 ```cpp

@@ -104,7 +104,7 @@ void setup()
   // Commented out for performance issues with high rate MP3 stream
   //buff->RegisterStatusCB(StatusCallback, (void*)"buffer");
 
-  // Set SPDIF outout
+  // Set SPDIF output
   out = new AudioOutputSPDIF();
   mp3 = new AudioGeneratorMP3();
 
