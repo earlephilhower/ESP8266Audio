@@ -331,7 +331,7 @@ note_off:
 }
 
 
-// Open file, parse headers, get ready tio process MIDI
+// Open file, parse headers, get ready to process MIDI
 void AudioGeneratorMIDI::PrepareMIDI(AudioFileSource *src)
 {
   MakeStreamFromAFS(src, &afsMIDI);
