@@ -21,8 +21,10 @@
 #include <Arduino.h>
 #ifdef ESP32
   #include "driver/i2s.h"
-#elif defined(ARDUINO_ARCH_RP2040) || defined(ESP8266)
+#elif defined(ARDUINO_ARCH_RP2040) || ARDUINO_ESP8266_MAJOR >= 3
   #include <I2S.h>
+#elif ARDUINO_ESP8266_MAJOR < 3
+  #include <i2s.h>
 #endif
 #include "AudioOutputI2S.h"
 
