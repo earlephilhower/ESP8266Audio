@@ -166,11 +166,19 @@ bool AudioOutputI2S::begin(bool txDAC)
       i2s_mode_t mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX);
       if (output_mode == INTERNAL_DAC)
       {
+#ifdef I2S_MODE_DAC_BUILT_IN
         mode = (i2s_mode_t)(mode | I2S_MODE_DAC_BUILT_IN);
+#else
+        return false;      
+#endif
       }
-      else if (output_mode == INTERNAL_PDM)
+      if (output_mode == INTERNAL_PDM)
       {
+#ifdef I2S_MODE_PDM
         mode = (i2s_mode_t)(mode | I2S_MODE_PDM);
+#else
+        return false;      
+#endif
       }
 
       i2s_comm_format_t comm_fmt = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB);
@@ -197,8 +205,12 @@ bool AudioOutputI2S::begin(bool txDAC)
       }
       if (output_mode == INTERNAL_DAC || output_mode == INTERNAL_PDM)
       {
+#ifdef I2S_DAC_CHANNEL_BOTH_EN
         i2s_set_pin((i2s_port_t)portNo, NULL);
         i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN);
+#else
+        return false;
+#endif
       }
       else
       {
