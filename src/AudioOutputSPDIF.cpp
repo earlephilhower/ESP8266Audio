@@ -265,7 +265,7 @@ bool AudioOutputSPDIF::ConsumeSample(int16_t sample[2])
 
 #if defined(ESP32)
   // Assume DMA buffers are multiples of 16 bytes. Either we write all bytes or none.
-  uint32_t bytes_written;
+  size_t bytes_written;
   esp_err_t ret = i2s_write((i2s_port_t)portNo, (const char*)&buf, 8 * channels, &bytes_written, 0);
   // If we didn't write all bytes, return false early and do not increment frame_num
   if ((ret != ESP_OK) || (bytes_written != (8 * channels))) return false;  
