@@ -96,7 +96,9 @@ retry:
       }
     }
     if (!http.connected()) {
-      cb.st(STATUS_DISCONNECTED, PSTR("Unable to reconnect"));
+      if (reconnectTries != 0) {
+        cb.st(STATUS_DISCONNECTED, PSTR("Unable to reconnect"));
+      }
       return 0;
     }
   }
