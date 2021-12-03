@@ -38,8 +38,13 @@ AudioFileSourceHTTPStream::AudioFileSourceHTTPStream(const char *url)
 
 bool AudioFileSourceHTTPStream::open(const char *url)
 {
-  pos = 0;
   http.begin(client, url);
+  return openInternal(url);
+}
+
+bool AudioFileSourceHTTPStream::openInternal(const char *url)
+{
+  pos = 0;
   http.setReuse(true);
   http.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
   int code = http.GET();
@@ -123,6 +128,11 @@ retry:
   if (avail == 0) return 0;
   if (avail < len) len = avail;
 
+  return parseInternal(stream, data, len);
+}
+
+uint32_t AudioFileSourceHTTPStream::parseInternal(WiFiClient *stream, void *data, uint32_t len)
+{
   int read = stream->read(reinterpret_cast<uint8_t*>(data), len);
   pos += read;
   return read;

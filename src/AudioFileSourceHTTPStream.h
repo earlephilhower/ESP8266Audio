@@ -51,8 +51,12 @@ class AudioFileSourceHTTPStream : public AudioFileSource
 
     enum { STATUS_HTTPFAIL=2, STATUS_DISCONNECTED, STATUS_RECONNECTING, STATUS_RECONNECTED, STATUS_NODATA };
 
+  protected:
+    bool openInternal(const char *url);
+
   private:
-    virtual uint32_t readInternal(void *data, uint32_t len, bool nonBlock);
+    uint32_t readInternal(void *data, uint32_t len, bool nonBlock);
+    virtual uint32_t parseInternal(WiFiClient *stream, void *data, uint32_t len);
     WiFiClient client;
     HTTPClient http;
     int pos;

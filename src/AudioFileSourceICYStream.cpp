@@ -41,19 +41,11 @@ AudioFileSourceICYStream::AudioFileSourceICYStream(const char *url)
 
 bool AudioFileSourceICYStream::open(const char *url)
 {
-  static const char *hdr[] = { "icy-metaint", "icy-name", "icy-genre", "icy-br" };
-  pos = 0;
   http.begin(client, url);
+  static const char *hdr[] = { "icy-metaint", "icy-name", "icy-genre", "icy-br" };
   http.addHeader("Icy-MetaData", "1");
   http.collectHeaders( hdr, 4 );
-  http.setReuse(true);
-  http.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
-  int code = http.GET();
-  if (code != HTTP_CODE_OK) {
-    http.end();
-    cb.st(STATUS_HTTPFAIL, PSTR("Can't open HTTP request"));
-    return false;
-  }
+  if (!openInternal(url)) return false;
   if (http.hasHeader(hdr[0])) {
     String ret = http.header(hdr[0]);
     icyMetaInt = ret.toInt();
@@ -72,65 +64,16 @@ bool AudioFileSourceICYStream::open(const char *url)
     String ret = http.header(hdr[3]);
 //    cb.md("Bitrate", false, ret.c_str());
   }
-
   icyByteCount = 0;
-  size = http.getSize();
-  strncpy(saveURL, url, sizeof(saveURL));
-  saveURL[sizeof(saveURL)-1] = 0;
   return true;
 }
 
-AudioFileSourceICYStream::~AudioFileSourceICYStream()
-{
-  http.end();
-}
-
-uint32_t AudioFileSourceICYStream::readInternal(void *data, uint32_t len, bool nonBlock)
+uint32_t AudioFileSourceICYStream::parseInternal(WiFiClient *stream, void *data, uint32_t len)
 {
   // Ensure we can't possibly read 2 ICY headers in a single go #355
   if (icyMetaInt > 1) {
     len = std::min((int)(icyMetaInt >> 1), (int)len);
   }
-retry:
-  if (!http.connected()) {
-    cb.st(STATUS_DISCONNECTED, PSTR("Stream disconnected"));
-    http.end();
-    for (int i = 0; i < reconnectTries; i++) {
-      char buff[64];
-      sprintf_P(buff, PSTR("Attempting to reconnect, try %d"), i);
-      cb.st(STATUS_RECONNECTING, buff);
-      delay(reconnectDelayMs);
-      if (open(saveURL)) {
-        cb.st(STATUS_RECONNECTED, PSTR("Stream reconnected"));
-        break;
-      }
-    }
-    if (!http.connected()) {
-      cb.st(STATUS_DISCONNECTED, PSTR("Unable to reconnect"));
-      return 0;
-    }
-  }
-  if ((size > 0) && (pos >= size)) return 0;
-
-  WiFiClient *stream = http.getStreamPtr();
-
-  // Can't read past EOF...
-  if ( (size > 0) && (len > (uint32_t)(pos - size)) ) len = pos - size;
-
-  if (!nonBlock) {
-    int start = millis();
-    while ((stream->available() < (int)len) && (millis() - start < 500)) yield();
-  }
-
-  size_t avail = stream->available();
-  if (!nonBlock && !avail) {
-    cb.st(STATUS_NODATA, PSTR("No stream data available"));
-    http.end();
-    goto retry;
-  }
-  if (avail == 0) return 0;
-  if (avail < len) len = avail;
-
   int read = 0;
   int ret = 0;
   // If the read would hit an ICY block, split it up...
