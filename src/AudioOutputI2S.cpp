@@ -42,6 +42,7 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int
 
   //set defaults
   mono = false;
+  lsb_justified = false;
   bps = 16;
   channels = 2;
   hertz = 44100;
@@ -148,6 +149,12 @@ bool AudioOutputI2S::SetOutputModeMono(bool mono)
   return true;
 }
 
+bool AudioOutputI2S::SetLsbJustified(bool lsbJustified)
+{
+  this->lsb_justified = lsbJustified;
+  return true;
+}
+
 bool AudioOutputI2S::begin(bool txDAC)
 {
   #ifdef ESP32
@@ -183,10 +190,18 @@ bool AudioOutputI2S::begin(bool txDAC)
 #endif
       }
 
-      i2s_comm_format_t comm_fmt = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB);
+      i2s_comm_format_t comm_fmt;
       if (output_mode == INTERNAL_DAC)
       {
-        comm_fmt = (i2s_comm_format_t)I2S_COMM_FORMAT_I2S_MSB;
+        comm_fmt = (i2s_comm_format_t) I2S_COMM_FORMAT_I2S_MSB;
+      }
+      else if (lsb_justified)
+      {
+        comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_LSB);
+      }
+      else
+      {
+        comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB);
       }
 
       i2s_config_t i2s_config_dac = {
