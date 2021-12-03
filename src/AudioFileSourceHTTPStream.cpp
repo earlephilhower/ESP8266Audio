@@ -45,7 +45,9 @@ bool AudioFileSourceHTTPStream::open(const char *url)
   int code = http.GET();
   if (code != HTTP_CODE_OK) {
     http.end();
-    cb.st(STATUS_HTTPFAIL, PSTR("Can't open HTTP request"));
+    char buff[64];
+    sprintf_P(buff, PSTR("Can't open HTTP request (code %d)"), code);
+    cb.st(STATUS_HTTPFAIL, buff);
     return false;
   }
   size = http.getSize();
