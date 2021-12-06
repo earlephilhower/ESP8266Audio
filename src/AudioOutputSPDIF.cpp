@@ -94,7 +94,11 @@ AudioOutputSPDIF::AudioOutputSPDIF(int dout_pin, int port, int dma_buf_count)
     .sample_rate = 88200, // 2 x sampling_rate 
     .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT, // 32bit words
     .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT, // Right than left
-    .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
+	  .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_STAND_I2S),
+#else
+	  .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
+#endif
     .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // lowest interrupt priority
     .dma_buf_count = dma_buf_count,
     .dma_buf_len = DMA_BUF_SIZE_DEFAULT, // bigger buffers, reduces interrupts
