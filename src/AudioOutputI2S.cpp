@@ -193,7 +193,11 @@ bool AudioOutputI2S::begin(bool txDAC)
       i2s_comm_format_t comm_fmt;
       if (output_mode == INTERNAL_DAC)
       {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
+        comm_fmt = (i2s_comm_format_t) I2S_COMM_FORMAT_STAND_MSB;
+#else
         comm_fmt = (i2s_comm_format_t) I2S_COMM_FORMAT_I2S_MSB;
+#endif
       }
       else if (lsb_justified)
       {
@@ -201,7 +205,11 @@ bool AudioOutputI2S::begin(bool txDAC)
       }
       else
       {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
+        comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_STAND_I2S);
+#else
         comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB);
+#endif
       }
 
       i2s_config_t i2s_config_dac = {
