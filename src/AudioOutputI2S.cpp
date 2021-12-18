@@ -175,15 +175,15 @@ bool AudioOutputI2S::begin(bool txDAC)
       i2s_mode_t mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX);
       if (output_mode == INTERNAL_DAC)
       {
-#ifdef I2S_MODE_DAC_BUILT_IN
+#if CONFIG_IDF_TARGET_ESP32
         mode = (i2s_mode_t)(mode | I2S_MODE_DAC_BUILT_IN);
 #else
         return false;      
 #endif
       }
-      if (output_mode == INTERNAL_PDM)
+      else if (output_mode == INTERNAL_PDM)
       {
-#ifdef I2S_MODE_PDM
+#if CONFIG_IDF_TARGET_ESP32
         mode = (i2s_mode_t)(mode | I2S_MODE_PDM);
 #else
         return false;      
@@ -193,7 +193,11 @@ bool AudioOutputI2S::begin(bool txDAC)
       i2s_comm_format_t comm_fmt;
       if (output_mode == INTERNAL_DAC)
       {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
+        comm_fmt = (i2s_comm_format_t) I2S_COMM_FORMAT_STAND_MSB;
+#else
         comm_fmt = (i2s_comm_format_t) I2S_COMM_FORMAT_I2S_MSB;
+#endif
       }
       else if (lsb_justified)
       {
@@ -201,7 +205,11 @@ bool AudioOutputI2S::begin(bool txDAC)
       }
       else
       {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
+        comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_STAND_I2S);
+#else
         comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB);
+#endif
       }
 
       i2s_config_t i2s_config_dac = {
@@ -222,7 +230,7 @@ bool AudioOutputI2S::begin(bool txDAC)
       }
       if (output_mode == INTERNAL_DAC || output_mode == INTERNAL_PDM)
       {
-#ifdef I2S_DAC_CHANNEL_BOTH_EN
+#if CONFIG_IDF_TARGET_ESP32
         i2s_set_pin((i2s_port_t)portNo, NULL);
         i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN);
 #else
