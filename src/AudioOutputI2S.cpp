@@ -220,7 +220,7 @@ bool AudioOutputI2S::begin(bool txDAC)
           .communication_format = comm_fmt,
           .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // lowest interrupt priority
           .dma_buf_count = dma_buf_count,
-          .dma_buf_len = 64,
+          .dma_buf_len = 128,
           .use_apll = use_apll // Use audio PLL
       };
       audioLogger->printf("+%d %p\n", portNo, &i2s_config_dac);
@@ -324,7 +324,7 @@ void AudioOutputI2S::flush()
 {
   #ifdef ESP32
     // makes sure that all stored DMA samples are consumed / played
-    int buffersize = 64 * this->dma_buf_count;
+    int buffersize = 128 * this->dma_buf_count;
     int16_t samples[2] = {0x0, 0x0};
     for (int i = 0; i < buffersize; i++)
     {
