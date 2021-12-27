@@ -41,7 +41,10 @@ AudioGeneratorRTTTL::~AudioGeneratorRTTTL()
 
 bool AudioGeneratorRTTTL::stop()
 {
-  if (!running) return true;
+  if (!file || !output)
+  {
+	  return false;
+  }
   running = false;
   output->stop();
   return file->close();
