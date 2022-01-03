@@ -735,13 +735,14 @@ bool AudioGeneratorMOD::RunPlayer()
 
 void AudioGeneratorMOD::GetSample(int16_t sample[2])
 {
-  int16_t sumL;
-  int16_t sumR;
+  int32_t sumL;
+  int32_t sumR;
   uint8_t channel;
   uint32_t samplePointer;
   int8_t current;
   int8_t next;
   int16_t out;
+  int32_t out32;
 
   if (!running) return;
 
@@ -779,7 +780,7 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
         samplePointer >= FatBuffer.samplePointer[channel] + fatBufferSize - 1 ||
         Mixer.channelSampleNumber[channel] != FatBuffer.channelSampleNumber[channel]) {
 
-      uint16_t toRead = Mixer.sampleEnd[Mixer.channelSampleNumber[channel]] - samplePointer + 1;
+      uint32_t toRead = Mixer.sampleEnd[Mixer.channelSampleNumber[channel]] - samplePointer + 1;
       if (toRead > fatBufferSize) toRead  = fatBufferSize;
 
       if (!file->seek(samplePointer, SEEK_SET)) {
@@ -800,27 +801,50 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
 
     out = current;
 
-    // Integer linear interpolation
+    // Integer linear interpolation - only work correctly in 16bit
     out += (next - current) * (Mixer.channelSampleOffset[channel] & ((1 << FIXED_DIVIDER) - 1)) >> FIXED_DIVIDER;
 
     // Upscale to BITDEPTH
-    out <<= BITDEPTH - 8;
+    out32 = (int32_t)out << (BITDEPTH - 8);
 
     // Channel volume
-    out = out * Mixer.channelVolume[channel] >> 6;
+    out32 = out32 * Mixer.channelVolume[channel] >> 6;
 
     // Channel panning
-    sumL += out * min(128 - Mixer.channelPanning[channel], 64) >> 6;
-    sumR += out * min(Mixer.channelPanning[channel], 64) >> 6;
+    sumL += out32 * min(128 - Mixer.channelPanning[channel], 64) >> 6;
+    sumR += out32 * min(Mixer.channelPanning[channel], 64) >> 6;
   }
 
-  // Downscale to BITDEPTH
-  sumL /= Mod.numberOfChannels;
-  sumR /= Mod.numberOfChannels;
+  // Downscale to BITDEPTH - original code
+  //sumL /= Mod.numberOfChannels;
+  //sumR /= Mod.numberOfChannels;
+  
+  // Downscale to BITDEPTH - a bit fast because the compiler can replaced division by constants with proper "left shift" + correct handling of sign bit
+  if (Mod.numberOfChannels <= 4) {
+      // up to 4 channels
+      sumL /= 4;
+      sumR /= 4;
+  } else {
+    if (Mod.numberOfChannels <= 6) {
+      // 5 or 6 channels - pre-multiply be 1.5, then divide by 8 -> same as division by 6
+      sumL = (sumL + (sumL/2)) / 8;
+      sumR = (sumR + (sumR/2)) / 8;      
+    } else {
+      // 7,8, or more channels
+      sumL /= 8;
+      sumR /= 8;
+    }
+  }
 
-  // Fill the sound buffer with unsigned values
-  sample[AudioOutput::LEFTCHANNEL] = sumL + (1 << (BITDEPTH - 1));
-  sample[AudioOutput::RIGHTCHANNEL] = sumR + (1 << (BITDEPTH - 1));
+  // clip samples to 16bit (with saturation in case of overflow)
+  if(sumL <= INT16_MIN) sumL = INT16_MIN;
+    else if (sumL >= INT16_MAX) sumL = INT16_MAX;
+  if(sumR <= INT16_MIN) sumR = INT16_MIN;
+    else if (sumR >= INT16_MAX) sumR = INT16_MAX;
+  
+  // Fill the sound buffer with signed values
+  sample[AudioOutput::LEFTCHANNEL] = sumL;
+  sample[AudioOutput::RIGHTCHANNEL] = sumR;
 }
 
 bool AudioGeneratorMOD::LoadMOD()
