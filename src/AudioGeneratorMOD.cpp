@@ -232,6 +232,11 @@ bool AudioGeneratorMOD::LoadHeader()
     Mod.numberOfChannels = (temp[0] - '0') * 10 + temp[1] - '0';
   else
     Mod.numberOfChannels = 4;
+  
+  if (Mod.numberOfChannels > CHANNELS) {
+    audioLogger->printf("\nAudioGeneratorMOD::LoadHeader abort - too many channels (configured: %d, needed: %d)\n", CHANNELS, Mod.numberOfChannels);
+    return(false);
+  }
 
   return true;
 }
@@ -801,7 +806,7 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
 
     out = current;
 
-    // Integer linear interpolation - only work correctly in 16bit
+    // Integer linear interpolation - only works correctly in 16bit
     out += (next - current) * (Mixer.channelSampleOffset[channel] & ((1 << FIXED_DIVIDER) - 1)) >> FIXED_DIVIDER;
 
     // Upscale to BITDEPTH
