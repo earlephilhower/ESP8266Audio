@@ -417,7 +417,7 @@ bool AudioGeneratorMOD::ProcessRow()
 
     if (sampleNumber) {
       Player.lastSampleNumber[channel] = sampleNumber - 1;
-      if (!(effectParameter == 0xE && effectParameterX == NOTEDELAY))
+      if (!(effectNumber == 0xE && effectParameterX == NOTEDELAY))
         Player.volume[channel] = Mod.samples[Player.lastSampleNumber[channel]].volume;
     }
 
