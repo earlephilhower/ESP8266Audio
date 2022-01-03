@@ -29,6 +29,25 @@
 #include "AudioOutputI2SNoDAC.h"
 
 
+#if defined(ARDUINO_ARCH_RP2040)
+//
+// Create an alternate constructor for the RP2040.  The AudioOutputI2S has an alternate
+// constructor for the RP2040, so the code was passing port to the sampleRate and false to sck.
+//
+//    AudioOutputI2S(long sampleRate = 44100, pin_size_t sck = 26, pin_size_t data = 28);
+//
+// So this new constructor adds the ability to pass both port and sck to the underlying class, but
+// uses the same defaults in the AudioOutputI2S constructor.
+//
+AudioOutputI2SNoDAC::AudioOutputI2SNoDAC(int port, int sck) : AudioOutputI2S(44100, sck, port)
+{
+  SetOversampling(32);
+  lastSamp = 0;
+  cumErr = 0;
+}
+
+#else
+
 AudioOutputI2SNoDAC::AudioOutputI2SNoDAC(int port) : AudioOutputI2S(port, false)
 {
   SetOversampling(32);
@@ -38,7 +57,10 @@ AudioOutputI2SNoDAC::AudioOutputI2SNoDAC(int port) : AudioOutputI2S(port, false)
   WRITE_PERI_REG(PERIPHS_IO_MUX_MTDO_U, orig_bck);
   WRITE_PERI_REG(PERIPHS_IO_MUX_GPIO2_U, orig_ws);
 #endif
+
 }
+#endif
+
 
 AudioOutputI2SNoDAC::~AudioOutputI2SNoDAC()
 {
