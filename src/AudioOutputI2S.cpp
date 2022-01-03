@@ -298,9 +298,9 @@ bool AudioOutputI2S::ConsumeSample(int16_t sample[2])
     uint32_t s32;
     if (output_mode == INTERNAL_DAC)
     {
-      int16_t l = Amplify(ms[LEFTCHANNEL]) + 0x8000;
-      int16_t r = Amplify(ms[RIGHTCHANNEL]) + 0x8000;
-      s32 = (r << 16) | (l & 0xffff);
+      uint32_t l = ((int32_t)Amplify(ms[LEFTCHANNEL])) + 0x8000;
+      uint32_t r = ((int32_t)Amplify(ms[RIGHTCHANNEL])) + 0x8000;
+      s32 = ((r & 0xffff) << 16) | (l & 0xffff);
     }
     else
     {
