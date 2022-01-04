@@ -67,6 +67,19 @@ class AudioGeneratorMOD : public AudioGenerator
     
     enum {ROWS = 64, SAMPLES = 31, CHANNELS = 8, NONOTE = 0xFFFF, NONOTE8 = 0xff };
 
+	  /* the next variables are only used when do_MIXER_DEBUG is defined in AudiogeneratorMod.cpp */
+	  unsigned long clip_L_counter = 0;
+	  unsigned long clip_R_counter = 0;
+	  bool first_sample = false;
+	  long sample_min_step1 = 0;
+	  long sample_max_step1 = 0;
+	  long sample_min_step2 = 0;
+	  long sample_max_step2 = 0;
+	  long sample_min_step3 = 0;
+	  long sample_max_step3 = 0;
+	  long sample_min_out = 0;
+	  long sample_max_out = 0;
+
     typedef struct Sample {
       uint16_t length;
       int8_t fineTune;
