@@ -860,11 +860,14 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
 
     current = FatBuffer.channels[channel][(samplePointer - FatBuffer.samplePointer[channel]) /*& (FATBUFFERSIZE - 1)*/];
     next = FatBuffer.channels[channel][(samplePointer + 1 - FatBuffer.samplePointer[channel]) /*& (FATBUFFERSIZE - 1)*/];
-
-    out = current;
+	  
+    int16_t current16 = (int16_t) current << 2;
+    int16_t next16    = (int16_t) next << 2;	  
+	  
+    out = current16;
 
     // Integer linear interpolation - only works correctly in 16bit
-    out += (next - current) * (Mixer.channelSampleOffset[channel] & ((1 << FIXED_DIVIDER) - 1)) >> FIXED_DIVIDER;
+    out += (next16 - current16) * (Mixer.channelSampleOffset[channel] & ((1 << FIXED_DIVIDER) - 1)) >> FIXED_DIVIDER;
 
 #ifdef do_MIXER_DEBUG
 	  // remember min/max after interpolation
@@ -875,8 +878,8 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
 
     #if 0
     // check if interpolation went "out of limits"
-    int16_t lower_limit = min(current, next) - 1;
-    int16_t upper_limit = max(current, next) + 1;
+    int16_t lower_limit = min(current16, next16) - 1;
+    int16_t upper_limit = max(current16, next16) + 1;
     static unsigned long last_time_off_limits = 0;
 	  if ((out > upper_limit) || (out < lower_limit)) {
 		  if ((millis() - last_time_off_limits) > 1000) {
@@ -887,8 +890,8 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
    #endif
 #endif
     
-    // Upscale to BITDEPTH
-    out32 = (int32_t)out << (BITDEPTH - 8);
+    // Upscale to BITDEPTH, considering the we already have two more bits from the previous step
+    out32 = (int32_t)out << (BITDEPTH - 10);
 
     // Channel volume
     out32 = out32 * Mixer.channelVolume[channel] >> 6;
