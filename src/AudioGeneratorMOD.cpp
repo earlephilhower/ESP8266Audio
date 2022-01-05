@@ -918,11 +918,7 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
 	sample_max_step3 = (sumR > sample_max_step3) ? sumR : sample_max_step3; 
 #endif
   
-  // Downscale to BITDEPTH - original code
-  //sumL /= Mod.numberOfChannels;
-  //sumR /= Mod.numberOfChannels;
-  
-  // Downscale to BITDEPTH - a bit fast because the compiler can replaced division by constants with proper "left shift" + correct handling of sign bit
+  // Downscale to BITDEPTH - a bit faster because the compiler can replaced division by constants with proper "right shift" + correct handling of sign bit
   if (Mod.numberOfChannels <= 4) {
       // up to 4 channels
       sumL /= 4;
