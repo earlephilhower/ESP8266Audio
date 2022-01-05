@@ -300,7 +300,7 @@ bool AudioOutputI2S::ConsumeSample(int16_t sample[2])
     {
       int16_t l = Amplify(ms[LEFTCHANNEL]) + 0x8000;
       int16_t r = Amplify(ms[RIGHTCHANNEL]) + 0x8000;
-      s32 = (r << 16) | (l & 0xffff);
+      s32 = ((r & 0xffff) << 16) | (l & 0xffff);
     }
     else
     {
