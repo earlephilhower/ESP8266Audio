@@ -19,8 +19,6 @@
 */
 #define PGM_READ_UNALIGNED 0
 
-#define do_MIXER_DEBUG
-
 #include "AudioGeneratorMOD.h"
 
 /* 
@@ -71,22 +69,7 @@ bool AudioGeneratorMOD::stop()
     free(FatBuffer.channels[i]);
     FatBuffer.channels[i] = NULL;
   }
-  
-#ifdef do_MIXER_DEBUG
-  if((file != NULL) && (file->isOpen() == true)) { // maker sure we only get statistics once
-	  audioLogger->printf("\nrange after interpolation    : %ld   to %ld \t(0x%lX to 0x%lX)\n", 
-		  sample_min_step1, sample_max_step1, sample_min_step1, sample_max_step1);
-	  audioLogger->printf(  "range after upsampling+volume: %ld  to %ld \t(0x%lX to 0x%lX)\n", 
-		  sample_min_step2, sample_max_step2, sample_min_step2, sample_max_step2);
-	  audioLogger->printf(  "L/R sums after mixing/panning: %ld to %ld \t(0x%lX to 0x%lX)\n", 
-		  sample_min_step3, sample_max_step3, sample_min_step3, sample_max_step3);
-	  audioLogger->printf("\nclipped samples:  left %ld; right %ld\n", 
-		  clip_L_counter, clip_R_counter);
-	  audioLogger->printf(  "final output   : %ld to %ld \t(0x%lX to 0x%lX)\n", 
-		  sample_min_out, sample_max_out, sample_min_out, sample_max_out);
-  }
-#endif
-  
+    
   if (file) file->close();
   running = false;
   output->stop();
@@ -125,20 +108,6 @@ done:
 bool AudioGeneratorMOD::begin(AudioFileSource *source, AudioOutput *out)
 {
   if (running) stop();
-  
-#ifdef do_MIXER_DEBUG
-	clip_L_counter = 0;
-	clip_R_counter = 0;
-	sample_min_step1 = 0;
-	sample_max_step1 = 0;
-	sample_min_step2 = 0;
-	sample_max_step2 = 0;
-	sample_min_step3 = 0;
-	sample_max_step3 = 0;
-	sample_min_out = 0;
-	sample_max_out = 0;
-	first_sample = true;
-#endif
   
   if (!source) return false;
   file = source;
@@ -230,10 +199,6 @@ bool AudioGeneratorMOD::LoadHeader()
   uint8_t junk[22];
 
   if (20 != file->read(/*Mod.name*/junk, 20)) return false; // Skip MOD name
-#ifdef do_MIXER_DEBUG
-  junk[21] = '\0';
-  audioLogger->printf("MOD song title: %s\n", junk);
-#endif
   
   for (i = 0; i < SAMPLES; i++) {
     if (22 != file->read(junk /*Mod.samples[i].name*/, 22)) return false; // Skip sample name
@@ -247,27 +212,11 @@ bool AudioGeneratorMOD::LoadHeader()
     if (2 != file->read(temp, 2)) return false;
     Mod.samples[i].loopLength = MakeWord(temp[0], temp[1]) * 2;
     if (Mod.samples[i].loopBegin + Mod.samples[i].loopLength > Mod.samples[i].length)
-      Mod.samples[i].loopLength = Mod.samples[i].length - Mod.samples[i].loopBegin;
-
-#ifdef do_MIXER_DEBUG
-    junk[21] = '\0';
-	  if (Mod.samples[i].length > 0) {
-      audioLogger->printf("    sample #%2d: %-22s --> vol=%d; finetune=%d; len=%d", i, junk, Mod.samples[i].volume, Mod.samples[i].fineTune, Mod.samples[i].length);
-      if (Mod.samples[i].loopLength != 2)
-        audioLogger->printf(";\t loop at %d len %d\n", Mod.samples[i].loopBegin, Mod.samples[i].loopLength);
-      else 
-        audioLogger->printf("\n");
-    }
-#endif
-    
+      Mod.samples[i].loopLength = Mod.samples[i].length - Mod.samples[i].loopBegin;    
   }
 
   if (1 != file->read(&Mod.songLength, 1)) return false;
   if (1 != file->read(temp, 1)) return false; // Discard this byte
-  
-#ifdef do_MIXER_DEBUG
-  audioLogger->printf("\nMOD filetype  : %c%c%c%c\n", temp[0], temp[1], temp[2], temp[3]);
-#endif
   
   Mod.numberOfPatterns = 0;
   for (i = 0; i < 128; i++) {
@@ -285,10 +234,6 @@ bool AudioGeneratorMOD::LoadHeader()
     Mod.numberOfChannels = (temp[0] - '0') * 10 + temp[1] - '0';
   else
     Mod.numberOfChannels = 4;
-
-#ifdef do_MIXER_DEBUG
-  audioLogger->printf("MOD #channels : %d\n", Mod.numberOfChannels);
-#endif
   
   if (Mod.numberOfChannels > CHANNELS) {
     audioLogger->printf("\nAudioGeneratorMOD::LoadHeader abort - too many channels (configured: %d, needed: %d)\n", CHANNELS, Mod.numberOfChannels);
@@ -868,55 +813,17 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
 
     // Integer linear interpolation - only works correctly in 16bit
     out += (next16 - current16) * (Mixer.channelSampleOffset[channel] & ((1 << FIXED_DIVIDER) - 1)) >> FIXED_DIVIDER;
-
-#ifdef do_MIXER_DEBUG
-	  // remember min/max after interpolation
-    if (!first_sample) {
-      sample_min_step1 = (out < sample_min_step1) ? out : sample_min_step1; 
-      sample_max_step1 = (out > sample_max_step1) ? out : sample_max_step1; 
-    } else sample_min_step1 = sample_max_step1 = out;
-
-    #if 0
-    // check if interpolation went "out of limits"
-    int16_t lower_limit = min(current16, next16) - 1;
-    int16_t upper_limit = max(current16, next16) + 1;
-    static unsigned long last_time_off_limits = 0;
-	  if ((out > upper_limit) || (out < lower_limit)) {
-		  if ((millis() - last_time_off_limits) > 1000) {
-			  audioLogger->printf("opps - interpolation went off limits: %d < %d < %d\n", lower_limit, out, upper_limit);
-			  last_time_off_limits = millis();
-		  }
-	  }
-   #endif
-#endif
     
     // Upscale to BITDEPTH, considering the we already have two more bits from the previous step
     out32 = (int32_t)out << (BITDEPTH - 10);
 
     // Channel volume
     out32 = out32 * Mixer.channelVolume[channel] >> 6;
-
-#ifdef do_MIXER_DEBUG
-	// remember min/max after upscale + channel volume
-    if (!first_sample) {
-		  sample_min_step2 = (out32 < sample_min_step2) ? out32 : sample_min_step2; 
-		  sample_max_step2 = (out32 > sample_max_step2) ? out32 : sample_max_step2; 
-	  } else sample_min_step2 = sample_max_step2 = out32;
-#endif
     
     // Channel panning
     sumL += out32 * min(128 - Mixer.channelPanning[channel], 64) >> 6;
     sumR += out32 * min(Mixer.channelPanning[channel], 64) >> 6;
   }
-
-#ifdef do_MIXER_DEBUG
-  // remember min/max after channel panning + mixing + post-amp
-  if (first_sample) sample_min_step3 = sample_max_step3 = sumR;
-	sample_min_step3 = (sumL < sample_min_step3) ? sumL : sample_min_step3; 
-	sample_max_step3 = (sumL > sample_max_step3) ? sumL : sample_max_step3; 
-	sample_min_step3 = (sumR < sample_min_step3) ? sumR : sample_min_step3; 
-	sample_max_step3 = (sumR > sample_max_step3) ? sumR : sample_max_step3; 
-#endif
   
   // Downscale to BITDEPTH - a bit faster because the compiler can replaced division by constants with proper "right shift" + correct handling of sign bit
   if (Mod.numberOfChannels <= 4) {
@@ -935,22 +842,6 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
     }
   }
 
-#ifdef do_MIXER_DEBUG
-  bool clipping_L = false;
-  bool clipping_R = false;
-  static unsigned long last_time_clipping = 0;
-  if((sumL < INT16_MIN) || (sumL > INT16_MAX)) { clipping_L = true; clip_L_counter ++; }
-  if((sumR < INT16_MIN) || (sumR > INT16_MAX)) { clipping_R = true; clip_R_counter ++; }
-
-  if(clipping_L || clipping_R) {
-    if ((millis() - last_time_clipping) > 1000) {
-      if (clipping_L) audioLogger->printf("opps - clipping left  channel: %d (0x%X)\n", sumL, sumL);
-      if (clipping_R) audioLogger->printf("opps - clipping right channel: %d (0x%X)\n", sumR, sumR);
-      last_time_clipping = millis();
-    }
-  }
-#endif
-  
   // clip samples to 16bit (with saturation in case of overflow)
   if(sumL <= INT16_MIN) sumL = INT16_MIN;
     else if (sumL >= INT16_MAX) sumL = INT16_MAX;
@@ -960,16 +851,6 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
   // Fill the sound buffer with signed values
   sample[AudioOutput::LEFTCHANNEL] = sumL;
   sample[AudioOutput::RIGHTCHANNEL] = sumR;
-
-#ifdef do_MIXER_DEBUG
-  if (first_sample) sample_min_out = sample_max_out = sumR;
-  sample_min_out = (sumL < sample_min_out) ? sumL : sample_min_out; 
-  sample_max_out = (sumL > sample_max_out) ? sumL : sample_max_out; 
-  sample_min_out = (sumR < sample_min_out) ? sumR : sample_min_out; 
-  sample_max_out = (sumR > sample_max_out) ? sumR : sample_max_out; 
-  
-  first_sample = false;
-#endif
 }
 
 bool AudioGeneratorMOD::LoadMOD()
