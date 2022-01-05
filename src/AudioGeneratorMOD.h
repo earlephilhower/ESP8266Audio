@@ -53,7 +53,7 @@ class AudioGeneratorMOD : public AudioGenerator
 
   protected:
     int mixerTick;
-    enum {BITDEPTH = 15};
+    enum {BITDEPTH = 16};
     int sampleRate; 
     int fatBufferSize; //(6*1024) // File system buffers per-CHANNEL (i.e. total mem required is 4 * FATBUFFERSIZE)
     enum {FIXED_DIVIDER = 10};             // Fixed-point mantissa used for integer arithmetic
@@ -65,7 +65,20 @@ class AudioGeneratorMOD : public AudioGenerator
     int AMIGA;
     void UpdateAmiga() { AMIGA = ((usePAL?7159091:7093789) / 2 / sampleRate << FIXED_DIVIDER); }
     
-    enum {ROWS = 64, SAMPLES = 31, CHANNELS = 4, NONOTE = 0xFFFF, NONOTE8 = 0xff };
+    enum {ROWS = 64, SAMPLES = 31, CHANNELS = 8, NONOTE = 0xFFFF, NONOTE8 = 0xff };
+
+	  /* the next variables are only used when do_MIXER_DEBUG is defined in AudiogeneratorMod.cpp */
+	  unsigned long clip_L_counter = 0;
+	  unsigned long clip_R_counter = 0;
+	  bool first_sample = false;
+	  long sample_min_step1 = 0;
+	  long sample_max_step1 = 0;
+	  long sample_min_step2 = 0;
+	  long sample_max_step2 = 0;
+	  long sample_min_step3 = 0;
+	  long sample_max_step3 = 0;
+	  long sample_min_out = 0;
+	  long sample_max_out = 0;
 
     typedef struct Sample {
       uint16_t length;
