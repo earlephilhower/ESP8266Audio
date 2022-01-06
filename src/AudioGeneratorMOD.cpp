@@ -805,7 +805,7 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
     next = FatBuffer.channels[channel][(samplePointer + 1 - FatBuffer.samplePointer[channel]) /*& (FATBUFFERSIZE - 1)*/];
 	
 	// preserve a few more bits from sample interpolation, by upscaling input values.
-	// This does (slightly) reduce quantization noise in higher frequencies, typicially above 8kHz.
+	// This does (slightly) reduce quantization noise in higher frequencies, typically above 8kHz.
 	// Actually we could could even gain more bits, I was just not sure if more bits would cause overflows in other conputations.
     int16_t current16 = (int16_t) current << 2;
     int16_t next16    = (int16_t) next << 2;	  
@@ -817,9 +817,9 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
     
     // Upscale to BITDEPTH, considering the we already gained two bits in the previous step
     if (Mod.numberOfChannels < 8) {
-      out32 = (int32_t)out << (BITDEPTH - 12); // 10-2; optimizes out the final devision by 4 (after panning+mixing)
+      out32 = (int32_t)out << (BITDEPTH - 12); // 10-2; optimizes out the final division by 4 (after panning+mixing)
     } else {
-      out32 = (int32_t)out << (BITDEPTH - 13); // 10-3; optimizes out the final devision by 8 (after panning+mixing)
+      out32 = (int32_t)out << (BITDEPTH - 13); // 10-3; optimizes out the final division by 8 (after panning+mixing)
     }
 	  
     // Channel volume
