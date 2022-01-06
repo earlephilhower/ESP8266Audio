@@ -68,8 +68,7 @@ bool AudioGeneratorMOD::stop()
   for (int i = 0; i < CHANNELS; i++) {
     free(FatBuffer.channels[i]);
     FatBuffer.channels[i] = NULL;
-  }
-    
+  }   
   if (file) file->close();
   running = false;
   output->stop();
@@ -199,7 +198,6 @@ bool AudioGeneratorMOD::LoadHeader()
   uint8_t junk[22];
 
   if (20 != file->read(/*Mod.name*/junk, 20)) return false; // Skip MOD name
-  
   for (i = 0; i < SAMPLES; i++) {
     if (22 != file->read(junk /*Mod.samples[i].name*/, 22)) return false; // Skip sample name
     if (2 != file->read(temp, 2)) return false;
@@ -212,12 +210,12 @@ bool AudioGeneratorMOD::LoadHeader()
     if (2 != file->read(temp, 2)) return false;
     Mod.samples[i].loopLength = MakeWord(temp[0], temp[1]) * 2;
     if (Mod.samples[i].loopBegin + Mod.samples[i].loopLength > Mod.samples[i].length)
-      Mod.samples[i].loopLength = Mod.samples[i].length - Mod.samples[i].loopBegin;    
+      Mod.samples[i].loopLength = Mod.samples[i].length - Mod.samples[i].loopBegin;
   }
 
   if (1 != file->read(&Mod.songLength, 1)) return false;
   if (1 != file->read(temp, 1)) return false; // Discard this byte
-  
+
   Mod.numberOfPatterns = 0;
   for (i = 0; i < 128; i++) {
     if (1 != file->read(&Mod.order[i], 1)) return false;
@@ -805,7 +803,10 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
 
     current = FatBuffer.channels[channel][(samplePointer - FatBuffer.samplePointer[channel]) /*& (FATBUFFERSIZE - 1)*/];
     next = FatBuffer.channels[channel][(samplePointer + 1 - FatBuffer.samplePointer[channel]) /*& (FATBUFFERSIZE - 1)*/];
-	  
+	
+	// preserve a few more bits from sample interpolation, by upscaling input values.
+	// This does (slightly) reduce quantization noise in higher frequencies, typicially above 8kHz.
+	// Actually we could could even gain more bits, I was just not sure if more bits would cause overflows in other conputations.
     int16_t current16 = (int16_t) current << 2;
     int16_t next16    = (int16_t) next << 2;	  
 	  
@@ -814,16 +815,16 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
     // Integer linear interpolation - only works correctly in 16bit
     out += (next16 - current16) * (Mixer.channelSampleOffset[channel] & ((1 << FIXED_DIVIDER) - 1)) >> FIXED_DIVIDER;
     
-    // Upscale to BITDEPTH, considering the we already have two more bits from the previous step
+    // Upscale to BITDEPTH, considering the we already gained two bits in the previous step
     if (Mod.numberOfChannels < 8) {
-      out32 = (int32_t)out << (BITDEPTH - 12); // optimize out the final devision by 4 (after panning+mixing)
+      out32 = (int32_t)out << (BITDEPTH - 12); // 10-2; optimizes out the final devision by 4 (after panning+mixing)
     } else {
-      out32 = (int32_t)out << (BITDEPTH - 13); // optimize out the final devision by 8 (after panning+mixing)
+      out32 = (int32_t)out << (BITDEPTH - 13); // 10-3; optimizes out the final devision by 8 (after panning+mixing)
     }
 	  
     // Channel volume
     out32 = out32 * Mixer.channelVolume[channel] >> 6;
-    
+
     // Channel panning
     sumL += out32 * min(128 - Mixer.channelPanning[channel], 64) >> 6;
     sumR += out32 * min(Mixer.channelPanning[channel], 64) >> 6;
