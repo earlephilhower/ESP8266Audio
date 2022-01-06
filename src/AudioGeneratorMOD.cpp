@@ -68,7 +68,7 @@ bool AudioGeneratorMOD::stop()
   for (int i = 0; i < CHANNELS; i++) {
     free(FatBuffer.channels[i]);
     FatBuffer.channels[i] = NULL;
-  }   
+  }
   if (file) file->close();
   running = false;
   output->stop();
