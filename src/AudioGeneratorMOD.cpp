@@ -69,6 +69,11 @@ bool AudioGeneratorMOD::stop()
     free(FatBuffer.channels[i]);
     FatBuffer.channels[i] = NULL;
   }
+
+  if(running && (file != NULL) && (file->isOpen() == true)) {
+	output->flush();  //flush I2S output buffer, if the player was actually running before.
+  }
+
   if (file) file->close();
   running = false;
   output->stop();
