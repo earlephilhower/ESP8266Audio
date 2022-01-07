@@ -819,10 +819,10 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
 
     // Integer linear interpolation - only works correctly in 16bit
     out += (next16 - current16) * (Mixer.channelSampleOffset[channel] & ((1 << FIXED_DIVIDER) - 1)) >> FIXED_DIVIDER;
-    
+
     // Upscale to BITDEPTH, considering the we already gained two bits in the previous step
     out32 = (int32_t)out << (BITDEPTH - 10);
-	  
+
     // Channel volume
     out32 = out32 * Mixer.channelVolume[channel] >> 6;
 
@@ -847,7 +847,7 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
       sumR /= 8;
     }
   }
-	
+
   // clip samples to 16bit (with saturation in case of overflow)
   if(sumL <= INT16_MIN) sumL = INT16_MIN;
     else if (sumL >= INT16_MAX) sumL = INT16_MAX;
