@@ -821,11 +821,7 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
     out += (next16 - current16) * (Mixer.channelSampleOffset[channel] & ((1 << FIXED_DIVIDER) - 1)) >> FIXED_DIVIDER;
     
     // Upscale to BITDEPTH, considering the we already gained two bits in the previous step
-    if (Mod.numberOfChannels < 8) {
-      out32 = (int32_t)out << (BITDEPTH - 12); // 10-2; optimizes out the final division by 4 (after panning+mixing)
-    } else {
-      out32 = (int32_t)out << (BITDEPTH - 13); // 10-3; optimizes out the final division by 8 (after panning+mixing)
-    }
+    out32 = (int32_t)out << (BITDEPTH - 10);
 	  
     // Channel volume
     out32 = out32 * Mixer.channelVolume[channel] >> 6;
@@ -834,15 +830,23 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
     sumL += out32 * min(128 - Mixer.channelPanning[channel], 64) >> 6;
     sumR += out32 * min(Mixer.channelPanning[channel], 64) >> 6;
   }
-  
+
   // Downscale to BITDEPTH - a bit faster because the compiler can replaced division by constants with proper "right shift" + correct handling of sign bit
-      // up to 4 channels - nothing to do
-  if ((Mod.numberOfChannels > 4) && (Mod.numberOfChannels < 8)) {
-      // 5 or 6 channels - post-multiply by 0.75
-      sumL = sumL - (sumL/4);
-      sumR = sumR - (sumR/4);      
+  if (Mod.numberOfChannels <= 4) {
+      // up to 4 channels
+      sumL /= 4;
+      sumR /= 4;
+  } else {
+    if (Mod.numberOfChannels <= 6) {
+      // 5 or 6 channels - pre-multiply be 1.5, then divide by 8 -> same as division by 6
+      sumL = (sumL + (sumL/2)) / 8;
+      sumR = (sumR + (sumR/2)) / 8;      
+    } else {
+      // 7,8, or more channels
+      sumL /= 8;
+      sumR /= 8;
+    }
   }
-      // 7,8, or more channels - nothing to do
 	
   // clip samples to 16bit (with saturation in case of overflow)
   if(sumL <= INT16_MIN) sumL = INT16_MIN;
