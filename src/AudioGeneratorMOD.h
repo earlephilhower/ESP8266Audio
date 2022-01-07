@@ -64,8 +64,14 @@ class AudioGeneratorMOD : public AudioGenerator
     // Hz = 7159091 / (amigaPeriod * 2) for NTSC
     int AMIGA;
     void UpdateAmiga() { AMIGA = ((usePAL?7159091:7093789) / 2 / sampleRate << FIXED_DIVIDER); }
-    
+ 
+#ifdef ESP8266 // Not sure if C3/C2 have RAM constraints, maybe add them here?
+    // support max 4 channels
+    enum {ROWS = 64, SAMPLES = 31, CHANNELS = 4, NONOTE = 0xFFFF, NONOTE8 = 0xff };
+#else
+    // support max 8 channels
     enum {ROWS = 64, SAMPLES = 31, CHANNELS = 8, NONOTE = 0xFFFF, NONOTE8 = 0xff };
+#endif
 
     typedef struct Sample {
       uint16_t length;
