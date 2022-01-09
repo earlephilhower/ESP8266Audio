@@ -25,7 +25,16 @@
 class AudioOutputI2SNoDAC : public AudioOutputI2S
 {
   public:
+//
+// Define a different constructor for the RP2040, as this class calls the constructor
+// of the AudioOutputI2S which has an alternate constructor for the RP2040
+//
+#if defined(ARDUINO_ARCH_RP2040)
+    AudioOutputI2SNoDAC(int port = 28,int sck = 26);
+#else
     AudioOutputI2SNoDAC(int port = 0);
+#endif
+
     virtual ~AudioOutputI2SNoDAC() override;
     virtual bool begin() override { return AudioOutputI2S::begin(false); }
     virtual bool ConsumeSample(int16_t sample[2]) override;
