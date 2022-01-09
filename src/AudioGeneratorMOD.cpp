@@ -69,6 +69,11 @@ bool AudioGeneratorMOD::stop()
     free(FatBuffer.channels[i]);
     FatBuffer.channels[i] = NULL;
   }
+
+  if(running && (file != NULL) && (file->isOpen() == true)) {
+	output->flush();  //flush I2S output buffer, if the player was actually running before.
+  }
+
   if (file) file->close();
   running = false;
   output->stop();
@@ -803,14 +808,20 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
 
     current = FatBuffer.channels[channel][(samplePointer - FatBuffer.samplePointer[channel]) /*& (FATBUFFERSIZE - 1)*/];
     next = FatBuffer.channels[channel][(samplePointer + 1 - FatBuffer.samplePointer[channel]) /*& (FATBUFFERSIZE - 1)*/];
-
-    out = current;
+	
+	// preserve a few more bits from sample interpolation, by upscaling input values.
+	// This does (slightly) reduce quantization noise in higher frequencies, typically above 8kHz.
+	// Actually we could could even gain more bits, I was just not sure if more bits would cause overflows in other conputations.
+    int16_t current16 = (int16_t) current << 2;
+    int16_t next16    = (int16_t) next << 2;	  
+	  
+    out = current16;
 
     // Integer linear interpolation - only works correctly in 16bit
-    out += (next - current) * (Mixer.channelSampleOffset[channel] & ((1 << FIXED_DIVIDER) - 1)) >> FIXED_DIVIDER;
+    out += (next16 - current16) * (Mixer.channelSampleOffset[channel] & ((1 << FIXED_DIVIDER) - 1)) >> FIXED_DIVIDER;
 
-    // Upscale to BITDEPTH
-    out32 = (int32_t)out << (BITDEPTH - 8);
+    // Upscale to BITDEPTH, considering the we already gained two bits in the previous step
+    out32 = (int32_t)out << (BITDEPTH - 10);
 
     // Channel volume
     out32 = out32 * Mixer.channelVolume[channel] >> 6;
@@ -819,7 +830,7 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
     sumL += out32 * min(128 - Mixer.channelPanning[channel], 64) >> 6;
     sumR += out32 * min(Mixer.channelPanning[channel], 64) >> 6;
   }
-  
+
   // Downscale to BITDEPTH - a bit faster because the compiler can replaced division by constants with proper "right shift" + correct handling of sign bit
   if (Mod.numberOfChannels <= 4) {
       // up to 4 channels
