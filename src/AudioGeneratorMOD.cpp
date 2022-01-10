@@ -70,7 +70,7 @@ bool AudioGeneratorMOD::stop()
     FatBuffer.channels[i] = NULL;
   }
 
-  if(running && (file != NULL) && (file->isOpen() == true)) {
+  if(running || ((file != NULL) && (file->isOpen() == true))) {
 	output->flush();  //flush I2S output buffer, if the player was actually running before.
   }
 
