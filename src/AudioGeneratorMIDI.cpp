@@ -58,6 +58,11 @@
 
 #include "AudioGeneratorMIDI.h"
 
+/* Temporary solution to the internal compiler error in ARDUINO_ESP32 */
+#include "core_version.h"
+#if defined (ARDUINO_ESP32_RELEASE_2_0_1) || defined (ARDUINO_ESP32_RELEASE_2_0_2)
+#else /* defined (ARDUINO_ESP32_RELEASE_2_0_1) || defined (ARDUINO_ESP32_RELEASE_2_0_2) */
+
 #pragma GCC optimize ("O3")
 
 #define TSF_NO_STDIO
@@ -636,4 +641,6 @@ void AudioGeneratorMIDI::MakeStreamFromAFS(AudioFileSource *src, tsf_stream *afs
   afs->close = &afs_close;
   afs->size = &afs_size;
 }
+
+#endif /* defined (ARDUINO_ESP32_RELEASE_2_0_1) || defined (ARDUINO_ESP32_RELEASE_2_0_2) */
 
