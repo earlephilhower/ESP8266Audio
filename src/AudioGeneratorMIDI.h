@@ -22,7 +22,9 @@
 #define _AUDIOGENERATORMIDI_H
 
 /* Temporary solution to the internal compiler error in ARDUINO_ESP32 */
+#if defined(ESP32)
 #include "core_version.h"
+#endif /* defined(ESP32) */
 #if defined (ARDUINO_ESP32_RELEASE_2_0_1) || defined (ARDUINO_ESP32_RELEASE_2_0_2)
 #else /* defined (ARDUINO_ESP32_RELEASE_2_0_1) || defined (ARDUINO_ESP32_RELEASE_2_0_2) */
 
