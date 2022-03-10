@@ -21,6 +21,10 @@
 #ifndef _AUDIOGENERATORMIDI_H
 #define _AUDIOGENERATORMIDI_H
 
+#if __GNUC__ == 8
+// Do not build, GCC8 has a compiler bug
+#else // __GNUC__ == 8
+
 #include "AudioGenerator.h"
 
 #define TSF_NO_STDIO
@@ -176,6 +180,7 @@ class AudioGeneratorMIDI : public AudioGenerator
     short samplesRendered[256];
 };
 
+#endif //__GNUC__ == 8
 
 #endif
 
