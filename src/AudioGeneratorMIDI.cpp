@@ -58,12 +58,9 @@
 
 #include "AudioGeneratorMIDI.h"
 
-/* Temporary solution to the internal compiler error in ARDUINO_ESP32 */
-#if defined(ESP32)
-#include "core_version.h"
-#endif /* defined(ESP32) */
-#if defined (ARDUINO_ESP32_RELEASE_2_0_1) || defined (ARDUINO_ESP32_RELEASE_2_0_2)
-#else /* defined (ARDUINO_ESP32_RELEASE_2_0_1) || defined (ARDUINO_ESP32_RELEASE_2_0_2) */
+#if __GNUC__ == 8
+// Do not build, GCC8 has a compiler bug
+#else // __GNUC__ == 8
 
 #pragma GCC optimize ("O3")
 
@@ -644,5 +641,5 @@ void AudioGeneratorMIDI::MakeStreamFromAFS(AudioFileSource *src, tsf_stream *afs
   afs->size = &afs_size;
 }
 
-#endif /* defined (ARDUINO_ESP32_RELEASE_2_0_1) || defined (ARDUINO_ESP32_RELEASE_2_0_2) */
+#endif //__GNUC__ == 8
 

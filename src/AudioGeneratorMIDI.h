@@ -21,12 +21,9 @@
 #ifndef _AUDIOGENERATORMIDI_H
 #define _AUDIOGENERATORMIDI_H
 
-/* Temporary solution to the internal compiler error in ARDUINO_ESP32 */
-#if defined(ESP32)
-#include "core_version.h"
-#endif /* defined(ESP32) */
-#if defined (ARDUINO_ESP32_RELEASE_2_0_1) || defined (ARDUINO_ESP32_RELEASE_2_0_2)
-#else /* defined (ARDUINO_ESP32_RELEASE_2_0_1) || defined (ARDUINO_ESP32_RELEASE_2_0_2) */
+#if __GNUC__ == 8
+// Do not build, GCC8 has a compiler bug
+#else // __GNUC__ == 8
 
 #include "AudioGenerator.h"
 
@@ -183,7 +180,7 @@ class AudioGeneratorMIDI : public AudioGenerator
     short samplesRendered[256];
 };
 
-#endif /* defined (ARDUINO_ESP32_RELEASE_2_0_1) || defined (ARDUINO_ESP32_RELEASE_2_0_2) */
+#endif //__GNUC__ == 8
 
 #endif
 
