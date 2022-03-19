@@ -1,7 +1,7 @@
 /*
   AudioOutputI2S
   Base class for I2S interface port
-  
+
   Copyright (C) 2017  Earle F. Philhower, III
 
   This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,24 @@
 #include <Arduino.h>
 #ifdef ESP32
   #include "driver/i2s.h"
+
+  // handle I2S migration across SDK versions
+  #ifdef ESP_ARDUINO_VERSION_VAL
+    #if defined ESP_ARDUINO_VERSION && ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
+      // upstream
+      #define I2C_COMM_FORMAT I2S_COMM_FORMAT_STAND_I2S
+      #define I2C_COMM_FORMAT_STAND I2S_COMM_FORMAT_STAND_MSB
+    #else
+      // edge case: 1.0.6 built from source ?
+      #define I2C_COMM_FORMAT I2S_COMM_FORMAT_I2S
+      #define I2C_COMM_FORMAT_STAND I2S_COMM_FORMAT_I2S_LSB
+    #endif
+  #else
+    // legacy (1.0.6 and previous)
+    #define I2C_COMM_FORMAT I2S_COMM_FORMAT_I2S
+    #define I2C_COMM_FORMAT_STAND I2S_COMM_FORMAT_I2S_LSB
+  #endif
+
 #elif defined(ARDUINO_ARCH_RP2040) || ARDUINO_ESP8266_MAJOR >= 3
   #include <I2S.h>
 #elif ARDUINO_ESP8266_MAJOR < 3
@@ -29,6 +47,9 @@
 #include "AudioOutputI2S.h"
 
 #if defined(ESP32) || defined(ESP8266)
+
+
+
 AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int use_apll)
 {
   this->portNo = port;
@@ -178,7 +199,7 @@ bool AudioOutputI2S::begin(bool txDAC)
 #if CONFIG_IDF_TARGET_ESP32
         mode = (i2s_mode_t)(mode | I2S_MODE_DAC_BUILT_IN);
 #else
-        return false;      
+        return false;
 #endif
       }
       else if (output_mode == INTERNAL_PDM)
@@ -186,7 +207,7 @@ bool AudioOutputI2S::begin(bool txDAC)
 #if CONFIG_IDF_TARGET_ESP32
         mode = (i2s_mode_t)(mode | I2S_MODE_PDM);
 #else
-        return false;      
+        return false;
 #endif
       }
 
@@ -201,14 +222,14 @@ bool AudioOutputI2S::begin(bool txDAC)
       }
       else if (lsb_justified)
       {
-        comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_LSB);
+        comm_fmt = (i2s_comm_format_t) (I2C_COMM_FORMAT | I2C_COMM_FORMAT_STAND);
       }
       else
       {
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
         comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_STAND_I2S);
 #else
-        comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB);
+        comm_fmt = (i2s_comm_format_t) (I2C_COMM_FORMAT | I2S_COMM_FORMAT_I2S_MSB);
 #endif
       }
 
