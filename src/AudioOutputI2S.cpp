@@ -20,23 +20,38 @@
 
 #include <Arduino.h>
 #ifdef ESP32
+
   #include "driver/i2s.h"
+
+  #define I2S_FLAVOUR_1_x_x 0 // Initial I2S macros flavour (before esp-idf 4.2.0)
+  #define I2S_FLAVOUR_2_x_x 1 // Revision 1 of I2S macros flavour
 
   // handle I2S migration across SDK versions
   #ifdef ESP_ARDUINO_VERSION_VAL
     #if defined ESP_ARDUINO_VERSION && ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
-      // upstream
-      #define I2C_COMM_FORMAT I2S_COMM_FORMAT_STAND_I2S
-      #define I2C_COMM_FORMAT_STAND I2S_COMM_FORMAT_STAND_MSB
+      // 2.0.0 and upstream  esp-idf versions start at4.4
+      #define I2S_FLAVOUR I2S_FLAVOUR_2_x_x
     #else
-      // edge case: 1.0.6 built from source ?
-      #define I2C_COMM_FORMAT I2S_COMM_FORMAT_I2S
-      #define I2C_COMM_FORMAT_STAND I2S_COMM_FORMAT_I2S_LSB
+      // 1.0.6 and previous versions use esp-idf up to version 3.1
+      #define I2S_FLAVOUR I2S_FLAVOUR_1_x_x
     #endif
   #else
-    // legacy (1.0.6 and previous)
-    #define I2C_COMM_FORMAT I2S_COMM_FORMAT_I2S
-    #define I2C_COMM_FORMAT_STAND I2S_COMM_FORMAT_I2S_LSB
+    // custom build of Arduino, check esp-idf version instead
+    #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
+      #define I2S_FLAVOUR I2S_FLAVOUR_2_x_x
+    #else
+      #define I2S_FLAVOUR I2S_FLAVOUR_1_x_x
+    #endif
+  #endif
+
+  #if I2S_FLAVOUR==I2S_FLAVOUR_2_x_x
+    #define _COMM_FORMAT_DEFAULT I2S_COMM_FORMAT_STAND_I2S
+    #define _COMM_FORMAT_MSB     I2S_COMM_FORMAT_STAND_MSB
+    #define _COMM_FORMAT_LSB     I2S_COMM_FORMAT_STAND_I2S
+  #elif I2S_FLAVOUR==I2S_FLAVOUR_1_x_x
+    #define _COMM_FORMAT_DEFAULT I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB
+    #define _COMM_FORMAT_MSB     I2S_COMM_FORMAT_I2S_MSB
+    #define _COMM_FORMAT_LSB     I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_LSB
   #endif
 
 #elif defined(ARDUINO_ARCH_RP2040) || ARDUINO_ESP8266_MAJOR >= 3
@@ -214,23 +229,15 @@ bool AudioOutputI2S::begin(bool txDAC)
       i2s_comm_format_t comm_fmt;
       if (output_mode == INTERNAL_DAC)
       {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
-        comm_fmt = (i2s_comm_format_t) I2S_COMM_FORMAT_STAND_MSB;
-#else
-        comm_fmt = (i2s_comm_format_t) I2S_COMM_FORMAT_I2S_MSB;
-#endif
+        comm_fmt = (i2s_comm_format_t) (_COMM_FORMAT_MSB);
       }
       else if (lsb_justified)
       {
-        comm_fmt = (i2s_comm_format_t) (I2C_COMM_FORMAT | I2C_COMM_FORMAT_STAND);
+        comm_fmt = (i2s_comm_format_t) (_COMM_FORMAT_LSB);
       }
       else
       {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
-        comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_STAND_I2S);
-#else
-        comm_fmt = (i2s_comm_format_t) (I2C_COMM_FORMAT | I2S_COMM_FORMAT_I2S_MSB);
-#endif
+        comm_fmt = (i2s_comm_format_t) (_COMM_FORMAT_DEFAULT);
       }
 
       i2s_config_t i2s_config_dac = {
