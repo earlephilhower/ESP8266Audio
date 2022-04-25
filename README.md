@@ -181,7 +181,7 @@ I've used several versions of PCM5102 DAC boards purchased from eBay.  They've a
 
 
 ### Others
-There are many other variants out there, and they should all work reasonably well with this code and the ESP8266.  Please be certain you've read the datasheet and are applying proper input voltages, and be sure to tie off any unused inputs to GND or VCC as appropriate.  LEaving an input pin floating on any integrated circuit can cause unstable operation as it may pick up noise from the environment (very low input capacitance) and cause havoc with internal IC settings.
+There are many other variants out there, and they should all work reasonably well with this code and the ESP8266.  Please be certain you've read the datasheet and are applying proper input voltages, and be sure to tie off any unused inputs to GND or VCC as appropriate.  Leaving an input pin floating on any integrated circuit can cause unstable operation as it may pick up noise from the environment (very low input capacitance) and cause havoc with internal IC settings.
 
 ## Software I2S Delta-Sigma DAC (i.e. playing music with a single transistor and speaker)
 For the best fidelity, and stereo to boot, spend the money on a real I2S DAC.  Adafruit makes a great mono one with amplifier, and you can find stereo unamplified ones on eBay or elsewhere quite cheaply.  However, thanks to the software delta-sigma DAC with 32x oversampling (up to 128x if the audio rate is low enough) you can still have pretty good sound!
@@ -216,7 +216,7 @@ USB-5V             -- Speaker + Terminal
 
 *NOTE*:  A prior version of this schematic had a direct connection from the ESP8266 to the base of the transistor.  While this does provide the maximum amplitude, it also can draw more current from the 8266 than is safe, and can also cause the transistor to overheat.
 
-As of the latest ESP8266Audio release, with the software delta-sigma DAC the LRCLK and BCLK pins *can* be used by an application.  Simply use normal `pinMode` and `dicitalWrite` or `digitalRead` as desired.
+As of the latest ESP8266Audio release, with the software delta-sigma DAC the LRCLK and BCLK pins *can* be used by an application.  Simply use normal `pinMode` and `digitalWrite` or `digitalRead` as desired.
 
 ### High pitched buzzing with the 1-T circuit
 The 1-T amp can _NOT_ drive any sort of amplified speaker.  If there is a power or USB input to the speaker, or it has lights or Bluetooth or a battery, it can _NOT_ be used with this circuit.
@@ -249,7 +249,7 @@ ESP Pin -------|____|--------+
                              |
 Ground  ---------------------+
 ```
-For ESP8266 with red LED (~1.9Vf drop) you need minimum 150Ohm resistor (12mA max per pin), and output pin is fixed (GPIO3/RX0).On ESP32 it is confgurable with `AudioOutputSPDIF(gpio_num)`.
+For ESP8266 with red LED (~1.9Vf drop) you need minimum 150Ohm resistor (12mA max per pin), and output pin is fixed (GPIO3/RX0).On ESP32 it is configurable with `AudioOutputSPDIF(gpio_num)`.
 
 ## Using external SPI RAM to increase buffer
 A class allows you to use a 23lc1024 SPI RAM from Microchip as input buffer. This chip connects to ESP8266 HSPI port and provides a large buffer to help avoid hiccus in playback of web streams.
