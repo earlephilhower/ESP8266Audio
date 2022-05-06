@@ -213,9 +213,9 @@ ESP8266-RX(I2S tx) -- Resistor (~1K ohm, not critical) -- 2N3904 Base
 ESP8266-GND        -- 2N3904 Emitter
 USB-5V             -- Speaker + Terminal
 2N3904-Collector   -- Speaker - Terminal
-```
 
-For ESP32, default output pin is GPIO22. Note that GPIO25 ang GPIO26 are occupied by wclk/bclk and can not be used.
+*For ESP32, default output pin is GPIO22. Note that GPIO25 ang GPIO26 are occupied by wclk/bclk and can not be used.
+```
 
 *NOTE*:  A prior version of this schematic had a direct connection from the ESP8266 to the base of the transistor.  While this does provide the maximum amplitude, it also can draw more current from the 8266 than is safe, and can also cause the transistor to overheat.
 
