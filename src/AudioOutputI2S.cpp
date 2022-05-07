@@ -272,6 +272,7 @@ bool AudioOutputI2S::begin(bool txDAC)
     }
   #endif
   i2sOn = true;
+  finalSamples = 2*128*dma_buf_count;
   SetRate(hertz); // Default
   return true;
 }
@@ -337,6 +338,21 @@ void AudioOutputI2S::flush()
     I2S.flush();
   #endif
 }
+
+bool AudioOutputI2S::finish()
+{
+  if (!i2sOn)
+    return true;
+
+  int16_t sample[2];
+  sample[0] = 0;
+  sample[1] = 0;
+
+  while ( finalSamples > 0 && ConsumeSample(sample)) finalSamples--;
+  
+  return finalSamples == 0;
+}
+
 
 bool AudioOutputI2S::stop()
 {

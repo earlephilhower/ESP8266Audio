@@ -40,6 +40,7 @@ class AudioOutputI2S : public AudioOutput
     virtual bool begin() override { return begin(true); }
     virtual bool ConsumeSample(int16_t sample[2]) override;
     virtual void flush() override;
+    virtual bool finish() override;
     virtual bool stop() override;
     
     bool begin(bool txDAC);
@@ -63,4 +64,5 @@ class AudioOutputI2S : public AudioOutput
     uint8_t bclkPin;
     uint8_t wclkPin;
     uint8_t doutPin;
+    unsigned long finalSamples;
 };

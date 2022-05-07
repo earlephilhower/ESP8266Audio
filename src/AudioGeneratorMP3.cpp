@@ -24,6 +24,7 @@
 AudioGeneratorMP3::AudioGeneratorMP3()
 {
   running = false;
+  finishing = false;
   file = NULL;
   output = NULL;
   buff = NULL;
@@ -34,6 +35,7 @@ AudioGeneratorMP3::AudioGeneratorMP3()
 AudioGeneratorMP3::AudioGeneratorMP3(void *space, int size): preallocateSpace(space), preallocateSize(size)
 {
   running = false;
+  finishing = false;
   file = NULL;
   output = NULL;
   buff = NULL;
@@ -48,6 +50,7 @@ AudioGeneratorMP3::AudioGeneratorMP3(void *buff, int buffSize, void *stream, int
     preallocateSynthSpace(synth), preallocateSynthSize(synthSize)
 {
   running = false;
+  finishing = false;
   file = NULL;
   output = NULL;
   buff = NULL;
@@ -88,13 +91,14 @@ bool AudioGeneratorMP3::stop()
   stream = NULL;
 
   running = false;
+  finishing = false;
   output->stop();
   return file->close();
 }
 
 bool AudioGeneratorMP3::isRunning()
 {
-  return running;
+  return running || finishing;
 }
 
 enum mad_flow AudioGeneratorMP3::ErrorToFlow()
@@ -209,6 +213,11 @@ bool AudioGeneratorMP3::GetOneSample(int16_t sample[2])
 
 bool AudioGeneratorMP3::loop()
 {
+  if ( finishing )
+  {
+    return output->finish() == false;
+  }
+
   if (!running) goto done; // Nothing to do here!
 
   // First, try and push in the stored sample.  If we can't, then punt and try later
@@ -221,7 +230,9 @@ bool AudioGeneratorMP3::loop()
     if ( (samplePtr >= synth->pcm.length) && (nsCount >= nsCountMax) ) {
 retry:
       if (Input() == MAD_FLOW_STOP) {
-        return false;
+        running = false;
+        finishing = true;
+        return true;
       }
 
       if (!DecodeNextFrame()) {
