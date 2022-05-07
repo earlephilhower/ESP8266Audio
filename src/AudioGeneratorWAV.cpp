@@ -24,6 +24,7 @@
 AudioGeneratorWAV::AudioGeneratorWAV()
 {
   running = false;
+  finishing = false;
   file = NULL;
   output = NULL;
   buffSize = 128;
@@ -42,6 +43,7 @@ bool AudioGeneratorWAV::stop()
 {
   if (!running) return true;
   running = false;
+  finishing = false;
   free(buff);
   buff = NULL;
   output->stop();
@@ -50,7 +52,7 @@ bool AudioGeneratorWAV::stop()
 
 bool AudioGeneratorWAV::isRunning()
 {
-  return running;
+  return running || finishing;
 }
 
 
@@ -76,6 +78,19 @@ bool AudioGeneratorWAV::GetBufferedData(int bytes, void *dest)
 
 bool AudioGeneratorWAV::loop()
 {
+  if ( finishing )
+  {
+    if ( output->finish() ) 
+    {
+      stop();
+      return false;
+    }
+    else
+    {
+      return true;
+    }
+  }
+
   if (!running) goto done; // Nothing to do here!
 
   // First, try and push in the stored sample.  If we can't, then punt and try later
@@ -86,18 +101,18 @@ bool AudioGeneratorWAV::loop()
   {
     if (bitsPerSample == 8) {
       uint8_t l, r;
-      if (!GetBufferedData(1, &l)) stop();
+      if (!GetBufferedData(1, &l)) finishing = true;
       if (channels == 2) {
-        if (!GetBufferedData(1, &r)) stop();
+        if (!GetBufferedData(1, &r)) finishing = true;
       } else {
         r = 0;
       }
       lastSample[AudioOutput::LEFTCHANNEL] = l;
       lastSample[AudioOutput::RIGHTCHANNEL] = r;
     } else if (bitsPerSample == 16) {
-      if (!GetBufferedData(2, &lastSample[AudioOutput::LEFTCHANNEL])) stop();
+      if (!GetBufferedData(2, &lastSample[AudioOutput::LEFTCHANNEL])) finishing = true;
       if (channels == 2) {
-        if (!GetBufferedData(2, &lastSample[AudioOutput::RIGHTCHANNEL])) stop();
+        if (!GetBufferedData(2, &lastSample[AudioOutput::RIGHTCHANNEL])) finishing = true;
       } else {
         lastSample[AudioOutput::RIGHTCHANNEL] = 0;
       }

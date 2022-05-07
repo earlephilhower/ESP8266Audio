@@ -44,6 +44,7 @@ class AudioOutput
       }
       return count;
     }
+    virtual bool finish() { return true; }
     virtual bool stop() { return false; }
     virtual void flush() { return; }
     virtual bool loop() { return true; }
