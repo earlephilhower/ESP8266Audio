@@ -268,8 +268,8 @@ The current version allows for using the standard hardware CS (GPIO15) or any ot
 
 ## Pop sounds (clicks)
 
-Audio wave is centered at the middle level voltage. To output silence, DAC has to output middle voltage (0x8000 sample for 16-bit DAC). PDM or PWM have to output pulse s with 50% fill. When sound is not played, pin outputs zero voltage. Thus playback start and stop can cause pop (click) sounds due to voltage change from zero to middle (3.3V/2 average). It might not be a problem with external DAC which continue generating middle voltage when I2S is stopped. There is a problem with internal DAC, PDM on ESP32 and software Delta-sigma. Even if we let I2S to run continuously (which is waste of resources), there would be clicks on each sampling rate adjustments. 
-To remove pop sounds, AudioGeneratorI2S and AudioGeneratorI2SNoDac can ramp voltage level from zero voltage to actial sound amplitude on playback start and opposite on stop.
+Audio wave is centered at the middle level voltage. To output silence, DAC has to output middle voltage (0x8000 sample for 16-bit DAC). PDM or PWM have to output pulses with 50% fill. When sound is not played, pin outputs zero voltage. Thus playback start and stop can cause pop (click) sounds due to voltage change from zero to middle (3.3V/2 average). It might not be a problem with external DAC which continue generating middle voltage when I2S is stopped. There is a problem with internal DAC, PDM on ESP32 and software Delta-sigma. Even if we let I2S to run continuously (which is waste of resources), there would be clicks on each sampling rate adjustments. 
+To remove pop sounds, AudioOutputI2S and AudioOutputI2SNoDAC can ramp voltage level from zero voltage to actial sound amplitude on playback start and opposite on stop.
 ```
 AudioOutpupI2S->SetRamp(100)
 or
