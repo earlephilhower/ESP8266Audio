@@ -140,7 +140,7 @@ void AudioOutputI2S::updateRampSamples()
   #ifdef ESP32
     hz = AdjustI2SRate(hz);
   #endif
-    this->startRampSamples = this->endRampSamples = this->endRampSamplesTotal = this->startRampSamplesTotal = ((unsigned long)hz) * rampMs / 1000;
+    this->startRampSamples = this->endRampSamples = this->endRampSamplesTotal = this->startRampSamplesTotal = ((uint32_t)hz) * rampMs / 1000;
 }
 
 bool AudioOutputI2S::SetBitsPerSample(int bits)
