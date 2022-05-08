@@ -37,11 +37,11 @@ class AudioOutputI2SNoDAC : public AudioOutputI2S
 
     virtual ~AudioOutputI2SNoDAC() override;
     virtual bool begin() override { return AudioOutputI2S::begin(false); }
-    virtual bool ConsumeSample(int16_t sample[2]) override;
     
     bool SetOversampling(int os);
     
   protected:
+    virtual bool writeSample(int16_t ms[2]) override;
     virtual int AdjustI2SRate(int hz) override { return hz * oversample/32; }
     uint8_t oversample;
     void DeltaSigma(int16_t sample[2], uint32_t dsBuff[4]);
