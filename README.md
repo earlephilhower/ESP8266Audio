@@ -272,10 +272,14 @@ Audio wave is centered at the middle level voltage. To output silence, DAC has t
 To remove pop sounds, AudioGeneratorI2S and AudioGeneratorI2SNoDac can ramp voltage level from zero voltage to actial sound amplitude on playback start and opposite on stop.
 ```
 AudioOutpupI2S->SetRamp(100)
+or
+AudioOutpupI2SNoDac->SetRamp(100)
 ```
 Parameters is length of ramp in millisecons. Values between 50...100ms are Ok.  
 Volume will rize from zero to normal on sound start.
 After playback, there will be a ramp of specified length to bring voltage down to zero.
+
+*Note: curently works with AudioGeneratorMP3 and AudioGeneratorWAV only*
 
 ## Notes for using SD cards and ESP8266Audio on Wemos shields
 I've been told the Wemos SD card shield uses GPIO15 as the SD chip select.  This needs to be changed because GPIO15 == I2SBCLK, and is driven even if you're using the NoDAC option.  Once you move the CS to another pin and update your program it should work fine.
