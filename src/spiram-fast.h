@@ -247,6 +247,11 @@ class ESP8266SPIRAM {
 
 #include <SPI.h>
 
+#ifndef SPECIAL
+  #define UNDEF_SPECIAL
+  #define SPECIAL 0xf0
+#endif
+
 class ESP8266SPIRAM {
     private:
         uint8_t csPin;
@@ -360,6 +365,10 @@ class ESP8266SPIRAM {
         }
 
 };
+
+#ifdef UNDEF_SPECIAL
+  #undef SPECIAL
+#endif
 
 #endif  // ESP32
 
