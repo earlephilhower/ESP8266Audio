@@ -13,10 +13,10 @@ void loop() {}
 #include "AudioFileSourceBuffer.h"
 #include "AudioGeneratorMP3.h"
 #if AUDIO
-#pragma message("Outputting audio")
+// #pragma message("Outputting audio")
 #include "AudioOutputLinuxDSP.h"
 #else
-#pragma message("No audio")
+// #pragma message("No audio")
 #include "AudioOutputNullSlow.h"
 #endif
 
