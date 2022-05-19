@@ -106,7 +106,11 @@ jobs:
         valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./mp3
         valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./aac
         valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./wav
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./flac
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./mod
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./wav
         valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./midi
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./opus
 
   lint:
     runs-on: ubuntu-latest
