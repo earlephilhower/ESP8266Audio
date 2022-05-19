@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#ifdef ARDUION_ARCH_RP2040
+#ifdef ARDUINO_ARCH_RP2040
 void setup() {}
 void loop() {}
 #else
