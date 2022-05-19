@@ -2,7 +2,7 @@
 
 #if defined(ARDUINO_ARCH_RP2040)
 void setup() {}
-void loop()_{}
+void loop() {}
 #else
 #if defined(ESP32)
     #include <WiFi.h>

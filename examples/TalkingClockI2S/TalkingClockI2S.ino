@@ -2,11 +2,14 @@
 // https://github.com/going-digital/Talkie/blob/master/Talkie/examples/Vocab_US_Clock/Vocab_US_Clock.ino
 // Released under GPL v2
 
+#include <Arduino.h>
+
 #if defined(ARDUINO_ARCH_RP2040)
-    #define WIFI_OFF
-    class __x { public: __x() {}; void mode() {}; };
-    __x WiFi;
-#elif defined(ESP32)
+void setup() {}
+void loop() {}
+#else
+
+#if defined(ESP32)
     #include <WiFi.h>
 #else
     #include <ESP8266WiFi.h>
@@ -187,3 +190,4 @@ void loop()
   sayTime(tmstruct.tm_hour, tmstruct.tm_min, talkie);
   delay(1000);
 }
+#endif
