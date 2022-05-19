@@ -1422,7 +1422,7 @@ static int op_open_seekable2_impl(OggOpusFile *_of){
   _of->end=sr[0].offset+sr[0].size;
   if(OP_UNLIKELY(_of->end<data_offset)){free(sr); return OP_EBADLINK;}
   /*Now enumerate the bitstream structure.*/
-  ret = op_bisect_forward_serialno(_of,data_offset,sr,sizeof(sr)/sizeof(*sr),
+  ret = op_bisect_forward_serialno(_of,data_offset,sr,64,
    &_of->serialnos,&_of->nserialnos,&_of->cserialnos);
   free(sr);
   return ret;
