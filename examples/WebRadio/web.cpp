@@ -19,6 +19,9 @@
 */
 
 #include <Arduino.h>
+#if defined(ARDUINO_ARCH_RP2040)
+// Nothing here
+#else
 #ifdef ESP32
     #include <WiFi.h>
 #else
@@ -308,7 +311,4 @@ void Read4Int(char *str, byte *p)
   str += ParseInt(str, &i); p[2] = i; if (*str) str++;
   str += ParseInt(str, &i); p[3] = i;
 }
-
-
-
-
+#endif
