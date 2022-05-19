@@ -52,6 +52,35 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int
   SetGain(1.0);
 }
 
+#elif defined(ARDUINO_ARCH_RP2040)
+AudioOutputI2S::AudioOutputI2S(long sampleRate, pin_size_t sck, pin_size_t data) {
+    i2sOn = false;
+    mono = false;
+    bps = 16;
+    channels = 2;
+    hertz = sampleRate;
+    bclkPin = sck;
+    doutPin = data;
+    SetGain(1.0);
+}
+#endif
+
+AudioOutputI2S::~AudioOutputI2S()
+{
+  #ifdef ESP32
+    if (i2sOn) {
+      audioLogger->printf("UNINSTALL I2S\n");
+      i2s_driver_uninstall((i2s_port_t)portNo); //stop & destroy i2s driver
+    }
+  #elif defined(ESP8266)
+    if (i2sOn)
+      i2s_end();
+  #elif defined(ARDUINO_ARCH_RP2040)
+    stop();
+  #endif
+  i2sOn = false;
+}
+
 bool AudioOutputI2S::SetPinout()
 {
   #ifdef ESP32
@@ -83,35 +112,6 @@ bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout)
 
   return true;
 }
-#elif defined(ARDUINO_ARCH_RP2040)
-AudioOutputI2S::AudioOutputI2S(long sampleRate, pin_size_t sck, pin_size_t data) {
-    i2sOn = false;
-    mono = false;
-    bps = 16;
-    channels = 2;
-    hertz = sampleRate;
-    bclkPin = sck;
-    doutPin = data;
-    SetGain(1.0);
-}
-#endif
-
-AudioOutputI2S::~AudioOutputI2S()
-{
-  #ifdef ESP32
-    if (i2sOn) {
-      audioLogger->printf("UNINSTALL I2S\n");
-      i2s_driver_uninstall((i2s_port_t)portNo); //stop & destroy i2s driver
-    }
-  #elif defined(ESP8266)
-    if (i2sOn)
-      i2s_end();
-  #elif defined(ARDUINO_ARCH_RP2040)
-    stop();
-  #endif
-  i2sOn = false;
-}
-
 bool AudioOutputI2S::SetRate(int hz)
 {
   // TODO - have a list of allowable rates from constructor, check them
@@ -123,7 +123,7 @@ bool AudioOutputI2S::SetRate(int hz)
   #elif defined(ESP8266)
       i2s_set_rate(AdjustI2SRate(hz));
   #elif defined(ARDUINO_ARCH_RP2040)
-      I2S.setFrequency(hz);
+      i2s.setFrequency(hz);
   #endif
   }
   return true;
@@ -266,9 +266,9 @@ bool AudioOutputI2S::begin(bool txDAC)
   #elif defined(ARDUINO_ARCH_RP2040)
     (void)txDAC;
     if (!i2sOn) {
-        I2S.setBCLK(bclkPin);
-	I2S.setDOUT(doutPin);
-        I2S.begin(hertz);
+        i2s.setBCLK(bclkPin);
+	i2s.setDATA(doutPin);
+        i2s.begin(hertz);
     }
   #endif
   i2sOn = true;
@@ -316,7 +316,8 @@ bool AudioOutputI2S::ConsumeSample(int16_t sample[2])
     uint32_t s32 = ((Amplify(ms[RIGHTCHANNEL])) << 16) | (Amplify(ms[LEFTCHANNEL]) & 0xffff);
     return i2s_write_sample_nb(s32); // If we can't store it, return false.  OTW true
   #elif defined(ARDUINO_ARCH_RP2040)
-    return !!I2S.write((void*)ms, 4);
+    uint32_t s32 = ((Amplify(ms[RIGHTCHANNEL])) << 16) | (Amplify(ms[LEFTCHANNEL]) & 0xffff);
+    return !!i2s.write((int32_t)s32, false);
   #endif
 }
 
@@ -334,7 +335,7 @@ void AudioOutputI2S::flush()
       }
     }
   #elif defined(ARDUINO_ARCH_RP2040)
-    I2S.flush();
+    i2s.flush();
   #endif
 }
 
@@ -346,7 +347,7 @@ bool AudioOutputI2S::stop()
   #ifdef ESP32
     i2s_zero_dma_buffer((i2s_port_t)portNo);
   #elif defined(ARDUINO_ARCH_RP2040)
-    I2S.end();
+    i2s.end();
   #endif
   i2sOn = false;
   return true;

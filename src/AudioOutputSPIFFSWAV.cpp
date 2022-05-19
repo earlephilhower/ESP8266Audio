@@ -18,6 +18,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#if !defined(ARDUINO_ARCH_RP2040)
+
 #include <Arduino.h>
 #include <FS.h>
 #ifdef ESP32
@@ -110,4 +112,6 @@ bool AudioOutputSPIFFSWAV::stop()
   f.close();
   return true;
 }
- 
+
+
+#endif
