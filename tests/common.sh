@@ -198,7 +198,7 @@ if [ "$BUILD_TYPE" = "build" ]; then
     install_arduino
     install_esp8266 "$HOME/arduino_ide"
     source "$HOME/arduino_ide/hardware/esp8266com/esp8266/tests/common.sh"
-    build_sketches "$HOME/arduino_ide" "$TRAVIS_BUILD_DIR" "-l $HOME/Arduino/libraries" "$BUILD_MOD" "$BUILD_REM"
+    build_sketches "$HOME/arduino_ide" "$TRAVIS_BUILD_DIR" "-l $HOME/Arduino/libraries" "$BUILD_MOD" "$BUILD_REM" "lm2f"
 elif [ "$BUILD_TYPE" = "build_esp32" ]; then
     install_arduino
     install_esp32 "$HOME/arduino_ide"
