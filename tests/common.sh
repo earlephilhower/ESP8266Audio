@@ -2,91 +2,10 @@
 
 set -ex
 
-function print_size_info()
-{
-    elf_file=$1
-
-    if [ -z "$elf_file" ]; then
-        printf "sketch                       data     rodata   bss      text     irom0.text   dram     flash\n"
-        return 0
-    fi
-
-    elf_name=$(basename $elf_file)
-    sketch_name="${elf_name%.*}"
-    # echo $sketch_name
-    declare -A segments
-    while read -a tokens; do
-        seg=${tokens[0]}
-        seg=${seg//./}
-        size=${tokens[1]}
-        addr=${tokens[2]}
-        if [ "$addr" -eq "$addr" -a "$addr" -ne "0" ] 2>/dev/null; then
-            segments[$seg]=$size
-        fi
-
-
-    done < <(xtensa-lx106-elf-size --format=sysv $elf_file)
-
-    total_ram=$((${segments[data]} + ${segments[rodata]} + ${segments[bss]}))
-    total_flash=$((${segments[data]} + ${segments[rodata]} + ${segments[text]} + ${segments[irom0text]}))
-
-    printf "%-28s %-8d %-8d %-8d %-8d %-8d     %-8d %-8d\n" $sketch_name ${segments[data]} ${segments[rodata]} ${segments[bss]} ${segments[text]} ${segments[irom0text]} $total_ram $total_flash
-    return 0
-}
-
-function build_sketches()
-{
-    set +e
-    local arduino=$1
-    local srcpath=$2
-    local build_arg=$3
-    local build_dir=build.tmp
-    local build_mod=$BUILD_MOD
-    local build_rem=$BUILD_REM
-    mkdir -p $build_dir
-    local build_cmd="python3 $arduino/$BUILD_PY -p $PWD/$build_dir $build_arg "
-    local sketches=$(find $srcpath -name *.ino)
-    print_size_info >size.log
-    export ARDUINO_IDE_PATH=$arduino
-    for sketch in $sketches; do
-        testcnt=$(( ($testcnt + 1) % $build_mod ))
-        if [ $testcnt -ne $build_rem ]; then
-            continue  # Not ours to do
-        fi
-        rm -rf $build_dir/*
-        local sketchdir=$(dirname $sketch)
-        local sketchdirname=$(basename $sketchdir)
-        local sketchname=$(basename $sketch)
-        if [[ "${sketchdirname}.ino" != "$sketchname" ]]; then
-            echo "Skipping $sketch, because it is not the main sketch file";
-            continue
-        fi;
-        if [[ -f "$sketchdir/.test.skip" ]]; then
-            echo -e "\n ------------ Skipping $sketch ------------ \n";
-            continue
-        fi
-        echo -e "\n ------------ Building $sketch ------------ \n";
-        # $arduino --verify $sketch;
-        echo "$build_cmd $sketch"
-        time ($build_cmd $sketch >build.log)
-        local result=$?
-        if [ $result -ne 0 ]; then
-            echo "Build failed ($1)"
-            echo "Build log:"
-            cat build.log
-            set -e
-            return $result
-        fi
-        rm build.log
-        #print_size_info $build_dir/*.elf >>size.log
-    done
-    set -e
-}
-
 function install_libraries()
 {
     mkdir -p $HOME/Arduino/libraries
-    cp -a $TRAVIS_BUILD_DIR $HOME/Arduino/libraries/ESP8266Audio
+    cp -a $GITHUB_WORKSPACE $HOME/Arduino/libraries/ESP8266Audio
     git clone https://github.com/earlephilhower/ESP8266SAM $HOME/Arduino/libraries/ESP8266SAM
 }
 
@@ -149,45 +68,36 @@ function install_rp2040()
 function install_esp32()
 {
     local ide_path=$1
-    sudo pip install pyserial
+    pip install pyserial
+    pip3 install pyserial
     cd $ide_path/hardware
     mkdir espressif
     cd espressif
     git clone https://github.com/espressif/arduino-esp32.git esp32
     pushd esp32
-    # Set custom warnings for all builds (i.e. could add -Wextra at some point)
-    echo "compiler.c.extra_flags=-Wall -Wextra -Werror $debug_flags" > platform.local.txt
-    echo "compiler.cpp.extra_flags=-Wall -Wextra -Werror $debug_flags" >> platform.local.txt
+    # Set custom warnings for all builds
+    # No -Werror because the ESP32 core has issues itself and evey build will fail in the core files before touching the lib
+    echo "compiler.c.extra_flags=-Wall -Wextra $debug_flags" > platform.local.txt
+    echo "compiler.cpp.extra_flags=-Wall -Wextra $debug_flags" >> platform.local.txt
     echo -e "\n----platform.local.txt----"
     cat platform.local.txt
-    git submodule init
-    git submodule update
+    git submodule update --init
     cd tools
     python3 get.py
     export PATH="$ide_path/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin/:$PATH"
     popd
-
+    cd esp32
 }
 
 function install_arduino()
 {
     # Install Arduino IDE and required libraries
-    cd $TRAVIS_BUILD_DIR
-    install_ide $HOME/arduino_ide $TRAVIS_BUILD_DIR
+    cd "$GITHUB_WORKSPACE"
+    install_ide "$HOME/arduino_ide" "$GITHUB_WORKSPACE"
     which arduino
-    cd $TRAVIS_BUILD_DIR
+    cd "$GITHUB_WORKSPACE"
     install_libraries
 }
-
-function build_sketches_with_arduino()
-{
-    # Compile sketches
-    build_sketches $HOME/arduino_ide $HOME/Arduino/libraries "-l $HOME/Arduino/libraries"
-    # Generate size report
-    cat size.log
-}
-
-set -e
 
 if [ "$BUILD_MOD" == "" ]; then
     export BUILD_MOD=1
@@ -203,15 +113,10 @@ if [ "$BUILD_TYPE" = "build" ]; then
 elif [ "$BUILD_TYPE" = "build_esp32" ]; then
     install_arduino
     install_esp32 "$HOME/arduino_ide"
-    export ide_path=$HOME/arduino_ide 
-    #export FQBN="esp32:esp32:esp32:PSRAM=disabled,PartitionScheme=default,CPUFreq=240,FlashMode=qio,FlashFreq=80,FlashSize=4M,UploadSpeed=921600,LoopCore=1,EventsCore=1,DebugLevel=none"
-    #export FQBN="espressif:esp32:esp32:PSRAM=enabled,PartitionScheme=huge_app"
-    export FQBN="esp32:esp32:esp32:PSRAM=enabled,PartitionScheme=huge_app"
-    export GITHUB_WORKSPACE="$TRAVIS_BUILD_DIR"
-    export GITHUB_REPOSITORY="$TRAVIS_REPO_SLUG"
-    source $ide_path/hardware/espressif/esp32/.github/scripts/install-arduino-ide.sh
-    source $ide_path/hardware/espressif/esp32/.github/scripts/install-arduino-core-esp32.sh
-    build_sketches "$FQBN" "$HOME/Arduino/libraries" "$BUILD_REM" "$BUILD_MOD"
+    export FQBN="espressif:esp32:esp32:PSRAM=enabled,PartitionScheme=huge_app"
+    mkdir -p "$GITHUB_WORKSPACE/hardware"
+    ln -s "$GITHUB_WORKSPACE/../" "$GITHUB_WORKSPACE/libraries"
+    source "$HOME/arduino_ide/hardware/espressif/esp32/.github/scripts/sketch_utils.sh" chunk_build "$HOME/arduino_ide" "$GITHUB_WORKSPACE" "$FQBN" esp32 "$GITHUB_WORKSPACE" $BUILD_REM $BUILD_MOD
 elif [ "$BUILD_TYPE" = "build_rp2040" ]; then
     install_arduino
     install_rp2040 "$HOME/arduino_ide"
