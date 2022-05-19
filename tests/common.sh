@@ -111,6 +111,7 @@ function install_esp8266()
     # Set custom warnings for all builds (i.e. could add -Wextra at some point)
     echo "compiler.c.extra_flags=-Wall -Wextra -Werror $debug_flags" > ../platform.local.txt
     echo "compiler.cpp.extra_flags=-Wall -Wextra -Werror $debug_flags" >> ../platform.local.txt
+    echo "mkbuildoptglobals.extra_flags=--ci --cache_core" >> ../platform.local.txt
     echo -e "\n----platform.local.txt----"
     cat ../platform.local.txt
     git submodule init
