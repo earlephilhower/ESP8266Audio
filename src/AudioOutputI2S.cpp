@@ -201,7 +201,11 @@ bool AudioOutputI2S::begin(bool txDAC)
       }
       else if (lsb_justified)
       {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
+        comm_fmt = (i2s_comm_format_t) I2S_COMM_FORMAT_STAND_MSB;
+#else
         comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_LSB);
+#endif
       }
       else
       {

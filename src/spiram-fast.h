@@ -332,9 +332,9 @@ class ESP8266SPIRAM {
             }
             digitalWrite(csPin, HIGH);
 
-            pinMode(sck, SPECIAL);
-            pinMode(miso, SPECIAL);
-            pinMode(mosi, SPECIAL);
+            pinMode(sck, OUTPUT);
+            pinMode(miso, INPUT);
+            pinMode(mosi, OUTPUT);
             pinMode(csPin, OUTPUT);
 
             // Enable streaming read/write mode
