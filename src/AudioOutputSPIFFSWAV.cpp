@@ -26,6 +26,10 @@
 #include "SPIFFS.h"
 #endif
 
+// Yes, I know SPIFFS is deprecated
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+
 #include "AudioOutputSPIFFSWAV.h"
 
 static const uint8_t wavHeaderTemplate[] PROGMEM = { // Hardcoded simple WAV header with 0xffffffff lengths all around
