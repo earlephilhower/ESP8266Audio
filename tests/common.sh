@@ -118,6 +118,7 @@ function install_esp8266()
     python3 get.py
     export PATH="$ide_path/hardware/esp8266com/esp8266/tools/xtensa-lx106-elf/bin:$PATH"
     popd
+    cd esp8266
 }
 
 function install_rp2040()
@@ -192,11 +193,12 @@ if [ "$BUILD_MOD" == "" ]; then
     export BUILD_REM=0
 fi
 
+export cache_dir=$(mktemp -d)
 if [ "$BUILD_TYPE" = "build" ]; then
-    export BUILD_PY="hardware/esp8266com/esp8266/tools/build.py -b generic -s 4M1M -v -k "
     install_arduino
     install_esp8266 "$HOME/arduino_ide"
-    build_sketches_with_arduino
+    source "$HOME/arduino_ide/hardware/esp8266com/esp8266/tests/common.sh"
+    build_sketches "$HOME/arduino_ide" "$TRAVIS_BUILD_DIR" "-l $HOME/Arduino/libraries" "$BUILD_MOD" "$BUILD_REM"
 elif [ "$BUILD_TYPE" = "build_esp32" ]; then
     install_arduino
     install_esp32 "$HOME/arduino_ide"
@@ -210,7 +212,6 @@ elif [ "$BUILD_TYPE" = "build_esp32" ]; then
 elif [ "$BUILD_TYPE" = "build_rp2040" ]; then
     install_arduino
     install_rp2040 "$HOME/arduino_ide"
-    export cache_dir=$(mktemp -d)
     source "$HOME/arduino_ide/hardware/pico/rp2040/tests/common.sh"
     build_sketches "$HOME/arduino_ide" "$TRAVIS_BUILD_DIR" "-l $HOME/Arduino/libraries" "$BUILD_MOD" "$BUILD_REM"
 fi
