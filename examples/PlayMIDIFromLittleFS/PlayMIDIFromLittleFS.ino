@@ -48,7 +48,6 @@ void loop()
 {
   if (midi->isRunning()) {
     if (!midi->loop()) {
-      uint32_t e = millis();
       midi->stop();
     }
   } else {
