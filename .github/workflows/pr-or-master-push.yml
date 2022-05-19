@@ -13,6 +13,29 @@ on:
 
 jobs:
 
+  build-rp2040:
+    name: Build RP2040
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        chunk: [0, 1, 2, 3, 4]
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Build Sketches
+      env:
+        TRAVIS_BUILD_DIR: ${{ github.workspace }}
+        TRAVIS_TAG: ${{ github.ref }}
+        BUILD_TYPE: build_rp2040
+        BUILD_MOD: 5
+        BUILD_REM: ${{ matrix.chunk }}
+      run: |
+        bash ./tests/common.sh
+
   build-esp8266:
     name: Build ESP8266
     runs-on: ubuntu-latest
@@ -35,7 +58,6 @@ jobs:
         BUILD_REM: ${{ matrix.chunk }}
       run: |
         bash ./tests/common.sh
-
 
   build-esp32:
     name: Build ESP-32

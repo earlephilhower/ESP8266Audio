@@ -118,7 +118,30 @@ function install_esp8266()
     python3 get.py
     export PATH="$ide_path/hardware/esp8266com/esp8266/tools/xtensa-lx106-elf/bin:$PATH"
     popd
+}
 
+function install_rp2040()
+{
+    local ide_path=$1
+    mkdir -p $ide_path/hardware
+    cd $ide_path/hardware
+    mkdir pico
+    cd pico
+    git clone https://github.com/earlephilhower/arduino-pico rp2040
+    pushd rp2040/tools
+    # Set custom warnings for all builds (i.e. could add -Wextra at some point)
+    echo "compiler.c.extra_flags=-Wall -Wextra -Werror $debug_flags" > ../platform.local.txt
+    echo "compiler.cpp.extra_flags=-Wall -Wextra -Werror $debug_flags" >> ../platform.local.txt
+    echo -e "\n----platform.local.txt----"
+    cat ../platform.local.txt
+    git submodule update --init
+    cd ../pico-sdk
+    git submodule update --init
+    cd ../tools
+    python3 get.py
+    export PATH="$ide_path/hardware/pico/rp2040/system/arm-none-eabi/bin:$PATH"
+    popd
+    cd rp2040
 }
 
 function install_esp32()
@@ -147,25 +170,19 @@ function install_esp32()
 function install_arduino()
 {
     # Install Arduino IDE and required libraries
-    echo -e "travis_fold:start:sketch_test_env_prepare"
     cd $TRAVIS_BUILD_DIR
     install_ide $HOME/arduino_ide $TRAVIS_BUILD_DIR
     which arduino
     cd $TRAVIS_BUILD_DIR
     install_libraries
-    echo -e "travis_fold:end:sketch_test_env_prepare"
 }
 
 function build_sketches_with_arduino()
 {
     # Compile sketches
-    echo -e "travis_fold:start:sketch_test"
     build_sketches $HOME/arduino_ide $HOME/Arduino/libraries "-l $HOME/Arduino/libraries"
-    echo -e "travis_fold:end:sketch_test"
     # Generate size report
-    echo -e "travis_fold:start:size_report"
     cat size.log
-    echo -e "travis_fold:end:size_report"
 }
 
 set -e
@@ -184,11 +201,16 @@ elif [ "$BUILD_TYPE" = "build_esp32" ]; then
     install_arduino
     install_esp32 "$HOME/arduino_ide"
     export ide_path=$HOME/arduino_ide 
-    export FQBN="espressif:esp32:esp32:PSRAM=enabled,PartitionScheme=huge_app"
+    export FQBN="esp32:esp32:esp32:PSRAM=disabled,PartitionScheme=default,CPUFreq=240,FlashMode=qio,FlashFreq=80,FlashSize=4M,UploadSpeed=921600,LoopCore=1,EventsCore=1,DebugLevel=none"
     export GITHUB_WORKSPACE="$TRAVIS_BUILD_DIR"
     export GITHUB_REPOSITORY="$TRAVIS_REPO_SLUG"
     source $ide_path/hardware/espressif/esp32/.github/scripts/install-arduino-ide.sh
     source $ide_path/hardware/espressif/esp32/.github/scripts/install-arduino-core-esp32.sh
     build_sketches "$FQBN" "$HOME/Arduino/libraries" "$BUILD_REM" "$BUILD_MOD"
+elif [ "$BUILD_TYPE" = "build_rp2040" ]; then
+    install_arduino
+    install_rp2040 "$HOME/arduino_ide"
+    export cache_dir=$(mktemp -d)
+    source "$HOME/arduino_ide/hardware/pico/rp2040/tests/common.sh"
+    build_sketches "$HOME/arduino_ide" "$TRAVIS_BUILD_DIR" "-l $HOME/Arduino/libraries" "$BUILD_MOD" "$BUILD_REM"
 fi
-
