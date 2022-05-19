@@ -116,7 +116,7 @@ function install_esp8266()
     cat ../platform.local.txt
     git submodule init
     git submodule update
-    python3 get.py
+    python3 get.py -q
     export PATH="$ide_path/hardware/esp8266com/esp8266/tools/xtensa-lx106-elf/bin:$PATH"
     popd
     cd esp8266
@@ -140,7 +140,7 @@ function install_rp2040()
     cd ../pico-sdk
     git submodule update --init
     cd ../tools
-    python3 get.py
+    python3 get.py -q
     export PATH="$ide_path/hardware/pico/rp2040/system/arm-none-eabi/bin:$PATH"
     popd
     cd rp2040

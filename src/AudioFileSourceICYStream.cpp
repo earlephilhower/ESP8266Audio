@@ -20,6 +20,9 @@
 
 #if defined(ESP32) || defined(ESP8266)
 
+#ifdef _GNU_SOURCE
+#undef _GNU_SOURCE
+#endif
 #define _GNU_SOURCE
 
 #include "AudioFileSourceICYStream.h"
