@@ -24,6 +24,9 @@ void setup() {}
 void loop() {}
 #else
 
+// ESP8266 server.available() is now server.accept()
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 #if defined(ESP32)
     #include <WiFi.h>
 #else
