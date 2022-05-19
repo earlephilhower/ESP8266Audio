@@ -6,7 +6,13 @@
     }
     void loop() {}
 #else
-#include <ESP8266WiFi.h>
+#if defined(ARDUINO_ARCH_RP2040)
+    #define WIFI_OFF
+    class __x { public: __x() {}; void mode() {}; };
+    __x WiFi;
+#else
+    #include <ESP8266WiFi.h>
+#endif
 #include <AudioOutputI2S.h>
 #include <AudioGeneratorMIDI.h>
 #include <AudioFileSourceLittleFS.h>
@@ -42,7 +48,6 @@ void loop()
 {
   if (midi->isRunning()) {
     if (!midi->loop()) {
-      uint32_t e = millis();
       midi->stop();
     }
   } else {

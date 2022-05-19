@@ -791,7 +791,7 @@ void AudioGeneratorMOD::GetSample(int16_t sample[2])
         Mixer.channelSampleNumber[channel] != FatBuffer.channelSampleNumber[channel]) {
 
       uint32_t toRead = Mixer.sampleEnd[Mixer.channelSampleNumber[channel]] - samplePointer + 1;
-      if (toRead > fatBufferSize) toRead  = fatBufferSize;
+      if (toRead > (uint32_t)fatBufferSize) toRead  = fatBufferSize;
 
       if (!file->seek(samplePointer, SEEK_SET)) {
         stop();
