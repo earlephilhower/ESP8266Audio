@@ -62,6 +62,9 @@ bool AudioGeneratorFLAC::begin(AudioFileSource *source, AudioOutput *output)
 
   output->begin();
   running = true;
+  lastSample[0] = 0;
+  lastSample[1] = 0;
+  channels = 0;
   return true;
 }
 
@@ -71,7 +74,7 @@ bool AudioGeneratorFLAC::loop()
 
   if (!running) goto done;
 
-  if (!output->ConsumeSample(lastSample)) goto done; // Try and send last buffered sample
+  if (channels && !output->ConsumeSample(lastSample)) goto done; // Try and send last buffered sample
 
   do {
     if (buffPtr == buffLen) {
