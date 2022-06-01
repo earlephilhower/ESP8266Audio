@@ -76,9 +76,9 @@ function install_esp32()
     git clone https://github.com/espressif/arduino-esp32.git esp32
     pushd esp32
     # Set custom warnings for all builds
-    # No -Werror because the ESP32 core has issues itself and evey build will fail in the core files before touching the lib
-    echo "compiler.c.extra_flags=-Wall -Wextra $debug_flags" > platform.local.txt
-    echo "compiler.cpp.extra_flags=-Wall -Wextra $debug_flags" >> platform.local.txt
+
+    echo "compiler.c.extra_flags=-Wall -Wextra -Werror $debug_flags" > platform.local.txt
+    echo "compiler.cpp.extra_flags=-Wall -Wextra -Werror $debug_flags" >> platform.local.txt
     echo -e "\n----platform.local.txt----"
     cat platform.local.txt
     git submodule update --init
