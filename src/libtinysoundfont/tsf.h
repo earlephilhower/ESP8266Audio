@@ -1440,6 +1440,7 @@ static void tsf_voice_render_fast(tsf* f, struct tsf_voice* v, short* outputBuff
   //double tmpSampleEndDbl = (double)v->sampleEnd, tmpLoopEndDbl = (double)tmpLoopEnd + 1.0;
   //double tmpSourceSamplePosition = v->sourceSamplePosition;
   fixed32p32 tmpSampleEndF32P32 = ((fixed32p32)(region->end)) << 32;
+  fixed32p32 tmpLoopStartF32P32 = ((fixed32p32)(tmpLoopStart + 1)) << 32;
   fixed32p32 tmpLoopEndF32P32 = ((fixed32p32)(tmpLoopEnd + 1)) << 32;
   fixed32p32 tmpSourceSamplePositionF32P32 = v->sourceSamplePositionF32P32;
   struct tsf_voice_lowpass tmpLowpass = v->lowpass;
@@ -1513,7 +1514,7 @@ static void tsf_voice_render_fast(tsf* f, struct tsf_voice* v, short* outputBuff
       // Next sample.
       tmpSourceSamplePositionF32P32 += pitchRatioF32P32;
       if (tmpSourceSamplePositionF32P32 >= tmpLoopEndF32P32 && isLooping)
-        tmpSourceSamplePositionF32P32 -= (tmpLoopEndF32P32 - tmpLoopStart + (1LL<<32));
+        tmpSourceSamplePositionF32P32 -= (tmpLoopEndF32P32 - tmpLoopStartF32P32 + (1LL<<32));
     }
 
     if (tmpSourceSamplePositionF32P32 >= tmpSampleEndF32P32 || v->ampenv.segment == TSF_SEGMENT_DONE)
