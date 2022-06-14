@@ -43,7 +43,7 @@ class AudioOutputI2SNoDAC : public AudioOutputI2S
     
   protected:
     virtual int AdjustI2SRate(int hz) override { return hz * oversample/32; }
-    uint8_t oversample;
+    int oversample;
     void DeltaSigma(int16_t sample[2], uint32_t dsBuff[4]);
     typedef int32_t fixed24p8_t;
     enum {fixedPosValue=0x007fff00}; /* 24.8 of max-signed-int */
