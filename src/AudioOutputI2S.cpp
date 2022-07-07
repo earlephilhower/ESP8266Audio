@@ -240,9 +240,9 @@ bool AudioOutputI2S::begin(bool txDAC)
           .dma_buf_len = 128,
           .use_apll = use_apll, // Use audio PLL
           .tx_desc_auto_clear = true, // Silence on underflow
-          .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT // Use bits per sample
           .fixed_mclk    = 0,
-          .mclk_multiple = I2S_MCLK_MULTIPLE_128
+          .mclk_multiple = I2S_MCLK_MULTIPLE_128,
+          .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT // Use bits per sample
       };
       audioLogger->printf("+%d %p\n", portNo, &i2s_config_dac);
       if (i2s_driver_install((i2s_port_t)portNo, &i2s_config_dac, 0, NULL) != ESP_OK)
