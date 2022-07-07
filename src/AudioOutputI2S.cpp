@@ -88,7 +88,7 @@ bool AudioOutputI2S::SetPinout()
       return false; // Not allowed
 
     i2s_pin_config_t pins = {
-		.mck_io_num = mclkPin,
+        .mck_io_num = mclkPin,
         .bck_io_num = bclkPin,
         .ws_io_num = wclkPin,
         .data_out_num = doutPin,
@@ -240,10 +240,9 @@ bool AudioOutputI2S::begin(bool txDAC)
           .dma_buf_len = 128,
           .use_apll = use_apll, // Use audio PLL
           .tx_desc_auto_clear = true, // Silence on underflow
-          .fixed_mclk = 0, // Unused
           .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT // Use bits per sample
-		  .fixed_mclk    = 0,
-		  .mclk_multiple = I2S_MCLK_MULTIPLE_128
+          .fixed_mclk    = 0,
+          .mclk_multiple = I2S_MCLK_MULTIPLE_128
       };
       audioLogger->printf("+%d %p\n", portNo, &i2s_config_dac);
       if (i2s_driver_install((i2s_port_t)portNo, &i2s_config_dac, 0, NULL) != ESP_OK)
