@@ -88,11 +88,12 @@ bool AudioOutputI2S::SetPinout()
       return false; // Not allowed
 
     i2s_pin_config_t pins = {
-        .mck_io_num = 0, // Unused
+		.mck_io_num = mclkPin,
         .bck_io_num = bclkPin,
         .ws_io_num = wclkPin,
         .data_out_num = doutPin,
-        .data_in_num = I2S_PIN_NO_CHANGE};
+        .data_in_num = dinPin};
+		
     i2s_set_pin((i2s_port_t)portNo, &pins);
     return true;
   #else
@@ -103,11 +104,14 @@ bool AudioOutputI2S::SetPinout()
   #endif
 }
 
-bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout)
+bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout, int mclk, int din)
 {
   bclkPin = bclk;
   wclkPin = wclk;
   doutPin = dout;
+  mclkPin = mclk;
+  dinPin = din;
+  
   if (i2sOn)
     return SetPinout();
 
@@ -216,6 +220,14 @@ bool AudioOutputI2S::begin(bool txDAC)
         comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB);
 #endif
       }
+	  
+	  if (mclkPin != I2S_PIN_NO_CHANGE) {
+	  	use_apll = false;
+	  }
+
+	  if (dinPin != I2S_PIN_NO_CHANGE) {
+	  	mode = (i2s_mode_t) (I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX);
+	  }
 
       i2s_config_t i2s_config_dac = {
           .mode = mode,
@@ -229,8 +241,9 @@ bool AudioOutputI2S::begin(bool txDAC)
           .use_apll = use_apll, // Use audio PLL
           .tx_desc_auto_clear = true, // Silence on underflow
           .fixed_mclk = 0, // Unused
-          .mclk_multiple = I2S_MCLK_MULTIPLE_DEFAULT, // Unused
           .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT // Use bits per sample
+		  .fixed_mclk    = 0,
+		  .mclk_multiple = I2S_MCLK_MULTIPLE_128
       };
       audioLogger->printf("+%d %p\n", portNo, &i2s_config_dac);
       if (i2s_driver_install((i2s_port_t)portNo, &i2s_config_dac, 0, NULL) != ESP_OK)

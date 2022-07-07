@@ -37,7 +37,7 @@ class AudioOutputI2S : public AudioOutput
 #elif defined(ARDUINO_ARCH_RP2040)
     AudioOutputI2S(long sampleRate = 44100, pin_size_t sck = 26, pin_size_t data = 28);
 #endif
-    bool SetPinout(int bclkPin, int wclkPin, int doutPin);
+	bool SetPinout(int bclkPin, int wclkPin, int doutPin, int mclk = I2S_PIN_NO_CHANGE, int din = I2S_PIN_NO_CHANGE);
     virtual ~AudioOutputI2S() override;
     virtual bool SetRate(int hz) override;
     virtual bool SetBitsPerSample(int bits) override;
@@ -68,7 +68,9 @@ class AudioOutputI2S : public AudioOutput
     uint8_t bclkPin;
     uint8_t wclkPin;
     uint8_t doutPin;
-
+    uint8_t dinPin;
+    uint8_t mclkPin;
+	
 #if defined(ARDUINO_ARCH_RP2040)
     I2S i2s;
 #endif
