@@ -31,7 +31,7 @@ class AudioOutputI2S : public AudioOutput
 {
   public:
 #if defined(ESP32) || defined(ESP8266)
-	AudioOutputI2S(int port=0, int output_mode=EXTERNAL_I2S, int dma_buf_count = 8, int use_apll=APLL_DISABLE, i2s_mclk_multiple_t mult=I2S_MCLK_MULTIPLE_DEFAULT);
+	AudioOutputI2S(int port=0, int output_mode=EXTERNAL_I2S, int dma_buf_count = 8, int use_apll=APLL_DISABLE, i2s_mclk_multiple_t mult=I2S_MCLK_MULTIPLE_DEFAULT, uint32_t freq=0);
     enum : int { APLL_AUTO = -1, APLL_ENABLE = 1, APLL_DISABLE = 0 };
     enum : int { EXTERNAL_I2S = 0, INTERNAL_DAC = 1, INTERNAL_PDM = 2 };
 #elif defined(ARDUINO_ARCH_RP2040)
@@ -71,6 +71,7 @@ class AudioOutputI2S : public AudioOutput
     int8_t dinPin;
     int8_t mclkPin;
 	i2s_mclk_multiple_t mcmult;
+	uint32_t mclk_freq;
 	
 #if defined(ARDUINO_ARCH_RP2040)
     I2S i2s;
