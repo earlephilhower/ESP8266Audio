@@ -29,7 +29,7 @@
 #include "AudioOutputI2S.h"
 
 #if defined(ESP32) || defined(ESP8266)
-AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int use_apll, i2s_mclk_multiple_t mult, uint32_t freq)
+AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int use_apll, uint8_t mult, uint32_t freq)
 {
   this->portNo = port;
   this->i2sOn = false;
@@ -242,8 +242,10 @@ bool AudioOutputI2S::begin(bool txDAC)
           .dma_buf_len = 128,
           .use_apll = use_apll, // Use audio PLL
           .tx_desc_auto_clear = true, // Silence on underflow
-          .fixed_mclk    = mclk_freq,
-          .mclk_multiple = mcmult,
+#ifdef ESP32
+          .fixed_mclk             = (int)mclk_freq,
+          .mclk_multiple          = (i2s_mclk_multiple_t)mcmult,
+#endif
           .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT // Use bits per sample
       };
       audioLogger->printf("+%d %p\n", portNo, &i2s_config_dac);
