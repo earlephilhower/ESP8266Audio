@@ -606,7 +606,7 @@ struct tsf_voice
 	double sourceSamplePosition;
 	fixed32p32 sourceSamplePositionF32P32, loopStartF32P32, loopEndF32P32, loopSizeF32P32, pitchRatioF32P32;
 	float  noteGain, panFactorLeft, panFactorRight;
-	unsigned int playIndex, loopStart, loopEnd;
+	int playIndex, loopStart, loopEnd;
 	struct tsf_voice_envelope ampenv, modenv;
 	struct tsf_voice_lowpass lowpass;
 	struct tsf_voice_lfo modlfo, viblfo;
@@ -1470,12 +1470,12 @@ static void tsf_voice_render_fast(tsf* f, struct tsf_voice* v, short* outputBuff
       if (v->modlfo.level || v->viblfo.level || v->modenv.level)
         pitchRatioF32P32 = tmpPitchRatioF32P32 * tsf_timecents2Secsd(v->modlfo.level * tmpModLfoToPitch + v->viblfo.level * tmpVibLfoToPitch + v->modenv.level * tmpModEnvToPitch);
       else
-        pitchRatioF32P32 = tmpPitchRatioF32P32; // If all levels are 0, just bypass convertion function
+        pitchRatioF32P32 = tmpPitchRatioF32P32; // If all levels are 0, just bypass conversion function
     }
 
     if (dynamicGain) {
       if (v->modlfo.level) noteGain = tmpNoteGain * tsf_decibelsToGain(v->modlfo.level * tmpModLfoToVolume);
-      else                 noteGain = tmpNoteGain; // If level is 0, just bypass convertion function
+      else                 noteGain = tmpNoteGain; // If level is 0, just bypass conversion function
     }
 
     gainMono = noteGain * v->ampenv.level;
