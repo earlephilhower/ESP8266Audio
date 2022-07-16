@@ -1713,6 +1713,7 @@ TSFDEF void tsf_note_on(tsf* f, int preset_index, int key, float vel)
 			}
 			voice = &f->voices[f->voiceNum - 4];
 			voice[1].playingPreset = voice[2].playingPreset = voice[3].playingPreset = -1;
+			voice[1].playIndex = voice[2].playIndex = voice[3].playIndex = -1;
 		}
 
 		voice->region = region;
@@ -1799,6 +1800,7 @@ TSFDEF int tsf_note_on_fast(tsf* f, int preset_index, int key, float vel)
 			}
 			voice = &f->voices[f->voiceNum - 4];
 			voice[1].playingPreset = voice[2].playingPreset = voice[3].playingPreset = -1;
+			voice[1].playIndex = voice[2].playIndex = voice[3].playIndex = -1;
 		}
 
 		voice->region = region;
