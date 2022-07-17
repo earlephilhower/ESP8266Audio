@@ -116,7 +116,7 @@ elif [ "$BUILD_TYPE" = "build_esp32" ]; then
     export FQBN="espressif:esp32:esp32:PSRAM=enabled,PartitionScheme=huge_app"
     mkdir -p "$GITHUB_WORKSPACE/hardware"
     ln -s "$GITHUB_WORKSPACE/../" "$GITHUB_WORKSPACE/libraries"
-    source "$HOME/arduino_ide/hardware/espressif/esp32/.github/scripts/sketch_utils.sh" chunk_build "$HOME/arduino_ide" "$GITHUB_WORKSPACE" "$FQBN" esp32 "$GITHUB_WORKSPACE" $BUILD_REM $BUILD_MOD
+    source "$HOME/arduino_ide/hardware/espressif/esp32/.github/scripts/sketch_utils.sh" chunk_build -ai "$HOME/arduino_ide" -au "$GITHUB_WORKSPACE" -fqbn "$FQBN" -t esp32 -p "$GITHUB_WORKSPACE" -i $BUILD_REM -m $BUILD_MOD
 elif [ "$BUILD_TYPE" = "build_rp2040" ]; then
     install_arduino
     install_rp2040 "$HOME/arduino_ide"
