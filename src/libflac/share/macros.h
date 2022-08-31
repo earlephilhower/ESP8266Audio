@@ -35,7 +35,7 @@
  * print an error message if it fails (ie returns a value < 0).
  *
  * Ideally, a library should not print anything, but this macro is only used
- * for things that extremely unlikely to fail, like `chown` to a previoulsy
+ * for things that extremely unlikely to fail, like `chown` to a previously
  * saved `uid`.
  */
 
