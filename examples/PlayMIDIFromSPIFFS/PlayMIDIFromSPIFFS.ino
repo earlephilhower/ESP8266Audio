@@ -2,7 +2,7 @@
 
 // Do not build on GCC8, GCC8 has a compiler bug
 
-#if defined(ARDUINO_ARCH_RP2040) || (__GNUC__ == 8)
+#if defined(ARDUINO_ARCH_RP2040) || ((__GNUC__ == 8) && (__XTENSA__))
 void setup() {}
 void loop() {}
 #else
