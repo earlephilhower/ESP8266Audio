@@ -67,18 +67,7 @@ AudioOutputI2S::AudioOutputI2S(long sampleRate, pin_size_t sck, pin_size_t data)
 
 AudioOutputI2S::~AudioOutputI2S()
 {
-  #ifdef ESP32
-    if (i2sOn) {
-      audioLogger->printf("UNINSTALL I2S\n");
-      i2s_driver_uninstall((i2s_port_t)portNo); //stop & destroy i2s driver
-    }
-  #elif defined(ESP8266)
-    if (i2sOn)
-      i2s_end();
-  #elif defined(ARDUINO_ARCH_RP2040)
-    stop();
-  #endif
-  i2sOn = false;
+  stop();
 }
 
 bool AudioOutputI2S::SetPinout()
@@ -359,6 +348,10 @@ bool AudioOutputI2S::stop()
 
   #ifdef ESP32
     i2s_zero_dma_buffer((i2s_port_t)portNo);
+    audioLogger->printf("UNINSTALL I2S\n");
+    i2s_driver_uninstall((i2s_port_t)portNo); //stop & destroy i2s driver
+  #elif defined(ESP8266)
+    i2s_end();
   #elif defined(ARDUINO_ARCH_RP2040)
     i2s.end();
   #endif
