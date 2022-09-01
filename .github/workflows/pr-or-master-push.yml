@@ -134,5 +134,5 @@ jobs:
     - name: Run codespell
       uses: codespell-project/actions-codespell@master
       with:
-        skip: ./src/libmad,./src/libhelix-aac,./src/libopus,./src/libflac/
+        skip: ./src/libmad,./src/libhelix-aac,./src/libopus,./src/libflac
         ignore_words_list: ESP8266,esp8266,esp,dout,DOUT,ser,ans,inout,numer,hist
