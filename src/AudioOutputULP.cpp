@@ -169,7 +169,7 @@ bool AudioOutputULP::begin()
       {
         RTC_SLOW_MEM[dacTableStart1 + i * 2] = create_I_WR_REG(RTC_IO_PAD_DAC1_REG,19,26,i); //dac1: 0x1D4C0121 | (i << 10)
         RTC_SLOW_MEM[dacTableStart1 + 1 + i * 2] = create_I_BXI(retAddress1); // 0x80000000 + retAddress1 * 4
-        RTC_SLOW_MEM[dacTableStart2 + i * 2] = create_I_WR_REG(RTC_IO_PAD_DAC1_REG,19,26,i); //dac2: 0x1D4C0122 | (i << 10)
+        RTC_SLOW_MEM[dacTableStart2 + i * 2] = create_I_WR_REG(RTC_IO_PAD_DAC2_REG,19,26,i); //dac2: 0x1D4C0122 | (i << 10)
         RTC_SLOW_MEM[dacTableStart2 + 1 + i * 2] = create_I_BXI(retAddress2); // 0x80000000 + retAddress2 * 4
       }
       break;
