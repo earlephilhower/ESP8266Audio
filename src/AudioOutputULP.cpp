@@ -18,9 +18,12 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if CONFIG_IDF_TARGET_ESP32 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
+#ifdef ESP32
 
 #include "AudioOutputULP.h"
+
+#if CONFIG_IDF_TARGET_ESP32 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
+
 #include <esp32/ulp.h>
 #include <driver/rtc_io.h>
 #include <driver/dac.h>
@@ -259,4 +262,5 @@ bool AudioOutputULP::stop()
   return true;
 }
 
+#endif
 #endif
