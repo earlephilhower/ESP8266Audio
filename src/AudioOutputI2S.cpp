@@ -78,7 +78,7 @@ bool AudioOutputI2S::SetPinout()
 
     i2s_pin_config_t pins = {
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
-        .mck_io_num = 0, // Unused
+        .mck_io_num = mclkPin,
 #endif
         .bck_io_num = bclkPin,
         .ws_io_num = wclkPin,
@@ -104,6 +104,20 @@ bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout)
 
   return true;
 }
+
+bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout, int mclk)
+{
+  bclkPin = bclk;
+  wclkPin = wclk;
+  doutPin = dout;
+  #ifdef ESP32
+    mclkPin = mclk;
+    if (i2sOn)
+      return SetPinout();
+  #endif
+  return true;
+}
+
 bool AudioOutputI2S::SetRate(int hz)
 {
   // TODO - have a list of allowable rates from constructor, check them
@@ -144,6 +158,16 @@ bool AudioOutputI2S::SetOutputModeMono(bool mono)
 bool AudioOutputI2S::SetLsbJustified(bool lsbJustified)
 {
   this->lsb_justified = lsbJustified;
+  return true;
+}
+
+bool AudioOutputI2S::SetMclk(bool enabled){
+  #ifdef ESP32
+    if (output_mode == INTERNAL_DAC || output_mode == INTERNAL_PDM)
+      return false; // Not allowed
+
+    use_mclk = enabled;
+  #endif
   return true;
 }
 
@@ -219,9 +243,9 @@ bool AudioOutputI2S::begin(bool txDAC)
           .dma_buf_len = 128,
           .use_apll = use_apll, // Use audio PLL
           .tx_desc_auto_clear = true, // Silence on underflow
-          .fixed_mclk = 0, // Unused
+          .fixed_mclk = use_mclk, // Unused
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
-          .mclk_multiple = I2S_MCLK_MULTIPLE_DEFAULT, // Unused
+          .mclk_multiple = I2S_MCLK_MULTIPLE_256, // Unused
           .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT // Use bits per sample
 #endif
       };
