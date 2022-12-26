@@ -91,7 +91,6 @@ bool AudioOutputI2S::SetPinout()
     (void)wclkPin;
     (void)doutPin;
     (void)mclkPin;
-    (void)use_mclk;
     return false;
   #endif
 }
@@ -164,6 +163,7 @@ bool AudioOutputI2S::SetLsbJustified(bool lsbJustified)
 }
 
 bool AudioOutputI2S::SetMclk(bool enabled){
+  (void)enabled;
   #ifdef ESP32
     if (output_mode == INTERNAL_DAC || output_mode == INTERNAL_PDM)
       return false; // Not allowed
