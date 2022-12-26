@@ -90,6 +90,8 @@ bool AudioOutputI2S::SetPinout()
     (void)bclkPin;
     (void)wclkPin;
     (void)doutPin;
+    (void)mclkPin;
+    (void)use_mclk;
     return false;
   #endif
 }
