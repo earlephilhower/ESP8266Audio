@@ -119,6 +119,8 @@ bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout, int mclk)
     mclkPin = mclk;
     if (i2sOn)
       return SetPinout();
+  #else
+    (void)mclk;
   #endif
   return true;
 }
