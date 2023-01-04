@@ -111,7 +111,7 @@ if [ "$BUILD_TYPE" = "build" ]; then
     source "$HOME/arduino_ide/hardware/esp8266com/esp8266/tests/common.sh"
     export ESP8266_ARDUINO_SKETCHES=$(find $HOME/Arduino/libraries/ESP8266Audio -name *.ino | sort)
     echo Sketches to run: $ESP8266_ARDUINO_SKETCHES
-    build_sketches "$TRAVIS_BUILD_DIR" "$HOME/arduino_ide" "$HOME/Arduino/hardware" "$HOME/Arduino/libraries" "$BUILD_MOD" "$BUILD_REM" "lm2f"
+    build_sketches "$TRAVIS_BUILD_DIR" "$HOME/arduino_ide" "$HOME/arduino_ide/hardware" "$HOME/Arduino/libraries" "$BUILD_MOD" "$BUILD_REM" "lm2f"
 elif [ "$BUILD_TYPE" = "build_esp32" ]; then
     install_arduino
     install_esp32 "$HOME/arduino_ide"
