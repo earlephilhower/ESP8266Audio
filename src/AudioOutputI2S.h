@@ -38,6 +38,7 @@ class AudioOutputI2S : public AudioOutput
     AudioOutputI2S(long sampleRate = 44100, pin_size_t sck = 26, pin_size_t data = 28);
 #endif
     bool SetPinout(int bclkPin, int wclkPin, int doutPin);
+    bool SetPinout(int bclkPin, int wclkPin, int doutPin, int mclkPin);
     virtual ~AudioOutputI2S() override;
     virtual bool SetRate(int hz) override;
     virtual bool SetBitsPerSample(int bits) override;
@@ -50,6 +51,7 @@ class AudioOutputI2S : public AudioOutput
     bool begin(bool txDAC);
     bool SetOutputModeMono(bool mono);  // Force mono output no matter the input
     bool SetLsbJustified(bool lsbJustified);  // Allow supporting non-I2S chips, e.g. PT8211 
+    bool SetMclk(bool enabled);  // Enable MCLK output (if supported)
 
   protected:
     bool SetPinout();
@@ -61,6 +63,7 @@ class AudioOutputI2S : public AudioOutput
     bool i2sOn;
     int dma_buf_count;
     int use_apll;
+    bool use_mclk;
     // We can restore the old values and free up these pins when in NoDAC mode
     uint32_t orig_bck;
     uint32_t orig_ws;
@@ -68,6 +71,7 @@ class AudioOutputI2S : public AudioOutput
     uint8_t bclkPin;
     uint8_t wclkPin;
     uint8_t doutPin;
+    uint8_t mclkPin;
 
 #if defined(ARDUINO_ARCH_RP2040)
     I2S i2s;
