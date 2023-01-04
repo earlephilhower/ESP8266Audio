@@ -109,7 +109,11 @@ if [ "$BUILD_TYPE" = "build" ]; then
     install_arduino
     install_esp8266 "$HOME/arduino_ide"
     source "$HOME/arduino_ide/hardware/esp8266com/esp8266/tests/common.sh"
-    build_sketches "$HOME/arduino_ide" "$TRAVIS_BUILD_DIR" "-l $HOME/Arduino/libraries" "$BUILD_MOD" "$BUILD_REM" "lm2f"
+    export ESP8266_ARDUINO_SKETCHES=$(find $HOME/Arduino/libraries/ESP8266Audio -name *.ino | sort)
+    # ESP8266 scripts now expect tools in wrong spot.  Use simple and dumb fix
+    mkdir -p "$HOME/work/ESP8266Audio/ESP8266Audio"
+    ln -s "$HOME/arduino_ide/hardware/esp8266com/esp8266/tools" "$HOME/work/ESP8266Audio/ESP8266Audio/tools"
+    build_sketches "$TRAVIS_BUILD_DIR" "$HOME/arduino_ide" "$HOME/arduino_ide/hardware" "$HOME/Arduino/libraries" "$BUILD_MOD" "$BUILD_REM" "lm2f"
 elif [ "$BUILD_TYPE" = "build_esp32" ]; then
     install_arduino
     install_esp32 "$HOME/arduino_ide"
