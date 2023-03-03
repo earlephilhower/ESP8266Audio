@@ -22,7 +22,7 @@
 #include <Arduino.h>
 #include "AudioOutputPWM.h"
 
-AudioOutputPWM::AudioOutputPWM(long sampleRate, pin_size_t data) {
+AudioOutputPWM::AudioOutputPWM(long sampleRate, pin_size_t data) : pwm(data, false) {
     pwmOn = false;
     mono = false;
     bps = 16;
@@ -89,7 +89,10 @@ bool AudioOutputPWM::ConsumeSample(int16_t sample[2]) {
     ms[LEFTCHANNEL] = ms[RIGHTCHANNEL] = (ttl>>1) & 0xffff;
   }
 
-  if (pwm.available()) {
+    ms[LEFTCHANNEL] = Amplify(ms[LEFTCHANNEL]);
+    ms[RIGHTCHANNEL] = Amplify(ms[RIGHTCHANNEL]);
+
+    if (pwm.available()) {
       pwm.write((int16_t) ms[0]);
       pwm.write((int16_t) ms[1]);
       return true;
