@@ -1,7 +1,7 @@
 /*
   AudioOutputI2S
   Base class for an I2S output port
-  
+
   Copyright (C) 2017  Earle F. Philhower, III
 
   This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@ class AudioOutputI2S : public AudioOutput
 {
   public:
 #if defined(ESP32) || defined(ESP8266)
-    AudioOutputI2S(int port=0, int output_mode=EXTERNAL_I2S, int dma_buf_count = 8, int use_apll=APLL_DISABLE);
+    AudioOutputI2S(int port=0, int output_mode=EXTERNAL_I2S, int dma_buf_count = 8, int use_apll=APLL_DISABLE, int use_mclk = 0, bool tx_desc_auto_clear = false);
     enum : int { APLL_AUTO = -1, APLL_ENABLE = 1, APLL_DISABLE = 0 };
     enum : int { EXTERNAL_I2S = 0, INTERNAL_DAC = 1, INTERNAL_PDM = 2 };
 #elif defined(ARDUINO_ARCH_RP2040)
@@ -39,18 +39,18 @@ class AudioOutputI2S : public AudioOutput
 #endif
     bool SetPinout(int bclkPin, int wclkPin, int doutPin);
     bool SetPinout(int bclkPin, int wclkPin, int doutPin, int mclkPin);
-    virtual ~AudioOutputI2S() override;
-    virtual bool SetRate(int hz) override;
+        virtual bool SetRate(int hz) override;
     virtual bool SetBitsPerSample(int bits) override;
     virtual bool SetChannels(int channels) override;
     virtual bool begin() override { return begin(true); }
     virtual bool ConsumeSample(int16_t sample[2]) override;
     virtual void flush() override;
     virtual bool stop() override;
-    
-    bool begin(bool txDAC);
+
+    virtual ~AudioOutputI2S() override;
+bool begin(bool txDAC);
     bool SetOutputModeMono(bool mono);  // Force mono output no matter the input
-    bool SetLsbJustified(bool lsbJustified);  // Allow supporting non-I2S chips, e.g. PT8211 
+    bool SetLsbJustified(bool lsbJustified);  // Allow supporting non-I2S chips, e.g. PT8211
     bool SetMclk(bool enabled);  // Enable MCLK output (if supported)
 
   protected:
@@ -63,11 +63,13 @@ class AudioOutputI2S : public AudioOutput
     bool i2sOn;
     int dma_buf_count;
     int use_apll;
-    bool use_mclk;
+    int use_mclk = 0;
+    bool tx_desc_auto_clear = false;
+
     // We can restore the old values and free up these pins when in NoDAC mode
     uint32_t orig_bck;
     uint32_t orig_ws;
-    
+
     uint8_t bclkPin;
     uint8_t wclkPin;
     uint8_t doutPin;

@@ -1,7 +1,7 @@
 /*
   AudioOutputI2S
   Base class for I2S interface port
-  
+
   Copyright (C) 2017  Earle F. Philhower, III
 
   This program is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@
 #include "AudioOutputI2S.h"
 
 #if defined(ESP32) || defined(ESP8266)
-AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int use_apll)
+AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int use_apll, bool use_mclk, bool tx_desc_auto_clear)
 {
   this->portNo = port;
   this->i2sOn = false;
@@ -39,6 +39,8 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int
   }
   this->output_mode = output_mode;
   this->use_apll = use_apll;
+  this->use_mclk = use_mclk;
+  this->tx_desc_auto_clear = tx_desc_auto_clear;
 
   //set defaults
   mono = false;
@@ -80,13 +82,18 @@ bool AudioOutputI2S::SetPinout()
       return false; // Not allowed
 
     i2s_pin_config_t pins = {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
-        .mck_io_num = mclkPin,
-#endif
         .bck_io_num = bclkPin,
         .ws_io_num = wclkPin,
         .data_out_num = doutPin,
         .data_in_num = I2S_PIN_NO_CHANGE};
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
+    if (use_mclk) {
+    	pins.mck_io_num = mclkPin;
+    } else {
+    	pins.mck_io_num = I2S_PIN_NO_CHANGE;
+    }
+#endif
+
     i2s_set_pin((i2s_port_t)portNo, &pins);
     return true;
   #else
@@ -202,7 +209,7 @@ bool AudioOutputI2S::begin(bool txDAC)
 #if CONFIG_IDF_TARGET_ESP32
         mode = (i2s_mode_t)(mode | I2S_MODE_DAC_BUILT_IN);
 #else
-        return false;      
+        return false;
 #endif
       }
       else if (output_mode == INTERNAL_PDM)
@@ -210,7 +217,7 @@ bool AudioOutputI2S::begin(bool txDAC)
 #if CONFIG_IDF_TARGET_ESP32
         mode = (i2s_mode_t)(mode | I2S_MODE_PDM);
 #else
-        return false;      
+        return false;
 #endif
       }
 
@@ -250,13 +257,16 @@ bool AudioOutputI2S::begin(bool txDAC)
           .dma_buf_count = dma_buf_count,
           .dma_buf_len = 128,
           .use_apll = use_apll, // Use audio PLL
-          .tx_desc_auto_clear = true, // Silence on underflow
-          .fixed_mclk = use_mclk, // Unused
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
-          .mclk_multiple = I2S_MCLK_MULTIPLE_256, // Unused
-          .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT // Use bits per sample
-#endif
+          .tx_desc_auto_clear = tx_desc_auto_clear, // Clear tx descriptor on underflow - seems like a bad idea
       };
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
+      if (use_mclk) {
+    	  i2s_config_dac.fixed_mclk = use_mclk; // If non-zero, this will be used as the fixed mclk frequency
+		  i2s_config_dac.mclk_multiple = I2S_MCLK_MULTIPLE_256; // Unused
+		  i2s_config_dac .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT; // Use bits per sample
+      }
+#endif
+
       audioLogger->printf("+%d %p\n", portNo, &i2s_config_dac);
       if (i2s_driver_install((i2s_port_t)portNo, &i2s_config_dac, 0, NULL) != ESP_OK)
       {
