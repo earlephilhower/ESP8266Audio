@@ -94,10 +94,13 @@ class AudioGeneratorMIDI : public AudioGenerator
     unsigned long earliest_time = 0;
 
     struct tonegen_status {         /* current status of a tone generator */
-      bool playing;                /* is it playing? */
+      bool playing;                 /* is it playing? */
       char track;                   /* if so, which track is the note from? */
       char note;                    /* what note is playing? */
       char instrument;              /* what instrument? */
+      int playIndex;                /* is index provided?
+                                       Unique identifier generated when note starts playing.
+                                       This help us to turn the note off faster */
     } tonegen[MAX_TONEGENS];
 
     struct track_status {           /* current processing point of a MIDI track */
