@@ -48,18 +48,20 @@ class AudioFileSourceHTTPStream : public AudioFileSource
     virtual uint32_t getPos() override;
     bool SetReconnect(int tries, int delayms) { reconnectTries = tries; reconnectDelayMs = delayms; return true; }
     void useHTTP10 () { http.useHTTP10(true); }
+    void setAuthorization(const char *user, const char *password);
+    void setClient(WiFiClient *client);
 
     enum { STATUS_HTTPFAIL=2, STATUS_DISCONNECTED, STATUS_RECONNECTING, STATUS_RECONNECTED, STATUS_NODATA };
 
   private:
     virtual uint32_t readInternal(void *data, uint32_t len, bool nonBlock);
-    WiFiClient client;
+    WiFiClient *client = nullptr;
     HTTPClient http;
     int pos;
     int size;
     int reconnectTries;
     int reconnectDelayMs;
-    char saveURL[128];
+    char saveURL[1024];
 };
 
 
