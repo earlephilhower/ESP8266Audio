@@ -20,9 +20,6 @@
 
 #if defined(ESP32) || defined(ESP8266)
 
-#ifdef _GNU_SOURCE
-#undef _GNU_SOURCE
-#endif
 #define _GNU_SOURCE
 
 #include "AudioFileSourceICYStream.h"
@@ -44,11 +41,11 @@ AudioFileSourceICYStream::AudioFileSourceICYStream(const char *url)
 
 bool AudioFileSourceICYStream::open(const char *url)
 {
-  static const char *hdr[] = { "icy-metaint", "icy-name", "icy-genre", "icy-br" };
+  static const char *hdr[] = { "icy-metaint", "icy-name", "icy-genre", "icy-br", "Transfer-Encoding" };
   pos = 0;
   http.begin(client, url);
   http.addHeader("Icy-MetaData", "1");
-  http.collectHeaders( hdr, 4 );
+  http.collectHeaders( hdr, 5 );
   http.setReuse(true);
   http.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
   int code = http.GET();
@@ -75,8 +72,13 @@ bool AudioFileSourceICYStream::open(const char *url)
     String ret = http.header(hdr[3]);
 //    cb.md("Bitrate", false, ret.c_str());
   }
+  
+  if (http.hasHeader(hdr[4])) {
+    String ret = http.header(hdr[4]);
+	chunked = ret == "chunked";
+  }
 
-  icyByteCount = 0;
+  metaLen = icyMetaInt;
   size = http.getSize();
   strncpy(saveURL, url, sizeof(saveURL));
   saveURL[sizeof(saveURL)-1] = 0;
@@ -88,139 +90,142 @@ AudioFileSourceICYStream::~AudioFileSourceICYStream()
   http.end();
 }
 
+// read stream while looking for a string with max length to read
+bool findN(WiFiClient *stream, const char *txtIn, int txtInNum, int& maxBytes)
+{
+	const char *txt = txtIn;
+	int txtNum = txtInNum;
+	int c;
+	while(maxBytes)
+	{
+		do{c = stream->read();}while(c==-1);
+		maxBytes--;
+		if (c == *txt)
+		{
+			txt++;
+			txtNum--;
+			if (txtNum==0)
+				return true;
+		}
+		else
+		{
+			txtNum = txtInNum;
+			txt = txtIn;
+		}
+	}
+	return false;
+}
+
+// read hexa chunck size
+uint32_t ReadChunkSize(WiFiClient *stream, bool first)
+{
+	char tmp[64];
+	char* tmp2 = tmp;
+	int c;
+	if (!first)
+	{
+		do{c = stream->read();}while(c==-1); // remove \r
+		do{c = stream->read();}while(c==-1); // remove \n
+	}
+	
+	do
+	{
+		do{c = stream->read();}while(c==-1);
+		if (c == '\r' || c == ';')
+			break;
+		*tmp2 = c; tmp2++;
+	}
+	while(tmp2-tmp < sizeof(tmp)-1);
+	*tmp2 = 0;
+	uint32_t ret = strtoul(tmp, nullptr, 16);
+	do
+	{
+		do{c = stream->read();}while(c==-1);
+	}
+	while(c != '\n');
+	return ret;
+}
+
 uint32_t AudioFileSourceICYStream::readInternal(void *data, uint32_t len, bool nonBlock)
 {
-  // Ensure we can't possibly read 2 ICY headers in a single go #355
-  if (icyMetaInt > 1) {
-    len = std::min((int)(icyMetaInt >> 1), (int)len);
-  }
-retry:
-  if (!http.connected()) {
-    cb.st(STATUS_DISCONNECTED, PSTR("Stream disconnected"));
-    http.end();
-    for (int i = 0; i < reconnectTries; i++) {
-      char buff[64];
-      sprintf_P(buff, PSTR("Attempting to reconnect, try %d"), i);
-      cb.st(STATUS_RECONNECTING, buff);
-      delay(reconnectDelayMs);
-      if (open(saveURL)) {
-        cb.st(STATUS_RECONNECTED, PSTR("Stream reconnected"));
-        break;
-      }
-    }
-    if (!http.connected()) {
-      cb.st(STATUS_DISCONNECTED, PSTR("Unable to reconnect"));
-      return 0;
-    }
-  }
-  if ((size > 0) && (pos >= size)) return 0;
-
-  WiFiClient *stream = http.getStreamPtr();
-
-  // Can't read past EOF...
-  if ( (size > 0) && (len > (uint32_t)(pos - size)) ) len = pos - size;
-
-  if (!nonBlock) {
-    int start = millis();
-    while ((stream->available() < (int)len) && (millis() - start < 500)) yield();
-  }
-
-  size_t avail = stream->available();
-  if (!nonBlock && !avail) {
-    cb.st(STATUS_NODATA, PSTR("No stream data available"));
-    http.end();
-    goto retry;
-  }
-  if (avail == 0) return 0;
-  if (avail < len) len = avail;
-
-  int read = 0;
-  int ret = 0;
-  // If the read would hit an ICY block, split it up...
-  if (((int)(icyByteCount + len) > (int)icyMetaInt) && (icyMetaInt > 0)) {
-    int beforeIcy = icyMetaInt - icyByteCount;
-    if (beforeIcy > 0) {
-      ret = stream->read(reinterpret_cast<uint8_t*>(data), beforeIcy);
-      if (ret < 0) ret = 0;
-      read += ret;
-      pos += ret;
-      len -= ret;
-      data = (void *)(reinterpret_cast<char*>(data) + ret);
-      icyByteCount += ret;
-      if (ret != beforeIcy) return read; // Partial read
-    }
-
-    // ICY MD handling
-    int mdSize;
-    uint8_t c;
-    int mdret = stream->read(&c, 1);
-    if (mdret==0) return read;
-    mdSize = c * 16;
-    if ((mdret == 1) && (mdSize > 0)) {
-      // This is going to get ugly fast.
-      char icyBuff[256 + 16 + 1];
-      char *readInto = icyBuff + 16;
-      memset(icyBuff, 0, 16); // Ensure no residual matches occur
-      while (mdSize) {
-        int toRead = mdSize > 256 ? 256 : mdSize;
-        int ret = stream->read((uint8_t*)readInto, toRead);
-        if (ret < 0) return read;
-        if (ret == 0) { delay(1); continue; }
-        mdSize -= ret;
-        // At this point we have 0...15 = last 15 chars read from prior read plus new data
-        int end = 16 + ret; // The last byte of valid data
-        char *header = (char *)memmem((void*)icyBuff, end, (void*)"StreamTitle=", 12);
-        if (!header) {
-          // No match, so move the last 16 bytes back to the start and continue
-          memmove(icyBuff, icyBuff+end-16, 16);
-          delay(1);
-	  continue;
-        }
-        // Found header, now move it to the front
-        int lastValidByte = end - (header -icyBuff) + 1;
-        memmove(icyBuff, header, lastValidByte);
-        // Now fill the buffer to the end with read data
-        while (mdSize && lastValidByte < 255) {
-          int toRead = mdSize > (256 - lastValidByte) ? (256 - lastValidByte) : mdSize;
-          ret = stream->read((uint8_t*)icyBuff + lastValidByte, toRead);
-          if (ret==-1) return read; // error
-          if (ret == 0) { delay(1); continue; }
-          mdSize -= ret;
-          lastValidByte += ret;
-        }
-        // Buffer now contains StreamTitle=....., parse it
-        char *p = icyBuff+12;
-        if (*p=='\'' || *p== '"' ) {
-          char closing[] = { *p, ';', '\0' };
-          char *psz = strstr( p+1, closing );
-          if( !psz ) psz = strchr( &icyBuff[13], ';' );
-          if( psz ) *psz = '\0';
-          p++;
-        } else {
-          char *psz = strchr( p, ';' );
-          if( psz ) *psz = '\0';
-        }
-        cb.md("StreamTitle", false, p);
-
-        // Now skip rest of MD block
-        while (mdSize) {
-          int toRead = mdSize > 256 ? 256 : mdSize;
-          ret = stream->read((uint8_t*)icyBuff, toRead);
-          if (ret < 0) return read;
-          if (ret == 0) { delay(1); continue; }
-          mdSize -= ret;
-        }
-      }
-    }
-    icyByteCount = 0;
-  }
-
-  ret = stream->read(reinterpret_cast<uint8_t*>(data), len);
-  if (ret < 0) ret = 0;
-  read += ret;
-  pos += ret;
-  icyByteCount += ret;
-  return read;
+	if (size > 0)
+	{
+		if (pos >= size) return 0;
+		if (len > (uint32_t)(pos - size))// Can't read past EOF...
+			len = pos - size;
+	}
+	
+	uint32_t initLen = len;
+	WiFiClient *stream = http.getStreamPtr();
+	uint8_t* cdata = reinterpret_cast<uint8_t*>(data);
+	while(len)
+	{
+		if (chunked && chunckLen == 0)
+			chunckLen = ReadChunkSize(stream, pos == 0);
+		
+		if (icyMetaInt > 0 && metaLen == 0)
+		{
+			metaLen = icyMetaInt;
+			int c;
+			do{c = stream->read();}while(c==-1);
+			chunckLen--;
+			if (c != 0)
+			{
+				int mdSize = c * 16;
+				chunckLen -= mdSize;
+				const char* txt = "StreamTitle=";
+				if (findN(stream, txt, 12, mdSize))
+				{
+					char buffer[256];
+					char *buffer2 = buffer;
+					do{c = stream->read();}while(c==-1);
+					mdSize--;
+					if(c != '"' && c != '\'')
+					{
+						*buffer2 = c; buffer2++;
+					}
+					do
+					{
+						do{c = stream->read();}while(c==-1);
+						mdSize--;
+						if(c == '"' || c == '\'' || c==';' || c=='\0')
+							break;
+						*buffer2 = c; buffer2++;
+					}while(mdSize && buffer2-buffer < sizeof(buffer)-1);
+					*buffer2 = 0;
+					cb.md("StreamTitle", false, buffer);
+				}
+				while(mdSize) // skip remaining metadata
+				{
+					do{c = stream->read();}while(c==-1);
+					mdSize--;
+				}
+			}
+		}
+		int c;
+		uint32_t avail = stream->available();
+		if (!nonBlock && avail == 0) 
+		{
+			yield();
+			continue;
+		}
+		uint32_t rsize = std::min<uint32_t>(len, avail);
+		if (icyMetaInt > 0)
+			rsize =  std::min(rsize, metaLen);
+		if (chunked)
+			rsize = std::min(rsize, chunckLen);
+		
+		if (rsize)
+		{
+			stream->read(cdata, rsize);
+			len -= rsize;
+			metaLen -= rsize;
+			chunckLen -= rsize;
+			pos += rsize;
+			cdata += rsize;
+		}		
+	}
+	return initLen;
 }
 
 #endif

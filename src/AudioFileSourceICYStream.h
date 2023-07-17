@@ -42,7 +42,9 @@ class AudioFileSourceICYStream : public AudioFileSourceHTTPStream
   private:
     virtual uint32_t readInternal(void *data, uint32_t len, bool nonBlock) override;
     int icyMetaInt;
-    int icyByteCount;
+	bool chunked = false; 
+	uint32_t metaLen;
+	uint32_t chunckLen = 0;
 };
 
 #endif
