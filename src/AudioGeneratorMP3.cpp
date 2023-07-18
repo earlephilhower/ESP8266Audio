@@ -199,8 +199,8 @@ bool AudioGeneratorMP3::GetOneSample(int16_t sample[2])
           break; // Do nothing
     }
     // for IGNORE and CONTINUE, just play what we have now
-    sample[AudioOutput::LEFTCHANNEL ] = synth->pcm.samples[0][samplePtr];
-    sample[AudioOutput::RIGHTCHANNEL] = synth->pcm.samples[1][samplePtr];
+    sample[AudioOutput::LEFTCHANNEL ] = lastSample[0];
+    sample[AudioOutput::RIGHTCHANNEL] = lastSample[1];
     samplePtr++;
   }
   return true;
