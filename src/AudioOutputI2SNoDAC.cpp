@@ -48,7 +48,7 @@ AudioOutputI2SNoDAC::AudioOutputI2SNoDAC(int port, int sck) : AudioOutputI2S(441
 
 #else
 
-AudioOutputI2SNoDAC::AudioOutputI2SNoDAC(int port) : AudioOutputI2S(port, false)
+AudioOutputI2SNoDAC::AudioOutputI2SNoDAC(int port, int dma_buf_count) : AudioOutputI2S(port, AudioOutputI2S::EXTERNAL_I2S, dma_buf_count)
 {
   SetOversampling(32);
   lastSamp = 0;

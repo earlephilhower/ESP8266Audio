@@ -32,7 +32,7 @@ class AudioOutputI2SNoDAC : public AudioOutputI2S
 #if defined(ARDUINO_ARCH_RP2040)
     AudioOutputI2SNoDAC(int port = 28,int sck = 26);
 #else
-    AudioOutputI2SNoDAC(int port = 0);
+    AudioOutputI2SNoDAC(int port = 0, int dma_buf_count = 8);
 #endif
 
     virtual ~AudioOutputI2SNoDAC() override;
