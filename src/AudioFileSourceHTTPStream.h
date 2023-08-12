@@ -21,6 +21,8 @@
 #if defined(ESP32) || defined(ESP8266)
 #pragma once
 
+#include <map> // std::map<char, int> ascii_to_hex;
+
 #include <Arduino.h>
 #ifdef ESP32
   #include <HTTPClient.h>
@@ -28,6 +30,8 @@
   #include <ESP8266HTTPClient.h>
 #endif
 #include "AudioFileSource.h"
+
+
 
 class AudioFileSourceHTTPStream : public AudioFileSource
 {
@@ -52,7 +56,8 @@ class AudioFileSourceHTTPStream : public AudioFileSource
     enum { STATUS_HTTPFAIL=2, STATUS_DISCONNECTED, STATUS_RECONNECTING, STATUS_RECONNECTED, STATUS_NODATA };
 
   private:
-    virtual uint32_t readInternal(void *data, uint32_t len, bool nonBlock);
+    bool is_chunked;
+    std::size_t next_chunk;
     WiFiClient client;
     HTTPClient http;
     int pos;
@@ -60,6 +65,14 @@ class AudioFileSourceHTTPStream : public AudioFileSource
     int reconnectTries;
     int reconnectDelayMs;
     char saveURL[128];
+    uint32_t (AudioFileSourceHTTPStream::*readImpl)(void *data, uint32_t len, bool nonBlock);
+
+    virtual uint32_t readInternal(void *data, uint32_t len, bool nonBlock);
+    uint32_t readChunked(void *data, uint32_t len, bool nonBlock);
+    uint32_t readRegular(void *data, uint32_t len, bool nonBlock);
+    bool verifyCrlf();
+    int getChunkSize();
+
 };
 
 
