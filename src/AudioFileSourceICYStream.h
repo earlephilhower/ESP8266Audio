@@ -35,12 +35,11 @@ class AudioFileSourceICYStream : public AudioFileSourceHTTPStream
   public:
     AudioFileSourceICYStream();
     AudioFileSourceICYStream(const char *url);
-    virtual ~AudioFileSourceICYStream() override;
     
     virtual bool open(const char *url) override;
 
   private:
-    virtual uint32_t readInternal(void *data, uint32_t len, bool nonBlock) override;
+    virtual uint32_t parseInternal(WiFiClient *stream, void *data, uint32_t len) override;
     int icyMetaInt;
     int icyByteCount;
 };

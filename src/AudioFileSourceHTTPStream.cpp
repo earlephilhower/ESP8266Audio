@@ -38,16 +38,21 @@ AudioFileSourceHTTPStream::AudioFileSourceHTTPStream(const char *url)
 
 bool AudioFileSourceHTTPStream::open(const char *url)
 {
-  pos = 0;
   http.begin(client, url);
+  return openInternal(url);
+}
+
+bool AudioFileSourceHTTPStream::openInternal(const char *url)
+{
+  pos = 0;
   http.setReuse(true);
-#ifndef ESP32
   http.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
-#endif
   int code = http.GET();
   if (code != HTTP_CODE_OK) {
     http.end();
-    cb.st(STATUS_HTTPFAIL, PSTR("Can't open HTTP request"));
+    char buff[64];
+    sprintf_P(buff, PSTR("Can't open HTTP request (code %d)"), code);
+    cb.st(STATUS_HTTPFAIL, buff);
     return false;
   }
   size = http.getSize();
@@ -96,7 +101,9 @@ retry:
       }
     }
     if (!http.connected()) {
-      cb.st(STATUS_DISCONNECTED, PSTR("Unable to reconnect"));
+      if (reconnectTries != 0) {
+        cb.st(STATUS_DISCONNECTED, PSTR("Unable to reconnect"));
+      }
       return 0;
     }
   }
@@ -121,6 +128,11 @@ retry:
   if (avail == 0) return 0;
   if (avail < len) len = avail;
 
+  return parseInternal(stream, data, len);
+}
+
+uint32_t AudioFileSourceHTTPStream::parseInternal(WiFiClient *stream, void *data, uint32_t len)
+{
   int read = stream->read(reinterpret_cast<uint8_t*>(data), len);
   pos += read;
   return read;
