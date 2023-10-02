@@ -260,10 +260,11 @@ bool AudioOutputI2S::begin(bool txDAC)
           .tx_desc_auto_clear = tx_desc_auto_clear, // Clear tx descriptor on underflow - seems like a bad idea
       };
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
-      if (use_mclk) {
-    	  i2s_config_dac.fixed_mclk = use_mclk; // If non-zero, this will be used as the fixed mclk frequency
+	  i2s_config_dac.fixed_mclk = use_mclk; // If non-zero, this will be used as the fixed mclk frequency
+
+	  if (use_mclk) {
 		  i2s_config_dac.mclk_multiple = I2S_MCLK_MULTIPLE_256; // Unused
-		  i2s_config_dac .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT; // Use bits per sample
+		  i2s_config_dac.bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT; // Use bits per sample
       }
 #endif
 

@@ -1,7 +1,7 @@
 /*
   AudioGeneratorWAV
   Audio output generator that reads 8 and 16-bit WAV files
-  
+
   Copyright (C) 2017  Earle F. Philhower, III
 
   This program is free software: you can redistribute it and/or modify
@@ -105,8 +105,13 @@ bool AudioGeneratorWAV::loop()
   } while (running && output->ConsumeSample(lastSample));
 
 done:
-  file->loop();
-  output->loop();
+  if (file) {
+    file->loop();
+  }
+
+  if (output) {
+    output->loop();
+  }
 
   return running;
 }
