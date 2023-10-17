@@ -27,6 +27,9 @@
 #include "AudioFileSource.h"
 #include "AudioFileSourceFS.h"
 
+// Yes, I know SPIFFS is deprecated
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 class AudioFileSourceSPIFFS : public AudioFileSourceFS
 {
   public:

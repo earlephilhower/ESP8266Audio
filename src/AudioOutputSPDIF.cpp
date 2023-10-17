@@ -102,7 +102,13 @@ AudioOutputSPDIF::AudioOutputSPDIF(int dout_pin, int port, int dma_buf_count)
     .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // lowest interrupt priority
     .dma_buf_count = dma_buf_count,
     .dma_buf_len = DMA_BUF_SIZE_DEFAULT, // bigger buffers, reduces interrupts
-    .use_apll = true // Audio PLL is needed for low clock jitter
+    .use_apll = true, // Audio PLL is needed for low clock jitter
+    .tx_desc_auto_clear = true, // Silence on underflow
+    .fixed_mclk = 0, // Unused
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
+    .mclk_multiple = I2S_MCLK_MULTIPLE_DEFAULT, // Unused
+    .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT // Use bits per sample
+#endif
   };
   if (i2s_driver_install((i2s_port_t)portNo, &i2s_config_spdif, 0, NULL) != ESP_OK) {
     audioLogger->println(F("ERROR: Unable to install I2S drivers"));
@@ -147,6 +153,9 @@ bool AudioOutputSPDIF::SetPinout(int bclk, int wclk, int dout)
 {
 #if defined(ESP32)
   i2s_pin_config_t pins = {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
+    .mck_io_num = 0, // unused
+#endif
     .bck_io_num = bclk,
     .ws_io_num = wclk,
     .data_out_num = dout,

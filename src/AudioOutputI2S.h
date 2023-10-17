@@ -22,17 +22,23 @@
 
 #include "AudioOutput.h"
 
+#if defined(ARDUINO_ARCH_RP2040)
+#include <Arduino.h>
+#include <I2S.h>
+#endif
+
 class AudioOutputI2S : public AudioOutput
 {
   public:
 #if defined(ESP32) || defined(ESP8266)
     AudioOutputI2S(int port=0, int output_mode=EXTERNAL_I2S, int dma_buf_count = 8, int use_apll=APLL_DISABLE);
-    bool SetPinout(int bclkPin, int wclkPin, int doutPin);
     enum : int { APLL_AUTO = -1, APLL_ENABLE = 1, APLL_DISABLE = 0 };
     enum : int { EXTERNAL_I2S = 0, INTERNAL_DAC = 1, INTERNAL_PDM = 2 };
 #elif defined(ARDUINO_ARCH_RP2040)
     AudioOutputI2S(long sampleRate = 44100, pin_size_t sck = 26, pin_size_t data = 28);
 #endif
+    bool SetPinout(int bclkPin, int wclkPin, int doutPin);
+    bool SetPinout(int bclkPin, int wclkPin, int doutPin, int mclkPin);
     virtual ~AudioOutputI2S() override;
     virtual bool SetRate(int hz) override;
     virtual bool SetBitsPerSample(int bits) override;
@@ -45,6 +51,8 @@ class AudioOutputI2S : public AudioOutput
     bool begin(bool txDAC);
     bool SetOutputModeMono(bool mono);  // Force mono output no matter the input
     bool SetLsbJustified(bool lsbJustified);  // Allow supporting non-I2S chips, e.g. PT8211 
+    bool SetMclk(bool enabled);  // Enable MCLK output (if supported)
+    bool SwapClocks(bool swap_clocks);  // Swap BCLK and WCLK
 
   protected:
     bool SetPinout();
@@ -56,6 +64,8 @@ class AudioOutputI2S : public AudioOutput
     bool i2sOn;
     int dma_buf_count;
     int use_apll;
+    bool use_mclk;
+    bool swap_clocks;
     // We can restore the old values and free up these pins when in NoDAC mode
     uint32_t orig_bck;
     uint32_t orig_ws;
@@ -63,4 +73,9 @@ class AudioOutputI2S : public AudioOutput
     uint8_t bclkPin;
     uint8_t wclkPin;
     uint8_t doutPin;
+    uint8_t mclkPin;
+
+#if defined(ARDUINO_ARCH_RP2040)
+    I2S i2s;
+#endif
 };

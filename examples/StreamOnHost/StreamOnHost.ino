@@ -1,6 +1,10 @@
 #include <Arduino.h>
 
-#ifdef ESP32
+#if defined(ARDUINO_ARCH_RP2040)
+void setup() {}
+void loop() {}
+#else
+#if defined(ESP32)
     #include <WiFi.h>
 #else
     #include <ESP8266WiFi.h>
@@ -9,10 +13,10 @@
 #include "AudioFileSourceBuffer.h"
 #include "AudioGeneratorMP3.h"
 #if AUDIO
-#pragma message("Outputting audio")
+// #pragma message("Outputting audio")
 #include "AudioOutputLinuxDSP.h"
 #else
-#pragma message("No audio")
+// #pragma message("No audio")
 #include "AudioOutputNullSlow.h"
 #endif
 
@@ -115,4 +119,4 @@ void loop()
     delay(1000);
   }
 }
-
+#endif

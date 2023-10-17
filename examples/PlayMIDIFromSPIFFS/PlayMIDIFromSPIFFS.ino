@@ -1,4 +1,11 @@
 #include <Arduino.h>
+
+// Do not build on GCC8, GCC8 has a compiler bug
+
+#if defined(ARDUINO_ARCH_RP2040) || ((__GNUC__ == 8) && (__XTENSA__))
+void setup() {}
+void loop() {}
+#else
 #ifdef ESP32
     #include <WiFi.h>
     #include "SPIFFS.h"
@@ -44,7 +51,6 @@ void loop()
 {
   if (midi->isRunning()) {
     if (!midi->loop()) {
-      uint32_t e = millis();
       midi->stop();
     }
   } else {
@@ -53,4 +59,4 @@ void loop()
   }
 }
 
-
+#endif

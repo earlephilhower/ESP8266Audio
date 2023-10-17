@@ -248,6 +248,10 @@ retry:
       running = false;
       goto done;
     }
+    if (lastChannels == 1)
+    {
+      lastSample[1] = lastSample[0];
+    }
   } while (running && output->ConsumeSample(lastSample));
 
 done:

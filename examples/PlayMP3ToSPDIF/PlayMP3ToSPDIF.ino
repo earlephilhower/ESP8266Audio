@@ -1,4 +1,8 @@
 #include <Arduino.h>
+#ifdef ARDUINO_ARCH_RP2040
+void setup() {}
+void loop() {}
+#else
 #ifdef ESP32
   #include "SPIFFS.h"
 #endif
@@ -97,3 +101,4 @@ void loop()
     delay(1000);
   }
 }
+#endif

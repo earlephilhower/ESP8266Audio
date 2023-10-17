@@ -1,4 +1,8 @@
 #include <Arduino.h>
+#ifdef ARDUINO_ARCH_RP2040
+void setup() {}
+void loop() {}
+#else
 #include "AudioFileSourceSD.h"
 #include "AudioOutputSPDIF.h"
 #include "AudioGeneratorFLAC.h"
@@ -66,3 +70,5 @@ void loop() {
     }       
   }
 }
+#endif
+

@@ -21,6 +21,8 @@
 #ifndef _AUDIOOUTPUTSPIFFSWAV_H
 #define _AUDIOOUTPUTSPIFFSWAV_H
 
+#if !defined(ARDUINO_ARCH_RP2040)
+
 #include <Arduino.h>
 #include <FS.h>
 
@@ -43,3 +45,4 @@ class AudioOutputSPIFFSWAV : public AudioOutput
 
 #endif
 
+#endif

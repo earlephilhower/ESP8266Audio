@@ -20,6 +20,7 @@
 */
 
 #pragma GCC optimize ("O3")
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 
 #include <pgmspace.h>
 #  include "config.h"
