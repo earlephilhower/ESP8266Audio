@@ -1,7 +1,7 @@
 /*
   AudioOutputI2S
   Base class for I2S interface port
-  
+
   Copyright (C) 2017  Earle F. Philhower, III
 
   This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,40 @@
 
 #include <Arduino.h>
 #ifdef ESP32
+
   #include "driver/i2s.h"
+
+  #define I2S_FLAVOUR_1_x_x 0 // Initial I2S macros flavour (before esp-idf 4.2.0)
+  #define I2S_FLAVOUR_2_x_x 1 // Revision 1 of I2S macros flavour
+
+  // handle I2S migration across SDK versions
+  #ifdef ESP_ARDUINO_VERSION_VAL
+    #if defined ESP_ARDUINO_VERSION && ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
+      // 2.0.0 and upstream  esp-idf versions start at4.4
+      #define I2S_FLAVOUR I2S_FLAVOUR_2_x_x
+    #else
+      // 1.0.6 and previous versions use esp-idf up to version 3.1
+      #define I2S_FLAVOUR I2S_FLAVOUR_1_x_x
+    #endif
+  #else
+    // custom build of Arduino, check esp-idf version instead
+    #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
+      #define I2S_FLAVOUR I2S_FLAVOUR_2_x_x
+    #else
+      #define I2S_FLAVOUR I2S_FLAVOUR_1_x_x
+    #endif
+  #endif
+
+  #if I2S_FLAVOUR==I2S_FLAVOUR_2_x_x
+    #define _COMM_FORMAT_DEFAULT I2S_COMM_FORMAT_STAND_I2S
+    #define _COMM_FORMAT_MSB     I2S_COMM_FORMAT_STAND_MSB
+    #define _COMM_FORMAT_LSB     I2S_COMM_FORMAT_STAND_I2S
+  #elif I2S_FLAVOUR==I2S_FLAVOUR_1_x_x
+    #define _COMM_FORMAT_DEFAULT I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB
+    #define _COMM_FORMAT_MSB     I2S_COMM_FORMAT_I2S_MSB
+    #define _COMM_FORMAT_LSB     I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_LSB
+  #endif
+
 #elif defined(ARDUINO_ARCH_RP2040) || ARDUINO_ESP8266_MAJOR >= 3
   #include <I2S.h>
 #elif ARDUINO_ESP8266_MAJOR < 3
@@ -29,6 +62,9 @@
 #include "AudioOutputI2S.h"
 
 #if defined(ESP32) || defined(ESP8266)
+
+
+
 AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int use_apll)
 {
   this->portNo = port;
@@ -212,7 +248,7 @@ bool AudioOutputI2S::begin(bool txDAC)
 #if CONFIG_IDF_TARGET_ESP32
         mode = (i2s_mode_t)(mode | I2S_MODE_DAC_BUILT_IN);
 #else
-        return false;      
+        return false;
 #endif
       }
       else if (output_mode == INTERNAL_PDM)
@@ -220,34 +256,22 @@ bool AudioOutputI2S::begin(bool txDAC)
 #if CONFIG_IDF_TARGET_ESP32
         mode = (i2s_mode_t)(mode | I2S_MODE_PDM);
 #else
-        return false;      
+        return false;
 #endif
       }
 
       i2s_comm_format_t comm_fmt;
       if (output_mode == INTERNAL_DAC)
       {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
-        comm_fmt = (i2s_comm_format_t) I2S_COMM_FORMAT_STAND_MSB;
-#else
-        comm_fmt = (i2s_comm_format_t) I2S_COMM_FORMAT_I2S_MSB;
-#endif
+        comm_fmt = (i2s_comm_format_t) (_COMM_FORMAT_MSB);
       }
       else if (lsb_justified)
       {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
-        comm_fmt = (i2s_comm_format_t) I2S_COMM_FORMAT_STAND_MSB;
-#else
-        comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_LSB);
-#endif
+        comm_fmt = (i2s_comm_format_t) (_COMM_FORMAT_LSB);
       }
       else
       {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
-        comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_STAND_I2S);
-#else
-        comm_fmt = (i2s_comm_format_t) (I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB);
-#endif
+        comm_fmt = (i2s_comm_format_t) (_COMM_FORMAT_DEFAULT);
       }
 
       i2s_config_t i2s_config_dac = {
