@@ -53,7 +53,6 @@ bool AudioGeneratorWAV::isRunning()
   return running;
 }
 
-
 // Handle buffered reading, reload each time we run out of data
 bool AudioGeneratorWAV::GetBufferedData(int bytes, void *dest)
 {
@@ -65,6 +64,9 @@ bool AudioGeneratorWAV::GetBufferedData(int bytes, void *dest)
       buffPtr = 0;
       uint32_t toRead = availBytes > buffSize ? buffSize : availBytes;
       buffLen = file->read( buff, toRead );
+      if (toRead == 0 || buffLen != toRead) {
+    	  return false;	// Unexpected end of file or read error
+      }
       availBytes -= buffLen;
     }
     if (buffPtr >= buffLen)
