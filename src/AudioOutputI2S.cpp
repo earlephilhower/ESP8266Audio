@@ -129,6 +129,11 @@ bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout, int mclk)
 bool AudioOutputI2S::SetRate(int hz)
 {
   // TODO - have a list of allowable rates from constructor, check them
+
+  if(this->hertz == hz){ // hz already set to this
+    return true;
+  }
+
   this->hertz = hz;
   if (i2sOn)
   {
