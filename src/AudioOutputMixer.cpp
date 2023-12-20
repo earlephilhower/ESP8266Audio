@@ -1,7 +1,7 @@
 /*
   AudioOutputMixer
   Simple mixer which can combine multiple inputs to a single output stream
-  
+
   Copyright (C) 2018  Earle F. Philhower, III
 
   This program is free software: you can redistribute it and/or modify
@@ -48,6 +48,27 @@ bool AudioOutputMixerStub::SetChannels(int channels)
   return parent->SetChannels(channels, id);
 }
 
+bool AudioOutputMixerStub::FlipChannels()
+{
+  this->channelsFlipped = !this->channelsFlipped;
+  return true;
+}
+
+bool AudioOutputMixerStub::FlipChannels(bool flipped)
+{
+  this->channelsFlipped = flipped;
+  return true;
+}
+
+bool AudioOutputMixerStub::IsolateChannel(uint8_t channel)
+{
+  if(channel < 0 || channel > 2){
+    return false;
+  }
+  this->channelIsolated = channel;
+  return true;
+}
+
 bool AudioOutputMixerStub::begin()
 {
   return parent->begin(id);
@@ -56,8 +77,10 @@ bool AudioOutputMixerStub::begin()
 bool AudioOutputMixerStub::ConsumeSample(int16_t sample[2])
 {
   int16_t amp[2];
-  amp[LEFTCHANNEL] = Amplify(sample[LEFTCHANNEL]);
-  amp[RIGHTCHANNEL] = Amplify(sample[RIGHTCHANNEL]);
+
+  amp[this->channelsFlipped ? RIGHTCHANNEL:LEFTCHANNEL] = (this->channelIsolated == 2) ? 0 : Amplify(sample[this->channelsFlipped ? RIGHTCHANNEL : LEFTCHANNEL]);
+  amp[this->channelsFlipped ? LEFTCHANNEL:RIGHTCHANNEL] = (this->channelIsolated == 1) ? 0 : Amplify(sample[this->channelsFlipped ? LEFTCHANNEL : RIGHTCHANNEL]);
+
   return parent->ConsumeSample(amp, id);
 }
 
@@ -156,7 +179,7 @@ bool AudioOutputMixer::begin(int id)
     return true;
   }
 }
-  
+
 AudioOutputMixerStub *AudioOutputMixer::NewInput()
 {
   for (int i=0; i<maxStubs; i++) {
