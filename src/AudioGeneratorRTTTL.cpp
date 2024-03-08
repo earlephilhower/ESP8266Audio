@@ -236,12 +236,12 @@ bool AudioGeneratorRTTTL::GetNextNote()
     ptr++;
     note++;
   }
+  if (!ReadInt(&scale)) {
+    scale = defaultOctave;
+  }
   if ((ptr < len) && (buff[ptr] == '.')) {
     ptr++;
     dur += dur / 2;
-  }
-  if (!ReadInt(&scale)) {
-    scale = defaultOctave;
   }
   // Eat any trailing whitespace and comma
   SkipWhitespace();
