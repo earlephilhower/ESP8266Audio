@@ -1,8 +1,8 @@
 /*
-  AudioOutputI2S
-  Base class for an I2S output port
+  AudioOutputI2SNoDACS3
+  Class for outputting PDM audio on the ESP32-S3 without an external DAC
   
-  Copyright (C) 2017  Earle F. Philhower, III
+  Copyright (C) 2024  Hema2
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -20,10 +20,12 @@
 
 #pragma once
 
+#if CONFIG_IDF_TARGET_ESP32S3
+
 #include "AudioOutput.h"
 #include "driver/i2s.h"
+#include <Arduino.h>
 
-#if CONFIG_IDF_TARGET_ESP32S3
 class AudioOutputI2SNoDACS3 : public AudioOutput
 {
   public:
@@ -54,9 +56,6 @@ class AudioOutputI2SNoDACS3 : public AudioOutput
     
     gpio_num_t doutPin;
     gpio_num_t dummyPin;
-
-#if defined(ARDUINO_ARCH_RP2040)
-    I2S i2s;
-#endif
 };
-#endif
+
+#endif // CONFIG_IDF_TARGET_ESP32S3
