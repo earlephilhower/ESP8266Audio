@@ -20,11 +20,11 @@
 
 #pragma once
 
-#if CONFIG_IDF_TARGET_ESP32S3
-
 #include "AudioOutput.h"
 #include "driver/i2s.h"
 #include <Arduino.h>
+
+#if CONFIG_IDF_TARGET_ESP32S3
 
 class AudioOutputI2SNoDACS3 : public AudioOutput
 {
