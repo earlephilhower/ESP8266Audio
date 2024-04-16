@@ -1481,7 +1481,7 @@ static int op_open_seekable2(OggOpusFile *_of){
 /*Clear out the current logical bitstream decoder.*/
 static void op_decode_clear(OggOpusFile *_of){
   /*We don't actually free the decoder.
-    We might be able to re-use it for the next link.*/
+    We might be able to reuse it for the next link.*/
   _of->op_count=0;
   _of->od_buffer_size=0;
   _of->prev_packet_gp=-1;
