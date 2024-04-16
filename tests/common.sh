@@ -117,6 +117,8 @@ if [ "$BUILD_TYPE" = "build" ]; then
 elif [ "$BUILD_TYPE" = "build_esp32" ]; then
     install_arduino
     install_esp32 "$HOME/arduino_ide"
+    mkdir -p "$HOME/Arduino/hardware"
+    install_esp32 "$HOME/Arduino"
     export FQBN="espressif:esp32:esp32:PSRAM=enabled,PartitionScheme=huge_app"
     mkdir -p "$GITHUB_WORKSPACE/hardware"
     ln -s "$GITHUB_WORKSPACE/../" "$GITHUB_WORKSPACE/libraries"
