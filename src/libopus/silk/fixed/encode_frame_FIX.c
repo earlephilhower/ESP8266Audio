@@ -34,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../../celt/stack_alloc.h"
 #include "../tuning_parameters.h"
 
+#if 0
 /* Low Bitrate Redundancy (LBRR) encoding. Reuse all parameters but encode with lower bitrate           */
 static OPUS_INLINE void silk_LBRR_encode_FIX(
     silk_encoder_state_FIX          *psEnc,                                 /* I/O  Pointer to Silk FIX encoder state                                           */
@@ -446,3 +447,4 @@ static OPUS_INLINE void silk_LBRR_encode_FIX(
         silk_memcpy( psEncCtrl->Gains_Q16, TempGains_Q16, psEnc->sCmn.nb_subfr * sizeof( opus_int32 ) );
     }
 }
+#endif
