@@ -20,10 +20,10 @@ jobs:
       matrix:
         chunk: [0, 1, 2, 3, 4]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
     - name: Build Sketches
@@ -43,10 +43,10 @@ jobs:
       matrix:
         chunk: [0, 1, 2, 3, 4]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
     - name: Build Sketches
@@ -66,10 +66,10 @@ jobs:
       matrix:
         chunk: [0, 1, 2, 3, 4]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.x'
     - name: Build Sketches
@@ -87,10 +87,10 @@ jobs:
     name: Host tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
     - name: Run host tests
@@ -115,7 +115,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: arduino/arduino-lint-action@v1
         with:
           library-manager: 'update'
@@ -128,7 +128,7 @@ jobs:
       run:
         shell: bash
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
     - name: Run codespell
