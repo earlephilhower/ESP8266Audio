@@ -102,7 +102,11 @@ retry:
   }
   if ((size > 0) && (pos >= size)) return 0;
 
+#if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION_MAJOR >= 3
+  NetworkClient *stream = http.getStreamPtr();
+#else
   WiFiClient *stream = http.getStreamPtr();
+#endif
 
   // Can't read past EOF...
   if ( (size > 0) && (len > (uint32_t)(pos - size)) ) len = pos - size;
