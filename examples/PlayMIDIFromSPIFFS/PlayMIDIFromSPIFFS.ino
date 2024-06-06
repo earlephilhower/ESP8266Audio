@@ -1,8 +1,8 @@
 #include <Arduino.h>
 
-// Do not build on GCC8, GCC8 has a compiler bug
+// Do not build on Espressif GCC8+, compiler bug
 
-#if defined(ARDUINO_ARCH_RP2040) || ((__GNUC__ == 8) && (__XTENSA__))
+#if defined(ARDUINO_ARCH_RP2040) || (defined(ESP32) && (__GNUC__ >= 8) && (__XTENSA__))
 void setup() {}
 void loop() {}
 #else
