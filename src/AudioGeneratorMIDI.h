@@ -21,8 +21,8 @@
 #ifndef _AUDIOGENERATORMIDI_H
 #define _AUDIOGENERATORMIDI_H
 
-#if (__GNUC__ == 8) && (__XTENSA__)
-// Do not build, GCC8 has a compiler bug
+#if (__GNUC__ >= 8) && (__XTENSA__)
+// Do not build, GCC8+ has a compiler bug
 #else // __GNUC__ == 8
 
 #include "AudioGenerator.h"

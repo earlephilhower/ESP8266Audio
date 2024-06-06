@@ -198,9 +198,9 @@ bool AudioOutputI2S::begin(bool txDAC)
       {
         // don't use audio pll on buggy rev0 chips
         use_apll = APLL_DISABLE;
-        esp_chip_info_t out_info;
-        esp_chip_info(&out_info);
-        if (out_info.revision > 0)
+        //esp_chip_info_t out_info;
+        //esp_chip_info(&out_info);
+        //if (out_info.revision > 0)
         {
           use_apll = APLL_ENABLE;
         }
