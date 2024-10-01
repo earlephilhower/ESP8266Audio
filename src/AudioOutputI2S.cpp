@@ -116,7 +116,7 @@ bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout, int mclk)
   bclkPin = bclk;
   wclkPin = wclk;
   doutPin = dout;
-  #ifdef ESP32
+  #if defined(ESP32) || defined(ARDUINO_ARCH_RP2040)
     mclkPin = mclk;
     if (i2sOn)
       return SetPinout();
@@ -184,6 +184,8 @@ bool AudioOutputI2S::SetMclk(bool enabled){
     if (output_mode == INTERNAL_DAC || output_mode == INTERNAL_PDM)
       return false; // Not allowed
 
+    use_mclk = enabled;
+  #elif defined(ARDUINO_ARCH_RP2040)
     use_mclk = enabled;
   #endif
   return true;
@@ -310,12 +312,16 @@ bool AudioOutputI2S::begin(bool txDAC)
   #elif defined(ARDUINO_ARCH_RP2040)
     (void)txDAC;
     if (!i2sOn) {
-        i2s.setBCLK(bclkPin);
-	i2s.setDATA(doutPin);
-	if (swap_clocks) {
-	  i2s.swapClocks();
-	}
-        i2s.begin(hertz);
+      i2s.setSysClk(hertz);
+      i2s.setBCLK(bclkPin);
+      i2s.setDATA(doutPin);
+      i2s.setMCLK(mclkPin);
+      i2s.setMCLKmult(256);
+      if (swap_clocks) {
+        i2s.swapClocks();
+      }
+      i2s.setBitsPerSample(bps);
+      i2s.begin(hertz);
     }
   #endif
   i2sOn = true;
