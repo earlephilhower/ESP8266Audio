@@ -195,7 +195,7 @@ static void UnpackSBRGrid(BitStreamInfo *bsi, SBRHeader *sbrHdr, SBRGrid *sbrGri
 		absBorder = GetBits(bsi, 2) + NUM_TIME_SLOTS;
 		numRelBorder = GetBits(bsi, 2);
 		sbrGrid->numEnv = numRelBorder + 1;
-		for (rel = 0; rel < numRelBorder; rel++)
+		for (rel = 0; rel < numRelBorder && rel < 3; rel++)
 			relBorder[rel] = 2*GetBits(bsi, 2) + 2;
 
 		pBits = cLog2[sbrGrid->numEnv + 1];
@@ -221,13 +221,13 @@ static void UnpackSBRGrid(BitStreamInfo *bsi, SBRHeader *sbrHdr, SBRGrid *sbrGri
 		absBorder = GetBits(bsi, 2);
 		numRelBorder = GetBits(bsi, 2);
 		sbrGrid->numEnv = numRelBorder + 1;
-		for (rel = 0; rel < numRelBorder; rel++)
+		for (rel = 0; rel < numRelBorder && rel < 3; rel++)
 			relBorder[rel] = 2*GetBits(bsi, 2) + 2;
 
 		pBits = cLog2[sbrGrid->numEnv + 1];
 		sbrGrid->pointer = GetBits(bsi, pBits);
 
-		for (env = 0; env < sbrGrid->numEnv; env++)
+		for (env = 0; env < sbrGrid->numEnv && env < MAX_NUM_ENV; env++)
 			sbrGrid->freqRes[env] = GetBits(bsi, 1);
 
 		absBordLead =  absBorder;
@@ -253,16 +253,16 @@ static void UnpackSBRGrid(BitStreamInfo *bsi, SBRHeader *sbrHdr, SBRGrid *sbrGri
 		sbrGrid->numEnv = numRelBorder0 + numRelBorder1 + 1;
 		ASSERT(sbrGrid->numEnv <= 5);
 
-		for (rel = 0; rel < numRelBorder0; rel++)
+		for (rel = 0; rel < numRelBorder0 && rel < 3; rel++)
 			relBorder0[rel] = 2*GetBits(bsi, 2) + 2;
 
-		for (rel = 0; rel < numRelBorder1; rel++)
+		for (rel = 0; rel < numRelBorder1 && rel < 3; rel++)
 			relBorder1[rel] = 2*GetBits(bsi, 2) + 2;
 
 		pBits = cLog2[numRelBorder0 + numRelBorder1 + 2];
 		sbrGrid->pointer = GetBits(bsi, pBits);
 
-		for (env = 0; env < sbrGrid->numEnv; env++)
+		for (env = 0; env < sbrGrid->numEnv && env < MAX_NUM_ENV; env++)
 			sbrGrid->freqRes[env] = GetBits(bsi, 1);
 
 		numRelLead =  numRelBorder0;
