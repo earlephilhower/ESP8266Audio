@@ -258,10 +258,10 @@ int DecodeProgramConfigElement(ProgConfigElement *pce, BitStreamInfo *bsi)
 		pce->bce[i] |= GetBits(bsi, 4);			/* tag select */
 	}
 
-	for (i = 0; i < pce->numLCE; i++)
+	for (i = 0; i < pce->numLCE && i < MAX_NUM_LCE; i++)
 		pce->lce[i] = GetBits(bsi, 4);			/* tag select */
 
-	for (i = 0; i < pce->numADE; i++)
+	for (i = 0; i < pce->numADE && i < MAX_NUM_ADE; i++)
 		pce->ade[i] = GetBits(bsi, 4);			/* tag select */
 
 	for (i = 0; i < pce->numCCE; i++) {

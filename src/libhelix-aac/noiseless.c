@@ -253,7 +253,7 @@ static int DecodeOneScaleFactor(BitStreamInfo *bsi)
 
 	pi->numPulse = GetBits(bsi, 2) + 1;		/* add 1 here */
 	pi->startSFB = GetBits(bsi, 6);
-	for (i = 0; i < pi->numPulse; i++) {
+	for (i = 0; i < pi->numPulse && i < MAX_PULSES; i++) {
 		pi->offset[i] = GetBits(bsi, 5);
 		pi->amp[i] = GetBits(bsi, 4);
 	}

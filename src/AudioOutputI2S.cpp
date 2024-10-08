@@ -64,6 +64,7 @@ AudioOutputI2S::AudioOutputI2S(long sampleRate, pin_size_t sck, pin_size_t data)
     doutPin = data;
     mclkPin = 0;
     use_mclk = false;
+    swap_clocks = false;
     SetGain(1.0);
 }
 #endif
@@ -115,7 +116,7 @@ bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout, int mclk)
   bclkPin = bclk;
   wclkPin = wclk;
   doutPin = dout;
-  #ifdef ESP32
+  #if defined(ESP32) || defined(ARDUINO_ARCH_RP2040)
     mclkPin = mclk;
     if (i2sOn)
       return SetPinout();
@@ -168,12 +169,23 @@ bool AudioOutputI2S::SetLsbJustified(bool lsbJustified)
   return true;
 }
 
+bool AudioOutputI2S::SwapClocks(bool swap_clocks)
+{
+  if (i2sOn) {
+    return false; // Not allowed
+  }
+  this->swap_clocks = swap_clocks;
+  return true;
+}
+
 bool AudioOutputI2S::SetMclk(bool enabled){
   (void)enabled;
   #ifdef ESP32
     if (output_mode == INTERNAL_DAC || output_mode == INTERNAL_PDM)
       return false; // Not allowed
 
+    use_mclk = enabled;
+  #elif defined(ARDUINO_ARCH_RP2040)
     use_mclk = enabled;
   #endif
   return true;
@@ -188,9 +200,9 @@ bool AudioOutputI2S::begin(bool txDAC)
       {
         // don't use audio pll on buggy rev0 chips
         use_apll = APLL_DISABLE;
-        esp_chip_info_t out_info;
-        esp_chip_info(&out_info);
-        if (out_info.revision > 0)
+        //esp_chip_info_t out_info;
+        //esp_chip_info(&out_info);
+        //if (out_info.revision > 0)
         {
           use_apll = APLL_ENABLE;
         }
@@ -300,9 +312,16 @@ bool AudioOutputI2S::begin(bool txDAC)
   #elif defined(ARDUINO_ARCH_RP2040)
     (void)txDAC;
     if (!i2sOn) {
-        i2s.setBCLK(bclkPin);
-	i2s.setDATA(doutPin);
-        i2s.begin(hertz);
+      i2s.setSysClk(hertz);
+      i2s.setBCLK(bclkPin);
+      i2s.setDATA(doutPin);
+      i2s.setMCLK(mclkPin);
+      i2s.setMCLKmult(256);
+      if (swap_clocks) {
+        i2s.swapClocks();
+      }
+      i2s.setBitsPerSample(bps);
+      i2s.begin(hertz);
     }
   #endif
   i2sOn = true;
