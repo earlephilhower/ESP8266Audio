@@ -22,7 +22,7 @@
 #include <Arduino.h>
 #include "AudioOutputPWM.h"
 
-AudioOutputPWM::AudioOutputPWM(long sampleRate, pin_size_t data) : pwm(data, false) {
+AudioOutputPWM::AudioOutputPWM(long sampleRate, pin_size_t data) {
     pwmOn = false;
     mono = false;
     bps = 16;
