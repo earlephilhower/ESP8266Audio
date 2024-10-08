@@ -58,8 +58,8 @@
 
 #include "AudioGeneratorMIDI.h"
 
-#if (__GNUC__ == 8) && (__XTENSA__)
-// Do not build, GCC8 has a compiler bug
+#if defined(ESP32) && (__GNUC__ >= 8) && (__XTENSA__)
+// Do not build, Espressif's GCC8+ has a compiler bug
 #else // __GNUC__ == 8
 
 #pragma GCC optimize ("O3")

@@ -71,8 +71,8 @@ bool AudioOutputMixerStub::stop()
 AudioOutputMixer::AudioOutputMixer(int buffSizeSamples, AudioOutput *dest) : AudioOutput()
 {
   buffSize = buffSizeSamples;
-  leftAccum = (int32_t*)calloc(sizeof(int32_t), buffSize);
-  rightAccum = (int32_t*)calloc(sizeof(int32_t), buffSize);
+  leftAccum = (int32_t*)calloc(buffSize, sizeof(int32_t));
+  rightAccum = (int32_t*)calloc(buffSize, sizeof(int32_t));
   for (int i=0; i<maxStubs; i++) {
     stubAllocated[i] = false;
     stubRunning[i] = false;

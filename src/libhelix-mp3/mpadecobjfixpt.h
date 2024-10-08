@@ -70,7 +70,7 @@ public:
     //                          return.
     //              pPCM        pointer to a buffer to decode into
     //              pulPCMSize  size of the PCM buffer.  It will contain the
-    //                          number of PCM bytes prodced upon return.
+    //                          number of PCM bytes produced upon return.
     ///////////////////////////////////////////////////////////////////////////
     void    DecodeFrame_v(unsigned char *pSource,
               	          unsigned long *pulSize,
