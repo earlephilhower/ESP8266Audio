@@ -7,7 +7,7 @@
   See: https://www.epanorama.net/documents/audio/spdif.html
 
   Original idea and sources: 
-    Forum thread dicussing implementation
+    Forum thread discussing implementation
       https://forum.pjrc.com/threads/28639-S-pdif
     Teensy Audio Library 
       https://github.com/PaulStoffregen/Audio/blob/master/output_spdif2.cpp

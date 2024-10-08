@@ -49,6 +49,7 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int
   bclkPin = 26;
   wclkPin = 25;
   doutPin = 22;
+  mclkPin = 0;
   SetGain(1.0);
 }
 
@@ -61,24 +62,16 @@ AudioOutputI2S::AudioOutputI2S(long sampleRate, pin_size_t sck, pin_size_t data)
     hertz = sampleRate;
     bclkPin = sck;
     doutPin = data;
+    mclkPin = 0;
+    use_mclk = false;
+    swap_clocks = false;
     SetGain(1.0);
 }
 #endif
 
 AudioOutputI2S::~AudioOutputI2S()
 {
-  #ifdef ESP32
-    if (i2sOn) {
-      audioLogger->printf("UNINSTALL I2S\n");
-      i2s_driver_uninstall((i2s_port_t)portNo); //stop & destroy i2s driver
-    }
-  #elif defined(ESP8266)
-    if (i2sOn)
-      i2s_end();
-  #elif defined(ARDUINO_ARCH_RP2040)
-    stop();
-  #endif
-  i2sOn = false;
+  stop();
 }
 
 bool AudioOutputI2S::SetPinout()
@@ -88,7 +81,9 @@ bool AudioOutputI2S::SetPinout()
       return false; // Not allowed
 
     i2s_pin_config_t pins = {
-        .mck_io_num = 0, // Unused
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
+        .mck_io_num = mclkPin,
+#endif
         .bck_io_num = bclkPin,
         .ws_io_num = wclkPin,
         .data_out_num = doutPin,
@@ -99,6 +94,8 @@ bool AudioOutputI2S::SetPinout()
     (void)bclkPin;
     (void)wclkPin;
     (void)doutPin;
+    (void)mclkPin;
+    (void)use_mclk;
     return false;
   #endif
 }
@@ -113,6 +110,22 @@ bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout)
 
   return true;
 }
+
+bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout, int mclk)
+{
+  bclkPin = bclk;
+  wclkPin = wclk;
+  doutPin = dout;
+  #if defined(ESP32) || defined(ARDUINO_ARCH_RP2040)
+    mclkPin = mclk;
+    if (i2sOn)
+      return SetPinout();
+  #else
+    (void)mclk;
+  #endif
+  return true;
+}
+
 bool AudioOutputI2S::SetRate(int hz)
 {
   // TODO - have a list of allowable rates from constructor, check them
@@ -156,6 +169,28 @@ bool AudioOutputI2S::SetLsbJustified(bool lsbJustified)
   return true;
 }
 
+bool AudioOutputI2S::SwapClocks(bool swap_clocks)
+{
+  if (i2sOn) {
+    return false; // Not allowed
+  }
+  this->swap_clocks = swap_clocks;
+  return true;
+}
+
+bool AudioOutputI2S::SetMclk(bool enabled){
+  (void)enabled;
+  #ifdef ESP32
+    if (output_mode == INTERNAL_DAC || output_mode == INTERNAL_PDM)
+      return false; // Not allowed
+
+    use_mclk = enabled;
+  #elif defined(ARDUINO_ARCH_RP2040)
+    use_mclk = enabled;
+  #endif
+  return true;
+}
+
 bool AudioOutputI2S::begin(bool txDAC)
 {
   #ifdef ESP32
@@ -165,9 +200,9 @@ bool AudioOutputI2S::begin(bool txDAC)
       {
         // don't use audio pll on buggy rev0 chips
         use_apll = APLL_DISABLE;
-        esp_chip_info_t out_info;
-        esp_chip_info(&out_info);
-        if (out_info.revision > 0)
+        //esp_chip_info_t out_info;
+        //esp_chip_info(&out_info);
+        //if (out_info.revision > 0)
         {
           use_apll = APLL_ENABLE;
         }
@@ -228,9 +263,11 @@ bool AudioOutputI2S::begin(bool txDAC)
           .dma_buf_len = 128,
           .use_apll = use_apll, // Use audio PLL
           .tx_desc_auto_clear = true, // Silence on underflow
-          .fixed_mclk = 0, // Unused
-          .mclk_multiple = I2S_MCLK_MULTIPLE_DEFAULT, // Unused
+          .fixed_mclk = use_mclk, // Unused
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
+          .mclk_multiple = I2S_MCLK_MULTIPLE_256, // Unused
           .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT // Use bits per sample
+#endif
       };
       audioLogger->printf("+%d %p\n", portNo, &i2s_config_dac);
       if (i2s_driver_install((i2s_port_t)portNo, &i2s_config_dac, 0, NULL) != ESP_OK)
@@ -275,9 +312,16 @@ bool AudioOutputI2S::begin(bool txDAC)
   #elif defined(ARDUINO_ARCH_RP2040)
     (void)txDAC;
     if (!i2sOn) {
-        i2s.setBCLK(bclkPin);
-	i2s.setDATA(doutPin);
-        i2s.begin(hertz);
+      i2s.setSysClk(hertz);
+      i2s.setBCLK(bclkPin);
+      i2s.setDATA(doutPin);
+      i2s.setMCLK(mclkPin);
+      i2s.setMCLKmult(256);
+      if (swap_clocks) {
+        i2s.swapClocks();
+      }
+      i2s.setBitsPerSample(bps);
+      i2s.begin(hertz);
     }
   #endif
   i2sOn = true;
@@ -355,6 +399,10 @@ bool AudioOutputI2S::stop()
 
   #ifdef ESP32
     i2s_zero_dma_buffer((i2s_port_t)portNo);
+    audioLogger->printf("UNINSTALL I2S\n");
+    i2s_driver_uninstall((i2s_port_t)portNo); //stop & destroy i2s driver
+  #elif defined(ESP8266)
+    i2s_end();
   #elif defined(ARDUINO_ARCH_RP2040)
     i2s.end();
   #endif

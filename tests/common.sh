@@ -70,23 +70,13 @@ function install_esp32()
     local ide_path=$1
     pip install pyserial
     pip3 install pyserial
-    cd $ide_path/hardware
-    mkdir espressif
-    cd espressif
-    git clone https://github.com/espressif/arduino-esp32.git esp32
-    pushd esp32
-    # Set custom warnings for all builds
-
-    echo "compiler.c.extra_flags=-Wall -Wextra -Werror $debug_flags" > platform.local.txt
-    echo "compiler.cpp.extra_flags=-Wall -Wextra -Werror $debug_flags" >> platform.local.txt
-    echo -e "\n----platform.local.txt----"
-    cat platform.local.txt
-    git submodule update --init
-    cd tools
-    python3 get.py
-    export PATH="$ide_path/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin/:$PATH"
+    mkdir -p ~/bin
+    pushd ~/bin
+    wget -q https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Linux_64bit.tar.gz
+    tar xvf arduino-cli_latest_Linux_64bit.tar.gz
+    export PATH=$PATH:$PWD
     popd
-    cd esp32
+    arduino-cli core install --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json esp32:esp32
 }
 
 function install_arduino()
@@ -99,6 +89,20 @@ function install_arduino()
     install_libraries
 }
 
+function skip_esp32()
+{
+    local ino=$1
+    local skiplist=""
+    # Add items to the following list with "\n" netween them to skip running.  No spaces, tabs, etc. allowed
+    read -d '' skiplist << EOL || true
+/MixerSample/
+EOL
+    echo $ino | grep -q -F "$skiplist"
+    echo $(( 1 - $? ))
+}
+
+
+
 if [ "$BUILD_MOD" == "" ]; then
     export BUILD_MOD=1
     export BUILD_REM=0
@@ -109,14 +113,26 @@ if [ "$BUILD_TYPE" = "build" ]; then
     install_arduino
     install_esp8266 "$HOME/arduino_ide"
     source "$HOME/arduino_ide/hardware/esp8266com/esp8266/tests/common.sh"
-    build_sketches "$HOME/arduino_ide" "$TRAVIS_BUILD_DIR" "-l $HOME/Arduino/libraries" "$BUILD_MOD" "$BUILD_REM" "lm2f"
+    export ESP8266_ARDUINO_SKETCHES=$(find $HOME/Arduino/libraries/ESP8266Audio -name *.ino | sort)
+    # ESP8266 scripts now expect tools in wrong spot.  Use simple and dumb fix
+    mkdir -p "$HOME/work/ESP8266Audio/ESP8266Audio"
+    ln -s "$HOME/arduino_ide/hardware/esp8266com/esp8266/tools" "$HOME/work/ESP8266Audio/ESP8266Audio/tools"
+    build_sketches "$TRAVIS_BUILD_DIR" "$HOME/arduino_ide" "$HOME/arduino_ide/hardware" "$HOME/Arduino/libraries" "$BUILD_MOD" "$BUILD_REM" "lm2f"
 elif [ "$BUILD_TYPE" = "build_esp32" ]; then
     install_arduino
     install_esp32 "$HOME/arduino_ide"
-    export FQBN="espressif:esp32:esp32:PSRAM=enabled,PartitionScheme=huge_app"
-    mkdir -p "$GITHUB_WORKSPACE/hardware"
-    ln -s "$GITHUB_WORKSPACE/../" "$GITHUB_WORKSPACE/libraries"
-    source "$HOME/arduino_ide/hardware/espressif/esp32/.github/scripts/sketch_utils.sh" chunk_build "$HOME/arduino_ide" "$GITHUB_WORKSPACE" "$FQBN" esp32 "$GITHUB_WORKSPACE" $BUILD_REM $BUILD_MOD
+    export testcnt=0
+    for i in $(find ~/Arduino/libraries/ESP8266Audio -name "*.ino"); do
+        testcnt=$(( ($testcnt + 1) % $BUILD_MOD ))
+        if [ $testcnt -ne $BUILD_REM ]; then
+            continue  # Not ours to do
+        fi
+        if [[ $(skip_esp32 $i) = 1 ]]; then
+            echo -e "\n ------------ Skipping $i ------------ \n";
+            continue
+        fi
+        arduino-cli compile --fqbn esp32:esp32:esp32 --warnings all $i
+    done
 elif [ "$BUILD_TYPE" = "build_rp2040" ]; then
     install_arduino
     install_rp2040 "$HOME/arduino_ide"
