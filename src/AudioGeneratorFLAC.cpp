@@ -62,6 +62,9 @@ bool AudioGeneratorFLAC::begin(AudioFileSource *source, AudioOutput *output)
 
   output->begin();
   running = true;
+  lastSample[0] = 0;
+  lastSample[1] = 0;
+  channels = 0;
   return true;
 }
 
@@ -71,7 +74,7 @@ bool AudioGeneratorFLAC::loop()
 
   if (!running) goto done;
 
-  if (!output->ConsumeSample(lastSample)) goto done; // Try and send last buffered sample
+  if (channels && !output->ConsumeSample(lastSample)) goto done; // Try and send last buffered sample
 
   do {
     if (buffPtr == buffLen) {
@@ -193,7 +196,7 @@ char AudioGeneratorFLAC::error_cb_str[64];
 void AudioGeneratorFLAC::error_cb(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status)
 {
   (void) decoder;
-  strncpy_P(error_cb_str, FLAC__StreamDecoderErrorStatusString[status], 64);
+  strncpy_P(error_cb_str, FLAC__StreamDecoderErrorStatusString[status], sizeof(AudioGeneratorFLAC::error_cb_str) - 1);
   cb.st((int)status, error_cb_str);
 }
 

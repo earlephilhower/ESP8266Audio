@@ -25,14 +25,14 @@ AudioFileSourceFunction::AudioFileSourceFunction(float sec, uint16_t channels, u
   uint32_t len = uint32_t(sec * (float)bytes_per_sec);
 
   // RIFF chunk
-  strncpy(wav_header.riff.chunk_id, "RIFF", 4);
+  memcpy(wav_header.riff.chunk_id, "RIFF", 4);
   wav_header.riff.chunk_size = 4         // size of riff chunk w/o chunk_id and chunk_size
                              + 8 + 16    // size of format chunk
                              + 8 + len;  // size of data chunk
-  strncpy(wav_header.riff.format, "WAVE", 4);
+  memcpy(wav_header.riff.format, "WAVE", 4);
 
   // format chunk
-  strncpy(wav_header.format.chunk_id, "fmt ", 4);
+  memcpy(wav_header.format.chunk_id, "fmt ", 4);
   wav_header.format.chunk_size = 16;
   wav_header.format.format_tag = 0x0001;  // PCM
   wav_header.format.channels = channels;
@@ -42,7 +42,7 @@ AudioFileSourceFunction::AudioFileSourceFunction(float sec, uint16_t channels, u
   wav_header.format.bits_per_sample = bits_per_sample;
 
   // data chunk
-  strncpy(wav_header.data.chunk_id, "data", 4);
+  memcpy(wav_header.data.chunk_id, "data", 4);
   wav_header.data.chunk_size = len;
 
   funcs.reserve(channels);

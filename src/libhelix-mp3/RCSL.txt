@@ -801,7 +801,7 @@ REQUIRED IN ALL CASES
 Notice to be included in header file of all Error Corrections and Shared
 Modifications:
 
-Portions Copyright 1994-2003 © RealNetworks, Inc. All rights reserved.
+Portions Copyright 1994-2003 (c) RealNetworks, Inc. All rights reserved.
 
 The contents of this file, and the files included with this file, are
 subject to the current version of RealNetworks Community Source License

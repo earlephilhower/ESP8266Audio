@@ -1,4 +1,8 @@
 #include <Arduino.h>
+#ifdef ARDUINO_ARCH_RP2040
+void setup() {}
+void loop() {}
+#else
 #include "AudioFileSourceSD.h"
 #include "AudioOutputSPDIF.h"
 #include "AudioGeneratorFLAC.h"
@@ -61,8 +65,10 @@ void loop() {
         }
       } 
     } else {
-      Serial.println(F("Playback form SD card done\n"));
+      Serial.println(F("Playback from SD card done\n"));
       delay(1000);
     }       
   }
 }
+#endif
+

@@ -1422,7 +1422,7 @@ static int op_open_seekable2_impl(OggOpusFile *_of){
   _of->end=sr[0].offset+sr[0].size;
   if(OP_UNLIKELY(_of->end<data_offset)){free(sr); return OP_EBADLINK;}
   /*Now enumerate the bitstream structure.*/
-  ret = op_bisect_forward_serialno(_of,data_offset,sr,sizeof(sr)/sizeof(*sr),
+  ret = op_bisect_forward_serialno(_of,data_offset,sr,64,
    &_of->serialnos,&_of->nserialnos,&_of->cserialnos);
   free(sr);
   return ret;
@@ -1481,7 +1481,7 @@ static int op_open_seekable2(OggOpusFile *_of){
 /*Clear out the current logical bitstream decoder.*/
 static void op_decode_clear(OggOpusFile *_of){
   /*We don't actually free the decoder.
-    We might be able to re-use it for the next link.*/
+    We might be able to reuse it for the next link.*/
   _of->op_count=0;
   _of->od_buffer_size=0;
   _of->prev_packet_gp=-1;
@@ -1749,7 +1749,7 @@ opus_int64 op_raw_total(const OggOpusFile *_of,int _li){
 ogg_int64_t op_pcm_total(const OggOpusFile *_of,int _li){
   OggOpusLink *links;
   ogg_int64_t  pcm_total;
-  ogg_int64_t  diff;
+  ogg_int64_t  diff = 0;
   int          nlinks;
   nlinks=_of->nlinks;
   if(OP_UNLIKELY(_of->ready_state<OP_OPENED)

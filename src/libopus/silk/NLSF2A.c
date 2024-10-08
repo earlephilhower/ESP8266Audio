@@ -62,6 +62,8 @@ static OPUS_INLINE void silk_NLSF2A_find_poly(
     }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 /* compute whitening filter coefficients from normalized line spectral frequencies */
 void silk_NLSF2A(
     opus_int16                  *a_Q12,             /* O    monic whitening filter coefficients in Q12,  [ d ]          */
@@ -143,4 +145,4 @@ void silk_NLSF2A(
     free(Q);
     free(a32_QA1);
 }
-
+#pragma GCC diagnostic pop

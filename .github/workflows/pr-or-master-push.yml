@@ -13,6 +13,29 @@ on:
 
 jobs:
 
+  build-rp2040:
+    name: Build RP2040
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        chunk: [0, 1, 2, 3, 4]
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+    - name: Build Sketches
+      env:
+        TRAVIS_BUILD_DIR: ${{ github.workspace }}
+        TRAVIS_TAG: ${{ github.ref }}
+        BUILD_TYPE: build_rp2040
+        BUILD_MOD: 5
+        BUILD_REM: ${{ matrix.chunk }}
+      run: |
+        bash ./tests/common.sh
+
   build-esp8266:
     name: Build ESP8266
     runs-on: ubuntu-latest
@@ -20,10 +43,10 @@ jobs:
       matrix:
         chunk: [0, 1, 2, 3, 4]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
     - name: Build Sketches
@@ -36,7 +59,6 @@ jobs:
       run: |
         bash ./tests/common.sh
 
-
   build-esp32:
     name: Build ESP-32
     runs-on: ubuntu-latest
@@ -44,10 +66,10 @@ jobs:
       matrix:
         chunk: [0, 1, 2, 3, 4]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
     - name: Build Sketches
@@ -65,10 +87,10 @@ jobs:
     name: Host tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
     - name: Run host tests
@@ -84,13 +106,17 @@ jobs:
         valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./mp3
         valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./aac
         valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./wav
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./flac
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./mod
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./wav
         valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./midi
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./opus
 
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: arduino/arduino-lint-action@v1
+      - uses: actions/checkout@v4
+      - uses: arduino/arduino-lint-action@v2
         with:
           library-manager: 'update'
 
@@ -102,11 +128,11 @@ jobs:
       run:
         shell: bash
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
     - name: Run codespell
       uses: codespell-project/actions-codespell@master
       with:
-        skip: ./src/libmad,./src/libhelix-aac,./src/libopus
+        skip: ./src/libmad,./src/libhelix-aac,./src/libopus,./src/libflac
         ignore_words_list: ESP8266,esp8266,esp,dout,DOUT,ser,ans,inout,numer,hist

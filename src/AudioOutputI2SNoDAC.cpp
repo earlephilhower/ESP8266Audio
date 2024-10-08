@@ -119,9 +119,6 @@ bool AudioOutputI2SNoDAC::ConsumeSample(int16_t sample[2])
 
   // Either send complete pulse stream or nothing
 #ifdef ESP32
-//"i2s_write_bytes" has been removed in the ESP32 Arduino 2.0.0,  use "i2s_write" instead.
-//  if (!i2s_write_bytes((i2s_port_t)portNo, (const char *)dsBuff, sizeof(uint32_t) * (oversample/32), 0))
-
   size_t i2s_bytes_written;
   i2s_write((i2s_port_t)portNo, (const char *)dsBuff, sizeof(uint32_t) * (oversample/32), &i2s_bytes_written, 0);
   if (!i2s_bytes_written){
@@ -134,9 +131,8 @@ bool AudioOutputI2SNoDAC::ConsumeSample(int16_t sample[2])
   for (int i = 32; i < oversample; i+=32)
     i2s_write_sample( dsBuff[i / 32]);
 #elif defined(ARDUINO_ARCH_RP2040)
-  int16_t *p = (int16_t *) dsBuff;
-  for (int i = 0; i < oversample / 16; i++) {
-    I2S.write(*(p++));
+  for (int i = 0; i < oversample / 32; i++) {
+    i2s.write((int32_t)dsBuff[i], true);
   }
 #endif
   return true;

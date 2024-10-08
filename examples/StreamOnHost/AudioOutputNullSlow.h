@@ -30,6 +30,7 @@ class AudioOutputNullSlow : public AudioOutput
     ~AudioOutputNullSlow() {};
     virtual bool begin() { samples = 0; startms = millis(); return true; }
     virtual bool ConsumeSample(int16_t sample[2]) {
+        (void) sample;
         // return false (= output buffer full)
         // sometimes to let the main loop running
         constexpr int everylog2 = 10;

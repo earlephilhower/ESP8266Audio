@@ -24,7 +24,7 @@
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
+#if 0
 //#ifdef HAVE_CONFIG_H
 #include "config.h"
 //#endif
@@ -1326,3 +1326,4 @@ void opus_multistream_encoder_destroy(OpusMSEncoder *st)
 {
     opus_free(st);
 }
+#endif
