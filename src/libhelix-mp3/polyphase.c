@@ -54,7 +54,7 @@
  *  (see comment on Dequantize() for more info)
  */
 #define DEF_NFRACBITS	(DQ_FRACBITS_OUT - 2 - 2 - 15)	
-#define CSHIFT	12	/* coefficients have 12 leading sign bits for early-terminating mulitplies */
+#define CSHIFT	12	/* coefficients have 12 leading sign bits for early-terminating multiplies */
 
 static __inline short ClipToShort(int x, int fracBits)
 {

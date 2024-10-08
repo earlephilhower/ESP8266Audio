@@ -53,7 +53,11 @@ class AudioFileSourceHTTPStream : public AudioFileSource
 
   private:
     virtual uint32_t readInternal(void *data, uint32_t len, bool nonBlock);
+#if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION_MAJOR >= 3
+    NetworkClient client;
+#else
     WiFiClient client;
+#endif
     HTTPClient http;
     int pos;
     int size;

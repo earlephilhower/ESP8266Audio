@@ -196,7 +196,7 @@ char AudioGeneratorFLAC::error_cb_str[64];
 void AudioGeneratorFLAC::error_cb(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status)
 {
   (void) decoder;
-  strncpy_P(error_cb_str, FLAC__StreamDecoderErrorStatusString[status], 64);
+  strncpy_P(error_cb_str, FLAC__StreamDecoderErrorStatusString[status], sizeof(AudioGeneratorFLAC::error_cb_str) - 1);
   cb.st((int)status, error_cb_str);
 }
 

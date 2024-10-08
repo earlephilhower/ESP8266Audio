@@ -24,6 +24,7 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 ***********************************************************************/
+#if 0
 
 //#ifdef HAVE_CONFIG_H
 #include "../config.h"
@@ -574,3 +575,4 @@ opus_int silk_Encode(                                   /* O    Returns error co
     return ret;
 }
 
+#endif
