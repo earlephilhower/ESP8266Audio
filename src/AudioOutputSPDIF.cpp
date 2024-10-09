@@ -7,7 +7,7 @@
   See: https://www.epanorama.net/documents/audio/spdif.html
 
   Original idea and sources: 
-    Forum thread dicussing implementation
+    Forum thread discussing implementation
       https://forum.pjrc.com/threads/28639-S-pdif
     Teensy Audio Library 
       https://github.com/PaulStoffregen/Audio/blob/master/output_spdif2.cpp
@@ -105,7 +105,10 @@ AudioOutputSPDIF::AudioOutputSPDIF(int dout_pin, int port, int dma_buf_count)
     .use_apll = true, // Audio PLL is needed for low clock jitter
     .tx_desc_auto_clear = true, // Silence on underflow
     .fixed_mclk = 0, // Unused
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
+#if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION_MAJOR >= 3
+    .mclk_multiple = I2S_MCLK_MULTIPLE_512, // Unused
+    .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT // Use bits per sample
+#elif ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
     .mclk_multiple = I2S_MCLK_MULTIPLE_DEFAULT, // Unused
     .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT // Use bits per sample
 #endif
@@ -183,12 +186,14 @@ bool AudioOutputSPDIF::SetRate(int hz)
   int adjustedHz = AdjustI2SRate(hz);
 #if defined(ESP32)
   if (i2s_set_sample_rates((i2s_port_t)portNo, adjustedHz) == ESP_OK) {
+#if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR < 3)
     if (adjustedHz == 88200) {
       // Manually fix the APLL rate for 44100. 
       // See: https://github.com/espressif/esp-idf/issues/2634
       // sdm0 = 28, sdm1 = 8, sdm2 = 5, odir = 0 -> 88199.977
       rtc_clk_apll_enable(1, 28, 8, 5, 0); 
     }
+#endif
   } else {
     audioLogger->println("ERROR changing S/PDIF sample rate");
   } 

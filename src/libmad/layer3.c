@@ -352,19 +352,18 @@ struct fixedfloat {
 
    root_table[3 + x] = 2^(x/4)
 */
+static mad_fixed_t const root_table_val[7] PROGMEM = {
+  MAD_F(0x09837f05) /* 2^(-3/4) == 0.59460355750136 */,
+  MAD_F(0x0b504f33) /* 2^(-2/4) == 0.70710678118655 */,
+  MAD_F(0x0d744fcd) /* 2^(-1/4) == 0.84089641525371 */,
+  MAD_F(0x10000000) /* 2^( 0/4) == 1.00000000000000 */,
+  MAD_F(0x1306fe0a) /* 2^(+1/4) == 1.18920711500272 */,
+  MAD_F(0x16a09e66) /* 2^(+2/4) == 1.41421356237310 */,
+  MAD_F(0x1ae89f99) /* 2^(+3/4) == 1.68179283050743 */
+};
 static inline mad_fixed_t root_table(int i)
 {
-  static mad_fixed_t const root_table_val[7] PROGMEM = {
-    MAD_F(0x09837f05) /* 2^(-3/4) == 0.59460355750136 */,
-    MAD_F(0x0b504f33) /* 2^(-2/4) == 0.70710678118655 */,
-    MAD_F(0x0d744fcd) /* 2^(-1/4) == 0.84089641525371 */,
-    MAD_F(0x10000000) /* 2^( 0/4) == 1.00000000000000 */,
-    MAD_F(0x1306fe0a) /* 2^(+1/4) == 1.18920711500272 */,
-    MAD_F(0x16a09e66) /* 2^(+2/4) == 1.41421356237310 */,
-    MAD_F(0x1ae89f99) /* 2^(+3/4) == 1.68179283050743 */
-  };
-  volatile uint32_t a = *(uint32_t*)&root_table_val[i];
-  return *(mad_fixed_t*)&a;
+  return root_table_val[i];
 }
 /*
    coefficients for aliasing reduction
@@ -374,28 +373,26 @@ static inline mad_fixed_t root_table(int i)
    cs[i] =    1 / sqrt(1 + c[i]^2)
    ca[i] = c[i] / sqrt(1 + c[i]^2)
 */
+static mad_fixed_t const cs_val[8] PROGMEM = {
+  +MAD_F(0x0db84a81) /* +0.857492926 */, +MAD_F(0x0e1b9d7f) /* +0.881741997 */,
+  +MAD_F(0x0f31adcf) /* +0.949628649 */, +MAD_F(0x0fbba815) /* +0.983314592 */,
+  +MAD_F(0x0feda417) /* +0.995517816 */, +MAD_F(0x0ffc8fc8) /* +0.999160558 */,
+  +MAD_F(0x0fff964c) /* +0.999899195 */, +MAD_F(0x0ffff8d3) /* +0.999993155 */
+};
 static inline mad_fixed_t cs(int i)
 {
-  static mad_fixed_t const cs_val[8] PROGMEM = {
-    +MAD_F(0x0db84a81) /* +0.857492926 */, +MAD_F(0x0e1b9d7f) /* +0.881741997 */,
-    +MAD_F(0x0f31adcf) /* +0.949628649 */, +MAD_F(0x0fbba815) /* +0.983314592 */,
-    +MAD_F(0x0feda417) /* +0.995517816 */, +MAD_F(0x0ffc8fc8) /* +0.999160558 */,
-    +MAD_F(0x0fff964c) /* +0.999899195 */, +MAD_F(0x0ffff8d3) /* +0.999993155 */
-  };
-  volatile uint32_t a = *(uint32_t*)&cs_val[i];
-  return *(mad_fixed_t*)&a;
+  return cs_val[i];
 }
 
+static mad_fixed_t const ca_val[8] PROGMEM = {
+  -MAD_F(0x083b5fe7) /* -0.514495755 */, -MAD_F(0x078c36d2) /* -0.471731969 */,
+  -MAD_F(0x05039814) /* -0.313377454 */, -MAD_F(0x02e91dd1) /* -0.181913200 */,
+  -MAD_F(0x0183603a) /* -0.094574193 */, -MAD_F(0x00a7cb87) /* -0.040965583 */,
+  -MAD_F(0x003a2847) /* -0.014198569 */, -MAD_F(0x000f27b4) /* -0.003699975 */
+};
 static inline mad_fixed_t ca(int i)
 {
-  static mad_fixed_t const ca_val[8] PROGMEM = {
-    -MAD_F(0x083b5fe7) /* -0.514495755 */, -MAD_F(0x078c36d2) /* -0.471731969 */,
-    -MAD_F(0x05039814) /* -0.313377454 */, -MAD_F(0x02e91dd1) /* -0.181913200 */,
-    -MAD_F(0x0183603a) /* -0.094574193 */, -MAD_F(0x00a7cb87) /* -0.040965583 */,
-    -MAD_F(0x003a2847) /* -0.014198569 */, -MAD_F(0x000f27b4) /* -0.003699975 */
-  };
-  volatile uint32_t a = *(uint32_t*)&ca_val[i];
-  return *(mad_fixed_t*)&a;
+  return ca_val[i];
 }
 
 /*
@@ -417,32 +414,31 @@ mad_fixed_t const imdct_s[6][6] PROGMEM  = {
 
    window_l[i] = sin((PI / 36) * (i + 1/2))
 */
+static mad_fixed_t const window_l_val[36] PROGMEM = {
+  MAD_F(0x00b2aa3e) /* 0.043619387 */, MAD_F(0x0216a2a2) /* 0.130526192 */,
+  MAD_F(0x03768962) /* 0.216439614 */, MAD_F(0x04cfb0e2) /* 0.300705800 */,
+  MAD_F(0x061f78aa) /* 0.382683432 */, MAD_F(0x07635284) /* 0.461748613 */,
+  MAD_F(0x0898c779) /* 0.537299608 */, MAD_F(0x09bd7ca0) /* 0.608761429 */,
+  MAD_F(0x0acf37ad) /* 0.675590208 */, MAD_F(0x0bcbe352) /* 0.737277337 */,
+  MAD_F(0x0cb19346) /* 0.793353340 */, MAD_F(0x0d7e8807) /* 0.843391446 */,
+
+  MAD_F(0x0e313245) /* 0.887010833 */, MAD_F(0x0ec835e8) /* 0.923879533 */,
+  MAD_F(0x0f426cb5) /* 0.953716951 */, MAD_F(0x0f9ee890) /* 0.976296007 */,
+  MAD_F(0x0fdcf549) /* 0.991444861 */, MAD_F(0x0ffc19fd) /* 0.999048222 */,
+  MAD_F(0x0ffc19fd) /* 0.999048222 */, MAD_F(0x0fdcf549) /* 0.991444861 */,
+  MAD_F(0x0f9ee890) /* 0.976296007 */, MAD_F(0x0f426cb5) /* 0.953716951 */,
+  MAD_F(0x0ec835e8) /* 0.923879533 */, MAD_F(0x0e313245) /* 0.887010833 */,
+
+  MAD_F(0x0d7e8807) /* 0.843391446 */, MAD_F(0x0cb19346) /* 0.793353340 */,
+  MAD_F(0x0bcbe352) /* 0.737277337 */, MAD_F(0x0acf37ad) /* 0.675590208 */,
+  MAD_F(0x09bd7ca0) /* 0.608761429 */, MAD_F(0x0898c779) /* 0.537299608 */,
+  MAD_F(0x07635284) /* 0.461748613 */, MAD_F(0x061f78aa) /* 0.382683432 */,
+  MAD_F(0x04cfb0e2) /* 0.300705800 */, MAD_F(0x03768962) /* 0.216439614 */,
+  MAD_F(0x0216a2a2) /* 0.130526192 */, MAD_F(0x00b2aa3e) /* 0.043619387 */,
+};
 static inline mad_fixed_t window_l(int i)
 {
-  static mad_fixed_t const window_l_val[36] PROGMEM = {
-    MAD_F(0x00b2aa3e) /* 0.043619387 */, MAD_F(0x0216a2a2) /* 0.130526192 */,
-    MAD_F(0x03768962) /* 0.216439614 */, MAD_F(0x04cfb0e2) /* 0.300705800 */,
-    MAD_F(0x061f78aa) /* 0.382683432 */, MAD_F(0x07635284) /* 0.461748613 */,
-    MAD_F(0x0898c779) /* 0.537299608 */, MAD_F(0x09bd7ca0) /* 0.608761429 */,
-    MAD_F(0x0acf37ad) /* 0.675590208 */, MAD_F(0x0bcbe352) /* 0.737277337 */,
-    MAD_F(0x0cb19346) /* 0.793353340 */, MAD_F(0x0d7e8807) /* 0.843391446 */,
-
-    MAD_F(0x0e313245) /* 0.887010833 */, MAD_F(0x0ec835e8) /* 0.923879533 */,
-    MAD_F(0x0f426cb5) /* 0.953716951 */, MAD_F(0x0f9ee890) /* 0.976296007 */,
-    MAD_F(0x0fdcf549) /* 0.991444861 */, MAD_F(0x0ffc19fd) /* 0.999048222 */,
-    MAD_F(0x0ffc19fd) /* 0.999048222 */, MAD_F(0x0fdcf549) /* 0.991444861 */,
-    MAD_F(0x0f9ee890) /* 0.976296007 */, MAD_F(0x0f426cb5) /* 0.953716951 */,
-    MAD_F(0x0ec835e8) /* 0.923879533 */, MAD_F(0x0e313245) /* 0.887010833 */,
-
-    MAD_F(0x0d7e8807) /* 0.843391446 */, MAD_F(0x0cb19346) /* 0.793353340 */,
-    MAD_F(0x0bcbe352) /* 0.737277337 */, MAD_F(0x0acf37ad) /* 0.675590208 */,
-    MAD_F(0x09bd7ca0) /* 0.608761429 */, MAD_F(0x0898c779) /* 0.537299608 */,
-    MAD_F(0x07635284) /* 0.461748613 */, MAD_F(0x061f78aa) /* 0.382683432 */,
-    MAD_F(0x04cfb0e2) /* 0.300705800 */, MAD_F(0x03768962) /* 0.216439614 */,
-    MAD_F(0x0216a2a2) /* 0.130526192 */, MAD_F(0x00b2aa3e) /* 0.043619387 */,
-  };
-  volatile uint32_t a = *(uint32_t*)&window_l_val[i];
-  return *(mad_fixed_t*)&a;
+  return window_l_val[i];
 }
 # endif  /* ASO_IMDCT */
 
@@ -452,18 +448,17 @@ static inline mad_fixed_t window_l(int i)
 
    window_s[i] = sin((PI / 12) * (i + 1/2))
 */
+static mad_fixed_t const window_s_val[12] PROGMEM = {
+  MAD_F(0x0216a2a2) /* 0.130526192 */, MAD_F(0x061f78aa) /* 0.382683432 */,
+  MAD_F(0x09bd7ca0) /* 0.608761429 */, MAD_F(0x0cb19346) /* 0.793353340 */,
+  MAD_F(0x0ec835e8) /* 0.923879533 */, MAD_F(0x0fdcf549) /* 0.991444861 */,
+  MAD_F(0x0fdcf549) /* 0.991444861 */, MAD_F(0x0ec835e8) /* 0.923879533 */,
+  MAD_F(0x0cb19346) /* 0.793353340 */, MAD_F(0x09bd7ca0) /* 0.608761429 */,
+  MAD_F(0x061f78aa) /* 0.382683432 */, MAD_F(0x0216a2a2) /* 0.130526192 */,
+};
 static inline mad_fixed_t window_s(int i)
 {
-  static mad_fixed_t const window_s_val[12] PROGMEM = {
-    MAD_F(0x0216a2a2) /* 0.130526192 */, MAD_F(0x061f78aa) /* 0.382683432 */,
-    MAD_F(0x09bd7ca0) /* 0.608761429 */, MAD_F(0x0cb19346) /* 0.793353340 */,
-    MAD_F(0x0ec835e8) /* 0.923879533 */, MAD_F(0x0fdcf549) /* 0.991444861 */,
-    MAD_F(0x0fdcf549) /* 0.991444861 */, MAD_F(0x0ec835e8) /* 0.923879533 */,
-    MAD_F(0x0cb19346) /* 0.793353340 */, MAD_F(0x09bd7ca0) /* 0.608761429 */,
-    MAD_F(0x061f78aa) /* 0.382683432 */, MAD_F(0x0216a2a2) /* 0.130526192 */,
-  };
-  volatile uint32_t a = *(uint32_t*)&window_s_val[i];
-  return *(mad_fixed_t*)&a;
+  return window_s_val[i];
 }
 
 /*
@@ -473,19 +468,18 @@ static inline mad_fixed_t window_s(int i)
    is_ratio[i] = tan(i * (PI / 12))
    is_table[i] = is_ratio[i] / (1 + is_ratio[i])
 */
+static mad_fixed_t const is_table_val[7] PROGMEM = {
+  MAD_F(0x00000000) /* 0.000000000 */,
+  MAD_F(0x0361962f) /* 0.211324865 */,
+  MAD_F(0x05db3d74) /* 0.366025404 */,
+  MAD_F(0x08000000) /* 0.500000000 */,
+  MAD_F(0x0a24c28c) /* 0.633974596 */,
+  MAD_F(0x0c9e69d1) /* 0.788675135 */,
+  MAD_F(0x10000000) /* 1.000000000 */
+};
 static inline mad_fixed_t is_table(int i)
 {
-  static mad_fixed_t const is_table_val[7] PROGMEM = {
-    MAD_F(0x00000000) /* 0.000000000 */,
-    MAD_F(0x0361962f) /* 0.211324865 */,
-    MAD_F(0x05db3d74) /* 0.366025404 */,
-    MAD_F(0x08000000) /* 0.500000000 */,
-    MAD_F(0x0a24c28c) /* 0.633974596 */,
-    MAD_F(0x0c9e69d1) /* 0.788675135 */,
-    MAD_F(0x10000000) /* 1.000000000 */
-  };
-  volatile uint32_t a = *(uint32_t*)&is_table_val[i];
-  return *(mad_fixed_t*)&a;
+  return is_table_val[i];
 }
 
 /*
@@ -1739,7 +1733,10 @@ void sdctII(mad_fixed_t const x[18], mad_fixed_t X[18])
     s = *(volatile mad_fixed_t*)(volatile uint32_t*)&scale[i + 2]; tmp[i + 2] = mad_f_mul(x[i + 2] - x[18 - (i + 2) - 1], s); //scale[i + 2]);
   }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
   fastsdct(tmp, &X[1]);
+#pragma GCC diagnostic pop
 
   /* output accumulation */
 
