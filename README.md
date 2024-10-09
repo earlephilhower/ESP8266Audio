@@ -1,4 +1,4 @@
-# ESP8266Audio - supports ESP8266 & ESP32 & Raspberry Pi Pico RP2040 [![Gitter](https://badges.gitter.im/ESP8266Audio/community.svg)](https://gitter.im/ESP8266Audio/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+# ESP8266Audio - supports ESP8266 & ESP32 & ESP32-S3 & Raspberry Pi Pico RP2040 [![Gitter](https://badges.gitter.im/ESP8266Audio/community.svg)](https://gitter.im/ESP8266Audio/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 Arduino library for parsing and decoding MOD, WAV, MP3, FLAC, MIDI, AAC, and RTTL files and playing them on an I2S DAC or even using a software-simulated delta-sigma DAC with dynamic 32x-128x oversampling.
 
 ESP8266 is fully supported and most mature, but ESP32 is also mostly there with built-in DAC as well as external ones.
@@ -141,6 +141,8 @@ AudioOutput:  Base class for all output drivers.  Takes a sample at a time and r
 AudioOutputI2S: Interface for any I2S 16-bit DAC.  Sends stereo or mono signals out at whatever frequency set.  Tested with Adafruit's I2SDAC and a Beyond9032 DAC from eBay.  Tested up to 44.1KHz. To use the internal DAC on ESP32, instantiate this class as `AudioOutputI2S(0,AudioOutputI2S::INTERNAL_DAC)`, see example `PlayMODFromPROGMEMToDAC` and code in [AudioOutputI2S.cpp](src/AudioOutputI2S.cpp#L29) for details. To use the hardware Pulse Density Modulation (PDM) on ESP32, instantiate this class as `AudioOutputI2S(0,AudioOutputI2S::INTERNAL_PDM)`. For both later cases, default output pins are GPIO25 and GPIO26.
 
 AudioOutputI2SNoDAC:  Abuses the I2S interface to play music without a DAC.  Turns it into a 32x (or higher) oversampling delta-sigma DAC.  Use the schematic below to drive a speaker or headphone from the I2STx pin (i.e. Rx).  Note that with this interface, depending on the transistor used, you may need to disconnect the Rx pin from the driver to perform serial uploads.  Mono-only output, of course.
+
+AudioOutputI2SNoDACS3 (experimental): Same as the one above, but (ONLY) supports the ESP32-S3. It also requires a dummy (unused) pin for the clock output.
 
 AudioOutputSPDIF (experimental): Another way to abuse the I2S peripheral to send out BMC encoded S/PDIF bitstream. To interface with S/PDIF receiver it needs optical or coaxial transceiver, for which some examples can be found at https://www.epanorama.net/documents/audio/spdif.html. It should work even with the simplest form with red LED and current limiting resistor, fed into TOSLINK cable. Minimum sample rate supported by is 32KHz. Due to BMC coding, actual symbol rate on the pin is 4x normal I2S data rate, which drains DMA buffers quickly. See more details inside [AudioOutputSPDIF.cpp](src/AudioOutputSPDIF.cpp#L17)
 
