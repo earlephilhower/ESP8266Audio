@@ -214,8 +214,8 @@ As of the latest ESP8266Audio release, with the software delta-sigma DAC the LRC
 
 ### Hardware PDM on ESP32
 
-Hardware PDM outputs 128 * 48Khz pulses regardles of samplerate.
-It seems that currently hardware PDM either does not output constant One at maximum sample level, or does not output 3.3V voltage at pulse ( unfortunatelly I not have oscilloscope to test currently) - sound is not as loud as desired.  You may consider using software delta-sigma DAC instead.
+Hardware PDM outputs 128 * 48Khz pulses regardless of sample rate.
+It seems that currently hardware PDM either does not output constant One at maximum sample level, or does not output 3.3V voltage at pulse sound is not as loud as desired.  You may consider using software delta-sigma DAC instead.
 
 ### High pitched buzzing with the 1-T circuit
 The 1-T amp can _NOT_ drive any sort of amplified speaker.  If there is a power or USB input to the speaker, or it has lights or Bluetooth or a battery, it can _NOT_ be used with this circuit.
