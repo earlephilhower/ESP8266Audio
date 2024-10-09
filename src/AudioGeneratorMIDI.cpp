@@ -58,8 +58,8 @@
 
 #include "AudioGeneratorMIDI.h"
 
-#if __GNUC__ == 8
-// Do not build, GCC8 has a compiler bug
+#if defined(ESP32) && (__GNUC__ >= 8) && (__XTENSA__)
+// Do not build, Espressif's GCC8+ has a compiler bug
 #else // __GNUC__ == 8
 
 #pragma GCC optimize ("O3")
@@ -443,8 +443,9 @@ int AudioGeneratorMIDI::PlayMIDI()
         for (tgnum = 0; tgnum < num_tonegens; ++tgnum) {    /* find which generator is playing it */
           tg = &tonegen[tgnum];
           if (tg->playing && tg->track == tracknum && tg->note == trk->note) {
-            tsf_note_off (g_tsf, tg->instrument, tg->note);
+            tsf_note_off_fast (g_tsf, tg->instrument, tg->note, tg->playIndex);
             tg->playing = false;
+            tg->playIndex = -1;
             trk->tonegens[tgnum] = false;
           }
         }
@@ -476,7 +477,7 @@ int AudioGeneratorMIDI::PlayMIDI()
         if (tg->instrument != midi_chan_instrument[trk->chan]) {    /* new instrument for this generator */
           tg->instrument = midi_chan_instrument[trk->chan];
         }
-        tsf_note_on (g_tsf, tg->instrument, tg->note, trk->velocity / 127.0); // velocity = 0...127
+        tg->playIndex = tsf_note_on_fast (g_tsf, tg->instrument, tg->note, trk->velocity / 127.0); // velocity = 0...127
       } else {
         ++notes_skipped;
       }

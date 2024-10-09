@@ -19,7 +19,15 @@
 */
 
 #include <Arduino.h>
-#ifdef ESP32
+#if defined(ARDUINO_ARCH_RP2040)
+void setup() {}
+void loop() {}
+#else
+
+// ESP8266 server.available() is now server.accept()
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+#if defined(ESP32)
     #include <WiFi.h>
 #else
     #include <ESP8266WiFi.h>
@@ -439,3 +447,4 @@ void loop()
   }
 }
 
+#endif

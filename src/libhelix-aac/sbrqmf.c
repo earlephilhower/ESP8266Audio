@@ -222,7 +222,8 @@ static void PostMultiply64(int *fft1, int nSampsOut)
  * Notes:       this is carefully written to be efficient on ARM
  *              use the assembly code version in sbrqmfak.s when building for ARM!
  **************************************************************************************/
-#if (defined (__arm) && defined (__ARMCC_VERSION)) || (defined (_WIN32) && defined (_WIN32_WCE) && defined (ARM)) || (defined(__GNUC__) && defined(__arm__))
+ //TODO - ADD IN .S SOURCES SOMEHOW
+#if 0 //(defined (__arm) && defined (__ARMCC_VERSION)) || (defined (_WIN32) && defined (_WIN32_WCE) && defined (ARM)) || (defined(__GNUC__) && defined(__arm__))
 #ifdef __cplusplus
 extern "C"
 #endif
@@ -395,7 +396,7 @@ int QMFAnalysis(int *inbuf, int *delay, int *XBuf, int fBitsIn, int *delayIdx, i
  * Notes:       this is carefully written to be efficient on ARM
  *              use the assembly code version in sbrqmfsk.s when building for ARM!
  **************************************************************************************/
-#if (defined (__arm) && defined (__ARMCC_VERSION)) || (defined (_WIN32) && defined (_WIN32_WCE) && defined (ARM)) || (defined(__GNUC__) && defined(__arm__))
+#if 0 //(defined (__arm) && defined (__ARMCC_VERSION)) || (defined (_WIN32) && defined (_WIN32_WCE) && defined (ARM)) || (defined(__GNUC__) && defined(__arm__))
 #ifdef __cplusplus
 extern "C"
 #endif

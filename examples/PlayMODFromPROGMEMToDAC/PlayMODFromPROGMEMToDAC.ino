@@ -2,7 +2,11 @@
 #include "AudioFileSourcePROGMEM.h"
 #include "AudioGeneratorMOD.h"
 #include "AudioOutputI2S.h"
-#ifdef ESP32
+#if defined(ARDUINO_ARCH_RP2040)
+    #define WIFI_OFF
+    class __x { public: __x() {}; void mode() {}; };
+    __x WiFi;
+#elif defined(ESP32)
     #include <WiFi.h>
 #else
     #include <ESP8266WiFi.h>

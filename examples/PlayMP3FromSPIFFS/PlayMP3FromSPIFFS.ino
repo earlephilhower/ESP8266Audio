@@ -1,4 +1,9 @@
 #include <Arduino.h>
+#if defined(ARDUINO_ARCH_RP2040)
+void setup() {}
+void loop() {}
+#else
+
 #ifdef ESP32
   #include <WiFi.h>
   #include "SPIFFS.h"
@@ -70,3 +75,4 @@ void loop()
     delay(1000);
   }
 }
+#endif
