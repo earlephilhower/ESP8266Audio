@@ -42,6 +42,7 @@ class AudioOutputMixerStub : public AudioOutput
   protected:
     AudioOutputMixer *parent;
     int id;
+    int myHz;
 };
 
 // Single mixer object per output
