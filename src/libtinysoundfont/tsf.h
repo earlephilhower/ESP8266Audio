@@ -50,7 +50,9 @@
 //  2101 | }
 //       | ^
 
-#if !defined(ESP32)
+#if defined(ESP32) && (__GNUC__ >= 8) && (__XTENSA__)
+// Not defined, can't build
+#else
 
 #ifndef TSF_INCLUDE_TSF_INL
 #define TSF_INCLUDE_TSF_INL
