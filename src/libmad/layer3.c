@@ -363,7 +363,8 @@ static mad_fixed_t const root_table_val[7] PROGMEM = {
 };
 static inline mad_fixed_t root_table(int i)
 {
-  return root_table_val[i];
+  volatile mad_fixed_t a = root_table_val[i];
+  return a;
 }
 /*
    coefficients for aliasing reduction
@@ -381,7 +382,8 @@ static mad_fixed_t const cs_val[8] PROGMEM = {
 };
 static inline mad_fixed_t cs(int i)
 {
-  return cs_val[i];
+  volatile mad_fixed_t a = cs_val[i];
+  return a;
 }
 
 static mad_fixed_t const ca_val[8] PROGMEM = {
@@ -392,7 +394,8 @@ static mad_fixed_t const ca_val[8] PROGMEM = {
 };
 static inline mad_fixed_t ca(int i)
 {
-  return ca_val[i];
+  volatile mad_fixed_t a = ca_val[i];
+  return a;
 }
 
 /*
@@ -438,7 +441,8 @@ static mad_fixed_t const window_l_val[36] PROGMEM = {
 };
 static inline mad_fixed_t window_l(int i)
 {
-  return window_l_val[i];
+  volatile mad_fixed_t a = window_l_val[i];
+  return *(mad_fixed_t*)&a;
 }
 # endif  /* ASO_IMDCT */
 
@@ -458,7 +462,8 @@ static mad_fixed_t const window_s_val[12] PROGMEM = {
 };
 static inline mad_fixed_t window_s(int i)
 {
-  return window_s_val[i];
+  volatile mad_fixed_t a = window_s_val[i];
+  return a;
 }
 
 /*
@@ -479,7 +484,8 @@ static mad_fixed_t const is_table_val[7] PROGMEM = {
 };
 static inline mad_fixed_t is_table(int i)
 {
-  return is_table_val[i];
+  volatile mad_fixed_t a = is_table_val[i];
+  return a;
 }
 
 /*
