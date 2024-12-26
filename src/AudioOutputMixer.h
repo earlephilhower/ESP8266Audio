@@ -1,7 +1,7 @@
 /*
   AudioOutputMixer
   Simple mixer which can combine multiple inputs to a single output stream
-  
+
   Copyright (C) 2017  Earle F. Philhower, III
 
   This program is free software: you can redistribute it and/or modify
@@ -35,6 +35,9 @@ class AudioOutputMixerStub : public AudioOutput
     virtual bool SetRate(int hz) override;
     virtual bool SetBitsPerSample(int bits) override;
     virtual bool SetChannels(int channels) override;
+    virtual bool FlipChannels(); // Invert current state of channelsFlipped
+    virtual bool FlipChannels(bool flip); // Set channelsFlipped true/false
+    virtual bool IsolateChannel(uint8_t channel); // Isolate channel 0 both, 1 left, 2 right
     virtual bool begin() override;
     virtual bool ConsumeSample(int16_t sample[2]) override;
     virtual bool stop() override;
@@ -42,6 +45,8 @@ class AudioOutputMixerStub : public AudioOutput
   protected:
     AudioOutputMixer *parent;
     int id;
+    bool channelsFlipped = false;
+    uint8_t channelIsolated = 0;
 };
 
 // Single mixer object per output
