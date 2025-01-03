@@ -62,10 +62,12 @@ class AudioOutputI2S : public AudioOutput
     bool mono;
     int lsb_justified;
     bool i2sOn;
+    bool i2sRateSet;
     int dma_buf_count;
     int use_apll;
     bool use_mclk;
     bool swap_clocks;
+
     // We can restore the old values and free up these pins when in NoDAC mode
     uint32_t orig_bck;
     uint32_t orig_ws;
