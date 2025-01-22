@@ -1,7 +1,7 @@
 # ESP8266Audio - supports ESP8266 & ESP32 & Raspberry Pi Pico RP2040 and Pico 2 RP2350 [![Gitter](https://badges.gitter.im/ESP8266Audio/community.svg)](https://gitter.im/ESP8266Audio/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 Arduino library for parsing and decoding MOD, WAV, MP3, FLAC, MIDI, AAC, and RTTL files and playing them on an I2S DAC or even using a software-simulated delta-sigma DAC with dynamic 32x-128x oversampling.
 
-# Raspberry Pi Pico (RP2040 and RP2350) Users
+# ESP32, Raspberry Pi Pico (RP2040 and RP2350) Users
 Consider using [BackgroundAudio](https://github.com/earlephilhower/BackgroundAudio) instead of this library as it can provide a simpler usage model and better results and performance on the Pico by using an interrupt-based, frame-aligned output model.
 
 # ESP8266 and ESP32 Users
