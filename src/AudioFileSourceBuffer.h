@@ -39,6 +39,7 @@ class AudioFileSourceBuffer : public AudioFileSource
     virtual uint32_t getPos() override;
     virtual bool loop() override;
 
+    virtual bool fill(uint32_t len, uint32_t max_delay);
     virtual uint32_t getFillLevel();
 
     enum { STATUS_FILLING=2, STATUS_UNDERFLOW };
