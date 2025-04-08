@@ -64,6 +64,8 @@
 #
 #elif defined(__GNUC__) && (defined(__powerpc__) || defined(__POWERPC__))
 #
+#elif defined(__GNUC__) && (defined(__mips__) || defined(__MIPS__))
+#
 #elif defined(_OPENWAVE_SIMULATOR) || defined(_OPENWAVE_ARMULATOR)
 #
 #elif defined(_SOLARIS) && !defined(__GNUC__)
