@@ -117,6 +117,8 @@ if [ "$BUILD_TYPE" = "build" ]; then
     # ESP8266 scripts now expect tools in wrong spot.  Use simple and dumb fix
     mkdir -p "$HOME/work/ESP8266Audio/ESP8266Audio"
     ln -s "$HOME/arduino_ide/hardware/esp8266com/esp8266/tools" "$HOME/work/ESP8266Audio/ESP8266Audio/tools"
+    mkdir -p /home/runner/work/ESP8266Audio/ESP8266Audio/tools/xtensa-lx106-elf/bin/
+    ln -s $HOME/arduino_ide/hardware/esp8266com/esp8266/tools/xtensa-lx106-elf/bin/xtensa-lx106-elf-size /home/runner/work/ESP8266Audio/ESP8266Audio/tools/xtensa-lx106-elf/bin/.
     build_sketches "$TRAVIS_BUILD_DIR" "$HOME/arduino_ide" "$HOME/arduino_ide/hardware" "$HOME/Arduino/libraries" "$BUILD_MOD" "$BUILD_REM" "lm2f"
 elif [ "$BUILD_TYPE" = "build_esp32" ]; then
     install_arduino
