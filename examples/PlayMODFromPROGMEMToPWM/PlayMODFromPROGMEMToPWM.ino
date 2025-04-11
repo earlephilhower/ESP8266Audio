@@ -20,8 +20,7 @@ AudioGeneratorMOD *mod;
 AudioFileSourcePROGMEM *file;
 AudioOutputPWM *out;
 
-void setup()
-{
+void setup() {
   Serial.begin(115200);
   delay(1000);
 
@@ -29,16 +28,17 @@ void setup()
   file = new AudioFileSourcePROGMEM(steps_mod, sizeof(steps_mod));
   out = new AudioOutputPWM();
   mod = new AudioGeneratorMOD();
-  mod->SetBufferSize(3*1024);
+  mod->SetBufferSize(3 * 1024);
   mod->SetSampleRate(44100);
   mod->SetStereoSeparation(32);
   mod->begin(file, out);
 }
 
-void loop()
-{
+void loop() {
   if (mod->isRunning()) {
-    if (!mod->loop()) mod->stop();
+    if (!mod->loop()) {
+      mod->stop();
+    }
   } else {
     Serial.printf("MOD done\n");
     delay(1000);

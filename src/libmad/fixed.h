@@ -1,23 +1,23 @@
 /*
- * libmad - MPEG audio decoder library
- * Copyright (C) 2000-2004 Underbit Technologies, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * $Id: fixed.h,v 1.38 2004/02/17 02:02:03 rob Exp $
- */
+    libmad - MPEG audio decoder library
+    Copyright (C) 2000-2004 Underbit Technologies, Inc.
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    $Id: fixed.h,v 1.38 2004/02/17 02:02:03 rob Exp $
+*/
 
 # ifndef LIBMAD_FIXED_H
 # define LIBMAD_FIXED_H
@@ -47,27 +47,27 @@ typedef mad_fixed_t mad_sample_t;
 # endif
 
 /*
- * Fixed-point format: 0xABBBBBBB
- * A == whole part      (sign + 3 bits)
- * B == fractional part (28 bits)
- *
- * Values are signed two's complement, so the effective range is:
- * 0x80000000 to 0x7fffffff
- *       -8.0 to +7.9999999962747097015380859375
- *
- * The smallest representable value is:
- * 0x00000001 == 0.0000000037252902984619140625 (i.e. about 3.725e-9)
- *
- * 28 bits of fractional accuracy represent about
- * 8.6 digits of decimal accuracy.
- *
- * Fixed-point numbers can be added or subtracted as normal
- * integers, but multiplication requires shifting the 64-bit result
- * from 56 fractional bits back to 28 (and rounding.)
- *
- * Changing the definition of MAD_F_FRACBITS is only partially
- * supported, and must be done with care.
- */
+    Fixed-point format: 0xABBBBBBB
+    A == whole part      (sign + 3 bits)
+    B == fractional part (28 bits)
+
+    Values are signed two's complement, so the effective range is:
+    0x80000000 to 0x7fffffff
+         -8.0 to +7.9999999962747097015380859375
+
+    The smallest representable value is:
+    0x00000001 == 0.0000000037252902984619140625 (i.e. about 3.725e-9)
+
+    28 bits of fractional accuracy represent about
+    8.6 digits of decimal accuracy.
+
+    Fixed-point numbers can be added or subtracted as normal
+    integers, but multiplication requires shifting the 64-bit result
+    from 56 fractional bits back to 28 (and rounding.)
+
+    Changing the definition of MAD_F_FRACBITS is only partially
+    supported, and must be done with care.
+*/
 
 # define MAD_F_FRACBITS		28
 
@@ -99,7 +99,7 @@ typedef mad_fixed_t mad_sample_t;
 
 # define mad_f_intpart(x)	((x) >> MAD_F_FRACBITS)
 # define mad_f_fracpart(x)	((x) & ((1L << MAD_F_FRACBITS) - 1))
-				/* (x should be positive) */
+/* (x should be positive) */
 
 # define mad_f_fromint(x)	((x) << MAD_F_FRACBITS)
 
@@ -120,9 +120,9 @@ typedef mad_fixed_t mad_sample_t;
 # elif defined(FPM_64BIT)
 
 /*
- * This version should be the most accurate if 64-bit types are supported by
- * the compiler, although it may not be the most efficient.
- */
+    This version should be the most accurate if 64-bit types are supported by
+    the compiler, although it may not be the most efficient.
+*/
 #  if defined(OPT_ACCURACY)
 #   define mad_f_mul(x, y)  \
     ((mad_fixed_t)  \
@@ -143,19 +143,18 @@ typedef mad_fixed_t mad_sample_t;
 #   pragma warning(push)
 #   pragma warning(disable: 4035)  /* no return value */
 static __forceinline
-mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
-{
-  enum {
-    fracbits = MAD_F_FRACBITS
-  };
+mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y) {
+    enum {
+        fracbits = MAD_F_FRACBITS
+    };
 
-  __asm {
-    mov eax, x
-    imul y
-    shrd eax, edx, fracbits
-  }
+    __asm {
+        mov eax, x
+        imul y
+        shrd eax, edx, fracbits
+    }
 
-  /* implicit return of eax */
+    /* implicit return of eax */
 }
 #   pragma warning(pop)
 
@@ -163,9 +162,9 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
 #   define mad_f_scale64
 #  else
 /*
- * This Intel version is fast and accurate; the disposition of the least
- * significant bit depends on OPT_ACCURACY via mad_f_scale64().
- */
+    This Intel version is fast and accurate; the disposition of the least
+    significant bit depends on OPT_ACCURACY via mad_f_scale64().
+*/
 #   define MAD_F_MLX(hi, lo, x, y)  \
     asm ("imull %3"  \
 	 : "=a" (lo), "=d" (hi)  \
@@ -174,8 +173,8 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
 
 #   if defined(OPT_ACCURACY)
 /*
- * This gives best accuracy but is not very fast.
- */
+    This gives best accuracy but is not very fast.
+*/
 #    define MAD_F_MLA(hi, lo, x, y)  \
     ({ mad_fixed64hi_t __hi;  \
        mad_fixed64lo_t __lo;  \
@@ -190,8 +189,8 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
 
 #   if defined(OPT_ACCURACY)
 /*
- * Surprisingly, this is faster than SHRD followed by ADC.
- */
+    Surprisingly, this is faster than SHRD followed by ADC.
+*/
 #    define mad_f_scale64(hi, lo)  \
     ({ mad_fixed64hi_t __hi_;  \
        mad_fixed64lo_t __lo_;  \
@@ -210,8 +209,8 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
     })
 #   elif defined(OPT_INTEL)
 /*
- * Alternate Intel scaling that may or may not perform better.
- */
+    Alternate Intel scaling that may or may not perform better.
+*/
 #    define mad_f_scale64(hi, lo)  \
     ({ mad_fixed_t __result;  \
        asm ("shrl %3,%1\n\t"  \
@@ -241,15 +240,15 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
 
 # elif defined(FPM_ARM)
 
-/* 
- * This ARM V4 version is as accurate as FPM_64BIT but much faster. The
- * least significant bit is properly rounded at no CPU cycle cost!
- */
+/*
+    This ARM V4 version is as accurate as FPM_64BIT but much faster. The
+    least significant bit is properly rounded at no CPU cycle cost!
+*/
 # if 1
 /*
- * This is faster than the default implementation via MAD_F_MLX() and
- * mad_f_scale64().
- */
+    This is faster than the default implementation via MAD_F_MLX() and
+    mad_f_scale64().
+*/
 #  define mad_f_mul(x, y)  \
     ({ mad_fixed64hi_t __hi;  \
        mad_fixed64lo_t __lo;  \
@@ -300,9 +299,9 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
 # elif defined(FPM_MIPS)
 
 /*
- * This MIPS version is fast and accurate; the disposition of the least
- * significant bit depends on OPT_ACCURACY via mad_f_scale64().
- */
+    This MIPS version is fast and accurate; the disposition of the least
+    significant bit depends on OPT_ACCURACY via mad_f_scale64().
+*/
 #  define MAD_F_MLX(hi, lo, x, y)  \
     asm ("mult	%2,%3"  \
 	 : "=l" (lo), "=h" (hi)  \
@@ -315,9 +314,9 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
 	 : "%r" (x), "r" (y))
 # elif defined(HAVE_MADD16_ASM)
 /*
- * This loses significant accuracy due to the 16-bit integer limit in the
- * multiply/accumulate instruction.
- */
+    This loses significant accuracy due to the 16-bit integer limit in the
+    multiply/accumulate instruction.
+*/
 #  define MAD_F_ML0(hi, lo, x, y)  \
     asm ("mult	%2,%3"  \
 	 : "=l" (lo), "=h" (hi)  \
@@ -340,9 +339,9 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
 # elif defined(FPM_SPARC)
 
 /*
- * This SPARC V8 version is fast and accurate; the disposition of the least
- * significant bit depends on OPT_ACCURACY via mad_f_scale64().
- */
+    This SPARC V8 version is fast and accurate; the disposition of the least
+    significant bit depends on OPT_ACCURACY via mad_f_scale64().
+*/
 #  define MAD_F_MLX(hi, lo, x, y)  \
     asm ("smul %2, %3, %0\n\t"  \
 	 "rd %%y, %1"  \
@@ -354,9 +353,9 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
 # elif defined(FPM_PPC)
 
 /*
- * This PowerPC version is fast and accurate; the disposition of the least
- * significant bit depends on OPT_ACCURACY via mad_f_scale64().
- */
+    This PowerPC version is fast and accurate; the disposition of the least
+    significant bit depends on OPT_ACCURACY via mad_f_scale64().
+*/
 #  define MAD_F_MLX(hi, lo, x, y)  \
     do {  \
       asm ("mullw %0,%1,%2"  \
@@ -370,8 +369,8 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
 
 #  if defined(OPT_ACCURACY)
 /*
- * This gives best accuracy but is not very fast.
- */
+    This gives best accuracy but is not very fast.
+*/
 #   define MAD_F_MLA(hi, lo, x, y)  \
     ({ mad_fixed64hi_t __hi;  \
        mad_fixed64lo_t __lo;  \
@@ -387,8 +386,8 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
 
 #  if defined(OPT_ACCURACY)
 /*
- * This is slower than the truncating version below it.
- */
+    This is slower than the truncating version below it.
+*/
 #   define mad_f_scale64(hi, lo)  \
     ({ mad_fixed_t __result, __round;  \
        asm ("rotrwi %0,%1,%2"  \
@@ -425,14 +424,14 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
 # elif defined(FPM_DEFAULT)
 
 /*
- * This version is the most portable but it loses significant accuracy.
- * Furthermore, accuracy is biased against the second argument, so care
- * should be taken when ordering operands.
- *
- * The scale factors are constant as this is not used with SSO.
- *
- * Pre-rounding is required to stay within the limits of compliance.
- */
+    This version is the most portable but it loses significant accuracy.
+    Furthermore, accuracy is biased against the second argument, so care
+    should be taken when ordering operands.
+
+    The scale factors are constant as this is not used with SSO.
+
+    Pre-rounding is required to stay within the limits of compliance.
+*/
 #  if defined(OPT_SPEED)
 #   define mad_f_mul(x, y)	(((x) >> 12) * ((y) >> 16))
 #  else

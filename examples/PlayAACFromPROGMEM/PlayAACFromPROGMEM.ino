@@ -8,8 +8,7 @@ AudioFileSourcePROGMEM *in;
 AudioGeneratorAAC *aac;
 AudioOutputI2S *out;
 
-void setup()
-{
+void setup() {
   Serial.begin(115200);
 
   audioLogger = &Serial;
@@ -21,8 +20,7 @@ void setup()
 }
 
 
-void loop()
-{
+void loop() {
   if (aac->isRunning()) {
     aac->loop();
   } else {
