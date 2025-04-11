@@ -84,7 +84,11 @@
         t = (bitBuf >> shift) - start;
     } while (t >= count);
 
+#ifdef ESP8266
     *val = (signed int)pgm_read_word(&map[t]);
+#else
+    *val = map[t];
+#endif
     return (countPtr - huffTabInfo->count);
 }
 

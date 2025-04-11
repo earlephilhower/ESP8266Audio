@@ -1,3 +1,4 @@
+#pragma GCC optimize ("O3")
 /* ***** BEGIN LICENSE BLOCK *****
     Source last modified: $Id: fft.c,v 1.1 2005/02/26 01:47:34 jrecker Exp $
 
@@ -76,8 +77,13 @@ static const int nfftlog2Tab[NUM_FFT_SIZES] PROGMEM = {6, 9};
     part0 = inout;
     part1 = inout + (1 << nbits);
 
+#ifdef ESP8266
     while ((a = pgm_read_byte(tab++)) != 0) {
         b = pgm_read_byte(tab++);
+#else
+    while ((a = *(tab++)) != 0) {
+        b = *(tab++);
+#endif
 
         swapcplx(part0[4 * a + 0], part0[4 * b + 0]);	/* 0xxx0 <-> 0yyy0 */
         swapcplx(part0[4 * a + 2], part1[4 * b + 0]);	/* 0xxx1 <-> 1yyy0 */
@@ -87,8 +93,11 @@ static const int nfftlog2Tab[NUM_FFT_SIZES] PROGMEM = {6, 9};
 
     do {
         swapcplx(part0[4 * a + 2], part1[4 * a + 0]);	/* 0xxx1 <-> 1xxx0 */
+#ifdef ESP8266
     } while ((a = pgm_read_byte(tab++)) != 0);
-
+#else
+    } while ((a = *(tab++)) != 0);
+#endif
 
 }
 

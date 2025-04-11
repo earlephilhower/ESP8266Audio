@@ -1,3 +1,4 @@
+#pragma GCC optimize ("O3")
 /* ***** BEGIN LICENSE BLOCK *****
     Source last modified: $Id: sbrtabs.c,v 1.1 2005/02/26 01:47:35 jrecker Exp $
 
@@ -44,6 +45,12 @@
  **************************************************************************************/
 
 #include "sbr.h"
+
+#if defined(PICO_RP2040) || defined(PICO_RP2350)
+#define DPROGMEM __attribute__(( section(".time_critical.data") ))
+#else
+#define DPROGMEM PROGMEM
+#endif
 
 /*  k0Tab[sampRateIdx][k] = k0 = startMin + offset(bs_start_freq) for given sample rate (4.6.18.3.2.1)
     downsampled (single-rate) SBR not currently supported
@@ -97,7 +104,11 @@ const HuffInfo huffTabSBRInfo[10] PROGMEM = {
 };
 
 /* Huffman tables from appendix 4.A.6.1, includes offset of -LAV[i] for table i */
+#ifdef ESP8266
 const signed int /*short*/ huffTabSBR[604] PROGMEM = {
+#else
+const signed short huffTabSBR[604] PROGMEM = {
+#endif
     /* SBR table sbr_tenv15 [121] (signed) */
     0,   -1,    1,   -2,    2,   -3,    3,   -4,    4,   -5,    5,   -6,    6,   -7,    7,   -8,
     -9,    8,  -10,    9,  -11,   10,  -12,  -13,   11,  -14,   12,  -15,  -16,   13,  -19,  -18,

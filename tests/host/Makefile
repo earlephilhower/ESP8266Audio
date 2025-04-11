@@ -20,7 +20,7 @@ libhelix_aac=../../src/libhelix-aac/decelmnt.c ../../src/libhelix-aac/dct4.c ../
 ../../src/libhelix-aac/trigtabs.c ../../src/libhelix-aac/fft.c ../../src/libhelix-aac/pns.c ../../src/libhelix-aac/sbrfreq.c \
 ../../src/libhelix-aac/sbrside.c ../../src/libhelix-aac/sbrhfadj.c ../../src/libhelix-aac/buffers.c ../../src/libhelix-aac/bitstream.c \
 ../../src/libhelix-aac/noiseless.c ../../src/libhelix-aac/imdct.c ../../src/libhelix-aac/aacdec.c ../../src/libhelix-aac/sbrhfgen.c \
-../../src/libhelix-aac/sbrqmf.c ../../src/libhelix-aac/huffman.c ../../src/libhelix-aac/sbr.c ../../src/libhelix-aac/sbrimdct.c
+../../src/libhelix-aac/sbrqmf.c ../../src/libhelix-aac/huffmanaac.c ../../src/libhelix-aac/sbr.c ../../src/libhelix-aac/sbrimdct.c
 
 libflac=../../src/libflac/md5.c ../../src/libflac/window.c ../../src/libflac/memory.c ../../src/libflac/cpu.c ../../src/libflac/fixed.c \
 ../../src/libflac/format.c ../../src/libflac/lpc.c ../../src/libflac/crc.c ../../src/libflac/bitreader.c ../../src/libflac/bitmath.c \
