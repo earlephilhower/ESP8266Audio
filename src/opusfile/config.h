@@ -73,9 +73,9 @@
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
-/* Define this if the compiler supports __attribute__((
-   ifelse([visibility("default")], , [visibility_default],
-   [visibility("default")]) )) */
+/*  Define this if the compiler supports __attribute__((
+    ifelse([visibility("default")], , [visibility_default],
+    [visibility("default")]) )) */
 #define SUPPORT_ATTRIBUTE_VISIBILITY_DEFAULT 1
 
 /* Define this if the compiler supports the -fvisibility flag */
@@ -117,8 +117,8 @@
 /* Define to 1 if on MINIX. */
 /* #undef _MINIX */
 
-/* Define to 2 if the system does not provide POSIX.1 features except with
-   this defined. */
+/*  Define to 2 if the system does not provide POSIX.1 features except with
+    this defined. */
 /* #undef _POSIX_1_SOURCE */
 
 /* Define to 1 if you need to in order for `stat' and other things to work. */

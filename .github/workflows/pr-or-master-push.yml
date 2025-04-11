@@ -120,13 +120,10 @@ jobs:
         with:
           library-manager: 'update'
 
-# Validate orthography
+# Style and spelling
   code-spell:
-    name: Check spelling
+    name: Spelling, Style
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
     steps:
     - uses: actions/checkout@v4
       with:
@@ -136,3 +133,10 @@ jobs:
       with:
         skip: ./src/libmad,./src/libhelix-aac,./src/libopus,./src/libflac
         ignore_words_list: ESP8266,esp8266,esp,dout,DOUT,ser,ans,inout,numer,hist
+    - name: Run astyle on all code/examples
+      run: |
+        sudo apt update
+        sudo apt install astyle
+        ./tests/restyle.sh
+        # If anything changed, GIT should return an error and fail the test
+        git diff --exit-code

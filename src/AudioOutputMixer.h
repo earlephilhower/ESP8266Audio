@@ -1,21 +1,21 @@
 /*
-  AudioOutputMixer
-  Simple mixer which can combine multiple inputs to a single output stream
-  
-  Copyright (C) 2017  Earle F. Philhower, III
+    AudioOutputMixer
+    Simple mixer which can combine multiple inputs to a single output stream
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
+    Copyright (C) 2017  Earle F. Philhower, III
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef _AUDIOOUTPUTMIXER_H
@@ -27,9 +27,8 @@ class AudioOutputMixer;
 
 
 // The output stub exported by the mixer for use by the generator
-class AudioOutputMixerStub : public AudioOutput
-{
-  public:
+class AudioOutputMixerStub : public AudioOutput {
+public:
     AudioOutputMixerStub(AudioOutputMixer *sink, int id);
     virtual ~AudioOutputMixerStub() override;
     virtual bool SetRate(int hz) override;
@@ -39,15 +38,14 @@ class AudioOutputMixerStub : public AudioOutput
     virtual bool ConsumeSample(int16_t sample[2]) override;
     virtual bool stop() override;
 
-  protected:
+protected:
     AudioOutputMixer *parent;
     int id;
 };
 
 // Single mixer object per output
-class AudioOutputMixer : public AudioOutput
-{
-  public:
+class AudioOutputMixer : public AudioOutput {
+public:
     AudioOutputMixer(int samples, AudioOutput *sink);
     virtual ~AudioOutputMixer() override;
     virtual bool SetRate(int hz) override;
@@ -60,9 +58,9 @@ class AudioOutputMixer : public AudioOutput
 
     AudioOutputMixerStub *NewInput(); // Get a new stub to pass to a generator
 
-  // Stub called functions
-  friend class AudioOutputMixerStub;
-  private:
+    // Stub called functions
+    friend class AudioOutputMixerStub;
+private:
     void RemoveInput(int id);
     bool SetRate(int hz, int id);
     bool SetBitsPerSample(int bits, int id);
@@ -71,7 +69,7 @@ class AudioOutputMixer : public AudioOutput
     bool ConsumeSample(int16_t sample[2], int id);
     bool stop(int id);
 
-  protected:
+protected:
     enum { maxStubs = 8 };
     AudioOutput *sink;
     bool sinkStarted;

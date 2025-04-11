@@ -1,22 +1,22 @@
 /*
-  AudioOutputFilterBiquad
-  Implements a Biquad filter
-  
-  Copyright (C) 2012  Nigel Redmon
-  Copyright (C) 2021  William Bérubé
+    AudioOutputFilterBiquad
+    Implements a Biquad filter
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
+    Copyright (C) 2012  Nigel Redmon
+    Copyright (C) 2021  William Bérubé
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef _AudioOutputFilterBiquad_H
@@ -37,9 +37,8 @@ enum {
     bq_type_highshelf
 };
 
-class AudioOutputFilterBiquad : public AudioOutput
-{
-  public:
+class AudioOutputFilterBiquad : public AudioOutput {
+public:
     AudioOutputFilterBiquad(AudioOutput *sink);
     AudioOutputFilterBiquad(int type, float Fc, float Q, float peakGain, AudioOutput *sink);
     virtual ~AudioOutputFilterBiquad() override;
@@ -51,14 +50,14 @@ class AudioOutputFilterBiquad : public AudioOutput
     virtual bool ConsumeSample(int16_t sample[2]) override;
     virtual bool stop() override;
 
-  private:
+private:
     void SetType(int type);
     void SetFc(float Fc);
     void SetQ(float Q);
     void SetPeakGain(float peakGain);
     void SetBiquad(int type, float Fc, float Q, float peakGain);
 
-  protected:
+protected:
     AudioOutput *sink;
     int buffSize;
     int16_t *leftSample;

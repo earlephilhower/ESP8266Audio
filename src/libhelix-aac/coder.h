@@ -1,46 +1,46 @@
-/* ***** BEGIN LICENSE BLOCK *****  
- * Source last modified: $Id: coder.h,v 1.2 2005/06/27 21:06:00 gwright Exp $ 
- *   
- * Portions Copyright (c) 1995-2005 RealNetworks, Inc. All Rights Reserved.  
- *       
- * The contents of this file, and the files included with this file, 
- * are subject to the current version of the RealNetworks Public 
- * Source License (the "RPSL") available at 
- * http://www.helixcommunity.org/content/rpsl unless you have licensed 
- * the file under the current version of the RealNetworks Community 
- * Source License (the "RCSL") available at 
- * http://www.helixcommunity.org/content/rcsl, in which case the RCSL 
- * will apply. You may also obtain the license terms directly from 
- * RealNetworks.  You may not use this file except in compliance with 
- * the RPSL or, if you have a valid RCSL with RealNetworks applicable 
- * to this file, the RCSL.  Please see the applicable RPSL or RCSL for 
- * the rights, obligations and limitations governing use of the 
- * contents of the file. 
- *   
- * This file is part of the Helix DNA Technology. RealNetworks is the 
- * developer of the Original Code and owns the copyrights in the 
- * portions it created. 
- *   
- * This file, and the files included with this file, is distributed 
- * and made available on an 'AS IS' basis, WITHOUT WARRANTY OF ANY 
- * KIND, EITHER EXPRESS OR IMPLIED, AND REALNETWORKS HEREBY DISCLAIMS 
- * ALL SUCH WARRANTIES, INCLUDING WITHOUT LIMITATION, ANY WARRANTIES 
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, QUIET 
- * ENJOYMENT OR NON-INFRINGEMENT. 
- *  
- * Technology Compatibility Kit Test Suite(s) Location:  
- *    http://www.helixcommunity.org/content/tck  
- *  
- * Contributor(s):  
- *   
- * ***** END LICENSE BLOCK ***** */  
+/* ***** BEGIN LICENSE BLOCK *****
+    Source last modified: $Id: coder.h,v 1.2 2005/06/27 21:06:00 gwright Exp $
+
+    Portions Copyright (c) 1995-2005 RealNetworks, Inc. All Rights Reserved.
+
+    The contents of this file, and the files included with this file,
+    are subject to the current version of the RealNetworks Public
+    Source License (the "RPSL") available at
+    http://www.helixcommunity.org/content/rpsl unless you have licensed
+    the file under the current version of the RealNetworks Community
+    Source License (the "RCSL") available at
+    http://www.helixcommunity.org/content/rcsl, in which case the RCSL
+    will apply. You may also obtain the license terms directly from
+    RealNetworks.  You may not use this file except in compliance with
+    the RPSL or, if you have a valid RCSL with RealNetworks applicable
+    to this file, the RCSL.  Please see the applicable RPSL or RCSL for
+    the rights, obligations and limitations governing use of the
+    contents of the file.
+
+    This file is part of the Helix DNA Technology. RealNetworks is the
+    developer of the Original Code and owns the copyrights in the
+    portions it created.
+
+    This file, and the files included with this file, is distributed
+    and made available on an 'AS IS' basis, WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESS OR IMPLIED, AND REALNETWORKS HEREBY DISCLAIMS
+    ALL SUCH WARRANTIES, INCLUDING WITHOUT LIMITATION, ANY WARRANTIES
+    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, QUIET
+    ENJOYMENT OR NON-INFRINGEMENT.
+
+    Technology Compatibility Kit Test Suite(s) Location:
+      http://www.helixcommunity.org/content/tck
+
+    Contributor(s):
+
+ * ***** END LICENSE BLOCK ***** */
 
 /**************************************************************************************
- * Fixed-point HE-AAC decoder
- * Jon Recker (jrecker@real.com)
- * February 2005
- *
- * coder.h - definitions of platform-specific data structures, functions, and tables
+    Fixed-point HE-AAC decoder
+    Jon Recker (jrecker@real.com)
+    February 2005
+
+    coder.h - definitions of platform-specific data structures, functions, and tables
  **************************************************************************************/
 
 #ifndef _CODER_H
@@ -91,7 +91,7 @@
 
 /* do y <<= n, clipping to range [-2^30, 2^30 - 1] (i.e. output has one guard bit) */
 /*
-#define CLIP_2N_SHIFT(y, n) {                   \
+    #define CLIP_2N_SHIFT(y, n) {                   \
         int sign = (y) >> 31;                   \
         if (sign != (y) >> (30 - (n)))  {       \
             (y) = sign ^ (0x3fffffff);          \
@@ -102,12 +102,12 @@
 */
 /* clip to [-2^n, 2^n-1], valid range of n = [1, 30] */
 /*
-#define CLIP_2N(val, n) {                               \
+    #define CLIP_2N(val, n) {                               \
         if ((val) >> 31 != (val) >> (n))                \
             (val) = ((val) >> 31) ^ ((1 << (n)) - 1);   \
     }
 */
-	
+
 
 #define SF_DQ_OFFSET            15
 #define FBITS_OUT_DQ            20
@@ -247,7 +247,7 @@ typedef struct _ProgConfigElement {
     unsigned char numCCE;                         /* number of valid channel coupling elements (max = 15) */
     unsigned char monoMixdown;                    /* mono mixdown: bit 4 = present flag, bits 3-0 = element number */
     unsigned char stereoMixdown;                  /* stereo mixdown: bit 4 = present flag, bits 3-0 = element number */
-    unsigned char matrixMixdown;                  /* matrix mixdown: bit 4 = present flag, bit 3 = unused, 
+    unsigned char matrixMixdown;                  /* matrix mixdown: bit 4 = present flag, bit 3 = unused,
                                                      bits 2-1 = index, bit 0 = pseudo-surround enable */
     unsigned char fce[MAX_NUM_FCE];               /* front element channel pair: bit 4 = SCE/CPE flag, bits 3-0 = inst tag */
     unsigned char sce[MAX_NUM_SCE];               /* side element channel pair: bit 4 = SCE/CPE flag, bits 3-0 = inst tag */
@@ -341,7 +341,7 @@ void DecWindowOverlapShortNoClip(int *buf0, int *over0, int *out0, int winTypeCu
 /* hufftabs.c */
 extern const HuffInfo huffTabSpecInfo[11];
 extern const signed short huffTabSpec[1241];
-extern const HuffInfo huffTabScaleFactInfo; 
+extern const HuffInfo huffTabScaleFactInfo;
 extern const signed short huffTabScaleFact[121];
 
 /* trigtabs.c */
@@ -357,16 +357,16 @@ extern int cos4sin4tab[128 + 1024];
 extern int cos1sin1tab[514];
 extern int sinWindow[128 + 1024];
 extern int kbdWindow[128 + 1024];
-extern int twidTabEven[4*6 + 16*6 + 64*6];
-extern int twidTabOdd[8*6 + 32*6 + 128*6];
+extern int twidTabEven[4 * 6 + 16 * 6 + 64 * 6];
+extern int twidTabOdd[8 * 6 + 32 * 6 + 128 * 6];
 #else
 /* trigtabs.c */
 extern const int cos4sin4tab[128 + 1024];
 extern const int cos1sin1tab[514];
 extern const int sinWindow[128 + 1024];
 extern const int kbdWindow[128 + 1024];
-extern const int twidTabEven[4*6 + 16*6 + 64*6];
-extern const int twidTabOdd[8*6 + 32*6 + 128*6];
+extern const int twidTabEven[4 * 6 + 16 * 6 + 64 * 6];
+extern const int twidTabOdd[8 * 6 + 32 * 6 + 128 * 6];
 #endif
 
 #endif  /* _CODER_H */

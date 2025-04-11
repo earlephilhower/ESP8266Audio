@@ -7,10 +7,10 @@ void setup() {}
 void loop() {}
 #else
 #ifdef ESP32
-    #include <WiFi.h>
-    #include "SPIFFS.h"
+#include <WiFi.h>
+#include "SPIFFS.h"
 #else
-    #include <ESP8266WiFi.h>
+#include <ESP8266WiFi.h>
 #endif
 
 
@@ -24,12 +24,11 @@ AudioFileSourceSPIFFS *mid;
 AudioOutputI2S *dac;
 AudioGeneratorMIDI *midi;
 
-void setup()
-{
+void setup() {
   const char *soundfont = "/1mgm.sf2";
   const char *midifile = "/furelise.mid";
 
-  WiFi.mode(WIFI_OFF); 
+  WiFi.mode(WIFI_OFF);
 
   Serial.begin(115200);
   SPIFFS.begin();
@@ -38,7 +37,7 @@ void setup()
   audioLogger = &Serial;
   sf2 = new AudioFileSourceSPIFFS(soundfont);
   mid = new AudioFileSourceSPIFFS(midifile);
-  
+
   dac = new AudioOutputI2S();
   midi = new AudioGeneratorMIDI();
   midi->SetSoundfont(sf2);
@@ -47,8 +46,7 @@ void setup()
   midi->begin(mid, dac);
 }
 
-void loop()
-{
+void loop() {
   if (midi->isRunning()) {
     if (!midi->loop()) {
       midi->stop();
