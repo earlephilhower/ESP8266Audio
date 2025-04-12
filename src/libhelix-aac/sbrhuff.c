@@ -1,3 +1,4 @@
+#pragma GCC optimize ("O3")
 /* ***** BEGIN LICENSE BLOCK *****
     Source last modified: $Id: sbrhuff.c,v 1.1 2005/02/26 01:47:35 jrecker Exp $
 
@@ -65,10 +66,19 @@
                   if there are no codes at nBits, then we just keep << 1 each time
                     (since count[nBits] = 0)
  **************************************************************************************/
+#ifdef ESP8266
 static int DecodeHuffmanScalar(const signed /*short*/ int *huffTab, const HuffInfo *huffTabInfo, unsigned int bitBuf, signed int *val) {
+#else
+static int DecodeHuffmanScalar(const signed short int *huffTab, const HuffInfo *huffTabInfo, unsigned int bitBuf, signed int *val) {
+#endif
     unsigned int count, start, shift, t;
+#ifdef ESP8266
     const unsigned int /*char*/ *countPtr;
     const signed int /*short*/ *map;
+#else
+    const unsigned char *countPtr;
+    const signed short *map;
+#endif
 
     map = huffTab + huffTabInfo->offset;
     countPtr = huffTabInfo->count;
