@@ -69,6 +69,7 @@ bool AudioOutputPWM::SetOutputModeMono(bool mono) {
 bool AudioOutputPWM::begin() {
     if (!pwmOn) {
         pwm.setPin(doutPin);
+        pwm.setBuffers(8, 128);
         pwm.begin(hertz);
     }
     pwmOn = true;

@@ -18,8 +18,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined(ESP32) || defined(ESP8266)
-
 #ifdef _GNU_SOURCE
 #undef _GNU_SOURCE
 #endif
@@ -260,5 +258,3 @@ retry:
     icyByteCount += ret;
     return read;
 }
-
-#endif
