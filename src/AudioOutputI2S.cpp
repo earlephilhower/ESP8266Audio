@@ -44,7 +44,7 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int
     lsb_justified = false;
     bps = 16;
     channels = 2;
-    hertz = 44100;
+    hertz = 0; // Needs to be application-set
     bclkPin = 26;
     wclkPin = 25;
     doutPin = 22;
@@ -126,7 +126,9 @@ bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout, int mclk) {
 }
 
 bool AudioOutputI2S::SetRate(int hz) {
-    // TODO - have a list of allowable rates from constructor, check them
+    if (this->hertz == hz) {
+        return true;
+    }
     this->hertz = hz;
     if (i2sOn) {
 #ifdef ESP32
@@ -306,7 +308,7 @@ bool AudioOutputI2S::begin(bool txDAC) {
     }
 #endif
     i2sOn = true;
-    SetRate(hertz); // Default
+    SetRate(hertz ? hertz : 44100); // Default
     return true;
 }
 
