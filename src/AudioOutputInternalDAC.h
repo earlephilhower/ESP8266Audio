@@ -123,6 +123,7 @@ public:
     }
 
     bool begin() override {
+        hertz = 44100;
         return true;
     }
 
