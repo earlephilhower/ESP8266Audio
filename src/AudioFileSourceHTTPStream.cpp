@@ -18,8 +18,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined(ESP32) || defined(ESP8266)
-
 #include "AudioFileSourceHTTPStream.h"
 
 AudioFileSourceHTTPStream::AudioFileSourceHTTPStream() {
@@ -156,5 +154,3 @@ uint32_t AudioFileSourceHTTPStream::getSize() {
 uint32_t AudioFileSourceHTTPStream::getPos() {
     return pos;
 }
-
-#endif

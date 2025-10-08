@@ -4,15 +4,10 @@
 
 #include <Arduino.h>
 
-#if defined(ARDUINO_ARCH_RP2040)
-void setup() {}
-void loop() {}
-#else
-
-#if defined(ESP32)
-#include <WiFi.h>
-#else
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
+#else
+#include <WiFi.h>
 #endif
 
 #include <time.h>
@@ -168,7 +163,16 @@ void setup() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   Serial.println("Contacting Time Server");
+#if defined(ARDUINO_ARCH_RP2040)
+  NTP.begin("pool.ntp.org", "time.nist.gov");
+  Serial.print("Waiting for NTP time sync: ");
+  NTP.waitSet([]() {
+    Serial.print(".");
+  });
+  Serial.println("");
+#else
   configTime(3600 * timezone, daysavetime * 3600, "time.nist.gov", "0.pool.ntp.org", "1.pool.ntp.org");
+#endif
   struct tm tmstruct ;
   do {
     tmstruct.tm_year = 0;
@@ -194,4 +198,3 @@ void loop() {
   sayTime(tmstruct.tm_hour, tmstruct.tm_min, talkie);
   delay(1000);
 }
-#endif

@@ -1,20 +1,13 @@
-#include <Arduino.h>
-#ifdef ESP32
-void setup() {
-  Serial.begin(115200);
-  Serial.printf("ERROR - ESP32 does not support LittleFS\n");
-}
+#if (defined(ESP32) && (__GNUC__ >= 8) && (__XTENSA__))
+// GCC compiler bug for the Xtensa ESP32s, no MIDI for you. :(
+void setup() {}
 void loop() {}
 #else
-#if defined(ARDUINO_ARCH_RP2040)
-#define WIFI_OFF
-class __x {
-  public: __x() {};
-    void mode() {};
-};
-__x WiFi;
-#else
+#include <Arduino.h>
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
+#else
+#include <WiFi.h>
 #endif
 #include <AudioOutputI2S.h>
 #include <AudioGeneratorMIDI.h>

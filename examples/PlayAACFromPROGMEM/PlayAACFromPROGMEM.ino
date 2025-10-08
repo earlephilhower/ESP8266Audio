@@ -19,7 +19,6 @@ void setup() {
   aac->begin(in, out);
 }
 
-
 void loop() {
   if (aac->isRunning()) {
     aac->loop();
@@ -28,4 +27,3 @@ void loop() {
     delay(1000);
   }
 }
-

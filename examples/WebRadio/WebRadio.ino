@@ -19,24 +19,29 @@
 */
 
 #include <Arduino.h>
-#if defined(ARDUINO_ARCH_RP2040)
-void setup() {}
-void loop() {}
-#else
 
 // ESP8266 server.available() is now server.accept()
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-#if defined(ESP32)
-#include <WiFi.h>
-#else
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
+#else
+#include <WiFi.h>
 #endif
+
 #include "AudioFileSourceICYStream.h"
 #include "AudioFileSourceBuffer.h"
 #include "AudioGeneratorMP3.h"
 #include "AudioGeneratorAAC.h"
+#if defined(ARDUINO_ARCH_RP2040)
+#include "AudioOutputPWM.h"
+#define MOBO rp2040
+AudioOutputPWM *out = NULL;
+#else
 #include "AudioOutputI2S.h"
+AudioOutputI2S *out = NULL;
+#define MOBO ESP
+#endif
 #include <EEPROM.h>
 
 // Custom web server that doesn't need much RAM
@@ -58,7 +63,6 @@ WiFiServer server(80);
 AudioGenerator *decoder = NULL;
 AudioFileSourceICYStream *file = NULL;
 AudioFileSourceBuffer *buff = NULL;
-AudioOutputI2S *out = NULL;
 
 int volume = 100;
 char title[64];
@@ -122,17 +126,18 @@ Change URL: <input type="text" name="url">
 </body>)KEWL";
 
 void HandleIndex(WiFiClient *client) {
-  char buff[sizeof(BODY) + sizeof(title) + sizeof(status) + sizeof(url) + 3 * 2];
+  char buff[std::max(sizeof(BODY) + sizeof(title) + sizeof(status) + sizeof(url) + 3 * 2, sizeof(HEAD))];
 
-  Serial.printf_P(PSTR("Sending INDEX...Free mem=%d\n"), ESP.getFreeHeap());
+  Serial.printf_P(PSTR("Sending INDEX...Free mem=%d\n"), MOBO.getFreeHeap());
   WebHeaders(client, NULL);
   WebPrintf(client, DOCTYPE);
-  client->write_P(PSTR("<html>"), 6);
-  client->write_P(HEAD, strlen_P(HEAD));
+  client->write("<html>", 6);
+  strcpy_P(buff, HEAD);
+  client->write(buff, strlen(buff));
   sprintf_P(buff, BODY, title, volume, volume, status, url);
   client->write(buff, strlen(buff));
-  client->write_P(PSTR("</html>"), 7);
-  Serial.printf_P(PSTR("Sent INDEX...Free mem=%d\n"), ESP.getFreeHeap());
+  client->write("</html>", 7);
+  Serial.printf_P(PSTR("Sent INDEX...Free mem=%d\n"), MOBO.getFreeHeap());
 }
 
 void HandleStatus(WiFiClient *client) {
@@ -259,7 +264,10 @@ void setup() {
 
   Serial.begin(115200);
 
-  delay(1000);
+  delay(3000);
+#ifndef ESP8266
+  Serial.printf_P(PSTR("Consider using BackgroundAudio instead, it is much faster and stable.\nhttps://github.com/earlephilhower/BackgroundAudio\n"));
+#endif
   Serial.printf_P(PSTR("Connecting to WiFi\n"));
 
   WiFi.disconnect();
@@ -288,7 +296,11 @@ void setup() {
   audioLogger = &Serial;
   file = NULL;
   buff = NULL;
+#if defined(ARDUINO_ARCH_RP2040)
+  out = new AudioOutputPWM(44100, 0);
+#else
   out = new AudioOutputI2S();
+#endif
   decoder = NULL;
 
   LoadSettings();
@@ -299,9 +311,9 @@ void StartNewURL() {
 
   newUrl = false;
   // Stop and free existing ones
-  Serial.printf_P(PSTR("Before stop...Free mem=%d\n"), ESP.getFreeHeap());
+  Serial.printf_P(PSTR("Before stop...Free mem=%d\n"), MOBO.getFreeHeap());
   StopPlaying();
-  Serial.printf_P(PSTR("After stop...Free mem=%d\n"), ESP.getFreeHeap());
+  Serial.printf_P(PSTR("After stop...Free mem=%d\n"), MOBO.getFreeHeap());
   SaveSettings();
   Serial.printf_P(PSTR("Saved settings\n"));
 
@@ -388,7 +400,7 @@ void loop() {
   static int lastms = 0;
   if (millis() - lastms > 1000) {
     lastms = millis();
-    Serial.printf_P(PSTR("Running for %d seconds%c...Free mem=%d\n"), lastms / 1000, !decoder ? ' ' : (decoder->isRunning() ? '*' : ' '), ESP.getFreeHeap());
+    Serial.printf_P(PSTR("Running for %d seconds%c...Free mem=%d\n"), lastms / 1000, !decoder ? ' ' : (decoder->isRunning() ? '*' : ' '), MOBO.getFreeHeap());
   }
 
   if (retryms && millis() - retryms > 0) {
@@ -436,5 +448,3 @@ void loop() {
     client.stop();
   }
 }
-
-#endif

@@ -21,7 +21,11 @@ while [ $(echo $sketches | wc -w) -gt 0 ]; do
     mv -f "$outdir"/*.elf .
     echo "::endgroup::"
     # Shift out 5
-    sketches=$(echo $sketches | cut -f6- -d " ")
+    if [  $(echo $sketches | wc -w) -gt 5 ]; then
+        sketches=$(echo $sketches | cut -f6- -d " ")
+    else
+        sketches=""
+    fi
 done
 
 echo "::group::Final Sizes"

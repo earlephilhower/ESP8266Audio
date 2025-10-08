@@ -18,14 +18,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined(ESP32) || defined(ESP8266)
 #pragma once
 
 #include <Arduino.h>
-#ifdef ESP32
-#include <HTTPClient.h>
-#else
+#ifdef ESP8266
 #include <ESP8266HTTPClient.h>
+#else
+#include <HTTPClient.h>
 #endif
 #include "AudioFileSource.h"
 
@@ -70,7 +69,3 @@ private:
     int reconnectDelayMs;
     char saveURL[128];
 };
-
-
-#endif
-

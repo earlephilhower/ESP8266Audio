@@ -136,19 +136,48 @@ enum mad_flow AudioGeneratorMP3::Input() {
         unused = 0;
     }
 
-    lastReadPos = file->getPos() - unused;
-    int len = buffLen - unused;
-    len = file->read(buff + unused, len);
-    if ((len == 0)  && (unused == 0)) {
-        // Can't read any from the file, and we don't have anything left.  It's done....
-        return MAD_FLOW_STOP;
-    }
-    if (len < 0) {
-        desync();
-        unused = 0;
-    }
+    bool foundHeader = false;
+    do {
+        lastReadPos = file->getPos() - unused;
+        int len = buffLen - unused;
+        len = file->read(buff + unused, len);
+        if ((len == 0)  && (unused == 0)) {
+            // Can't read any from the file, and we don't have anything left.  It's done....
+            return MAD_FLOW_STOP;
+        }
+        if (len < 0) {
+            desync();
+            unused = 0;
+        }
 
-    lastBuffLen = len + unused;
+        lastBuffLen = len + unused;
+        for (int i = 0; i < lastBuffLen; i++) {
+            if ((buff[i] == 0xff) && ((buff[i + 1] & 0xe0) == 0xe0)) {
+                // We have a header!
+                if (i) {
+                    memmove(buff, buff + i, lastBuffLen - i);
+                    lastBuffLen -= i;
+                }
+                foundHeader = true;
+                break;
+            }
+        }
+        if (!foundHeader) {
+            unused = 0;
+        } else {
+            // Try and fill rest of buffer in case there was some shiftage
+            len = file->read(buff + lastBuffLen, buffLen - lastBuffLen);
+            if (len < 0) {
+                desync();
+                unused = 0;
+            }
+            lastBuffLen += len;
+            if (lastBuffLen < 8) {
+                return MAD_FLOW_STOP;
+            }
+        }
+    } while (!foundHeader);
+
     mad_stream_buffer(stream, buff, lastBuffLen);
 
     return MAD_FLOW_CONTINUE;
