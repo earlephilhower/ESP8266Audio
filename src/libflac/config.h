@@ -1,9 +1,11 @@
 #define PGM_READ_UNALIGNED 0
 
 #ifdef DEBUG
-  #undef NDEBUG
+#undef NDEBUG
 #else
-  #define NDEBUG
+#ifndef NDEBUG
+#define NDEBUG
+#endif
 #endif
 
 /* config.h.  Generated from config.h.in by configure.  */
@@ -151,7 +153,7 @@
 #undef HAVE_X86INTRIN_H
 
 /* Define as const if the declaration of iconv() needs const. */
-#define ICONV_CONST 
+#define ICONV_CONST
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
@@ -231,15 +233,15 @@
 /* Define to 1 if on MINIX. */
 /* #undef _MINIX */
 
-/* Define to 2 if the system does not provide POSIX.1 features except with
-   this defined. */
+/*  Define to 2 if the system does not provide POSIX.1 features except with
+    this defined. */
 /* #undef _POSIX_1_SOURCE */
 
 /* Define to 1 if you need to in order for `stat' and other things to work. */
 /* #undef _POSIX_SOURCE */
 
-/* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
+/*  Define to `__inline__' or `__inline' if that's what the C compiler
+    calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus
 /* #undef inline */
 #endif

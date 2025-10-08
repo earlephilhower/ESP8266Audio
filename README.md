@@ -1,6 +1,10 @@
-# ESP8266Audio - supports ESP8266 & ESP32 & Raspberry Pi Pico RP2040 [![Gitter](https://badges.gitter.im/ESP8266Audio/community.svg)](https://gitter.im/ESP8266Audio/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+# ESP8266Audio - supports ESP8266 & ESP32 & Raspberry Pi Pico RP2040 and Pico 2 RP2350 [![Gitter](https://badges.gitter.im/ESP8266Audio/community.svg)](https://gitter.im/ESP8266Audio/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 Arduino library for parsing and decoding MOD, WAV, MP3, FLAC, MIDI, AAC, and RTTL files and playing them on an I2S DAC or even using a software-simulated delta-sigma DAC with dynamic 32x-128x oversampling.
 
+# ESP32, Raspberry Pi Pico (RP2040 and RP2350) Users
+Consider using [BackgroundAudio](https://github.com/earlephilhower/BackgroundAudio) instead of this library as it can provide a simpler usage model and better results and performance on the Pico by using an interrupt-based, frame-aligned output model.
+
+# ESP8266 and ESP32 Users
 ESP8266 is fully supported and most mature, but ESP32 is also mostly there with built-in DAC as well as external ones.
 
 For real-time, autonomous speech synthesis, check out [ESP8266SAM](https://github.com/earlephilhower/ESP8266SAM), a library which uses this one and a port of an ancient formant-based synthesis program to allow your ESP8266 to talk with low memory and no network required.
@@ -138,7 +142,7 @@ AudioGeneratorRTTTL:  Enjoy the pleasures of monophonic, 4-octave ringtones on y
 ## AudioOutput classes
 AudioOutput:  Base class for all output drivers.  Takes a sample at a time and returns true/false if there is buffer space for it.  If it returns false, it is the calling object's (AudioGenerator's) job to keep the data that didn't fit and try again later.
 
-AudioOutputI2S: Interface for any I2S 16-bit DAC.  Sends stereo or mono signals out at whatever frequency set.  Tested with Adafruit's I2SDAC and a Beyond9032 DAC from eBay.  Tested up to 44.1KHz. To use the internal DAC on ESP32, instantiate this class as `AudioOutputI2S(0,1)`, see example `PlayMODFromPROGMEMToDAC` and code in [AudioOutputI2S.cpp](src/AudioOutputI2S.cpp#L29) for details.
+AudioOutputI2S: Interface for any I2S 16-bit DAC.  Sends stereo or mono signals out at whatever frequency set.  Tested with Adafruit's I2SDAC and a Beyond9032 DAC from eBay.  Tested up to 44.1KHz. To use the internal DAC on ESP32, instantiate this class as `AudioOutputI2S(0,AudioOutputI2S::INTERNAL_DAC)`, see example `PlayMODFromPROGMEMToDAC` and code in [AudioOutputI2S.cpp](src/AudioOutputI2S.cpp#L29) for details. To use the hardware Pulse Density Modulation (PDM) on ESP32, instantiate this class as `AudioOutputI2S(0,AudioOutputI2S::INTERNAL_PDM)`. For both later cases, default output pins are GPIO25 and GPIO26.
 
 AudioOutputI2SNoDAC:  Abuses the I2S interface to play music without a DAC.  Turns it into a 32x (or higher) oversampling delta-sigma DAC.  Use the schematic below to drive a speaker or headphone from the I2STx pin (i.e. Rx).  Note that with this interface, depending on the transistor used, you may need to disconnect the Rx pin from the driver to perform serial uploads.  Mono-only output, of course.
 
@@ -190,7 +194,8 @@ Use the `AudioOutputI2S*No*DAC` object instead of the `AudioOutputI2S` in your c
 ESP8266-GND ------------------+  |  +------+ K| 
                                  |  |      | E|
 ESP8266-I2SOUT (Rx) -----/\/\/\--+  |      \ R|
-                                    |       +-|
+or ESP32 DOUT pin                   |       +-|
+                                    |
 USB 5V -----------------------------+
 
 You may also want to add a 220uF cap from USB5V to GND just to help filter out any voltage droop during high volume playback.
@@ -203,11 +208,18 @@ ESP8266-RX(I2S tx) -- Resistor (~1K ohm, not critical) -- 2N3904 Base
 ESP8266-GND        -- 2N3904 Emitter
 USB-5V             -- Speaker + Terminal
 2N3904-Collector   -- Speaker - Terminal
+
+*For ESP32, default output pin is GPIO22. Note that GPIO25 ang GPIO26 are occupied by wclk/bclk and can not be used.
 ```
 
 *NOTE*:  A prior version of this schematic had a direct connection from the ESP8266 to the base of the transistor.  While this does provide the maximum amplitude, it also can draw more current from the 8266 than is safe, and can also cause the transistor to overheat.
 
 As of the latest ESP8266Audio release, with the software delta-sigma DAC the LRCLK and BCLK pins *can* be used by an application.  Simply use normal `pinMode` and `digitalWrite` or `digitalRead` as desired.
+
+### Hardware PDM on ESP32
+
+Hardware PDM outputs 128 * 48Khz pulses regardless of sample rate.
+It seems that currently hardware PDM either does not output constant One at maximum sample level, or does not output 3.3V voltage at pulse sound is not as loud as desired.  You may consider using software delta-sigma DAC instead.
 
 ### High pitched buzzing with the 1-T circuit
 The 1-T amp can _NOT_ drive any sort of amplified speaker.  If there is a power or USB input to the speaker, or it has lights or Bluetooth or a battery, it can _NOT_ be used with this circuit.

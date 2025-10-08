@@ -1,7 +1,7 @@
 /*
   WebRadio Example
   Very simple HTML app to control web streaming
-  
+
   Copyright (C) 2017  Earle F. Philhower, III
 
   This program is free software: you can redistribute it and/or modify
@@ -19,24 +19,29 @@
 */
 
 #include <Arduino.h>
-#if defined(ARDUINO_ARCH_RP2040)
-void setup() {}
-void loop() {}
-#else
 
 // ESP8266 server.available() is now server.accept()
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-#if defined(ESP32)
-    #include <WiFi.h>
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
 #else
-    #include <ESP8266WiFi.h>
+#include <WiFi.h>
 #endif
+
 #include "AudioFileSourceICYStream.h"
 #include "AudioFileSourceBuffer.h"
 #include "AudioGeneratorMP3.h"
 #include "AudioGeneratorAAC.h"
+#if defined(ARDUINO_ARCH_RP2040)
+#include "AudioOutputPWM.h"
+#define MOBO rp2040
+AudioOutputPWM *out = NULL;
+#else
 #include "AudioOutputI2S.h"
+AudioOutputI2S *out = NULL;
+#define MOBO ESP
+#endif
 #include <EEPROM.h>
 
 // Custom web server that doesn't need much RAM
@@ -58,7 +63,6 @@ WiFiServer server(80);
 AudioGenerator *decoder = NULL;
 AudioFileSourceICYStream *file = NULL;
 AudioFileSourceBuffer *buff = NULL;
-AudioOutputI2S *out = NULL;
 
 int volume = 100;
 char title[64];
@@ -121,48 +125,44 @@ Change URL: <input type="text" name="url">
 <form action="stop" method="POST"><input type="submit" value="Stop"></form>
 </body>)KEWL";
 
-void HandleIndex(WiFiClient *client)
-{
-  char buff[sizeof(BODY) + sizeof(title) + sizeof(status) + sizeof(url) + 3*2];
-  
-  Serial.printf_P(PSTR("Sending INDEX...Free mem=%d\n"), ESP.getFreeHeap());
+void HandleIndex(WiFiClient *client) {
+  char buff[std::max(sizeof(BODY) + sizeof(title) + sizeof(status) + sizeof(url) + 3 * 2, sizeof(HEAD))];
+
+  Serial.printf_P(PSTR("Sending INDEX...Free mem=%d\n"), MOBO.getFreeHeap());
   WebHeaders(client, NULL);
   WebPrintf(client, DOCTYPE);
-  client->write_P( PSTR("<html>"), 6 );
-  client->write_P( HEAD, strlen_P(HEAD) );
+  client->write("<html>", 6);
+  strcpy_P(buff, HEAD);
+  client->write(buff, strlen(buff));
   sprintf_P(buff, BODY, title, volume, volume, status, url);
-  client->write(buff, strlen(buff) );
-  client->write_P( PSTR("</html>"), 7 );
-  Serial.printf_P(PSTR("Sent INDEX...Free mem=%d\n"), ESP.getFreeHeap());
+  client->write(buff, strlen(buff));
+  client->write("</html>", 7);
+  Serial.printf_P(PSTR("Sent INDEX...Free mem=%d\n"), MOBO.getFreeHeap());
 }
 
-void HandleStatus(WiFiClient *client)
-{
+void HandleStatus(WiFiClient *client) {
   WebHeaders(client, NULL);
   client->write(status, strlen(status));
 }
 
-void HandleTitle(WiFiClient *client)
-{
+void HandleTitle(WiFiClient *client) {
   WebHeaders(client, NULL);
   client->write(title, strlen(title));
 }
 
-void HandleVolume(WiFiClient *client, char *params)
-{
+void HandleVolume(WiFiClient *client, char *params) {
   char *namePtr;
   char *valPtr;
-  
+
   while (ParseParam(&params, &namePtr, &valPtr)) {
     ParamInt("vol", volume);
   }
   Serial.printf_P(PSTR("Set volume: %d\n"), volume);
-  out->SetGain(((float)volume)/100.0);
+  out->SetGain(((float)volume) / 100.0);
   RedirectToIndex(client);
 }
 
-void HandleChangeURL(WiFiClient *client, char *params)
-{
+void HandleChangeURL(WiFiClient *client, char *params) {
   char *namePtr;
   char *valPtr;
   char newURL[sizeof(url)];
@@ -176,8 +176,8 @@ void HandleChangeURL(WiFiClient *client, char *params)
   }
   if (newURL[0] && newType[0]) {
     newUrl = true;
-    strncpy(url, newURL, sizeof(url)-1);
-    url[sizeof(url)-1] = 0;
+    strncpy(url, newURL, sizeof(url) - 1);
+    url[sizeof(url) - 1] = 0;
     if (!strcmp_P(newType, PSTR("aac"))) {
       isAAC = true;
     } else {
@@ -191,13 +191,11 @@ void HandleChangeURL(WiFiClient *client, char *params)
   }
 }
 
-void RedirectToIndex(WiFiClient *client)
-{
+void RedirectToIndex(WiFiClient *client) {
   WebError(client, 301, PSTR("Location: /\r\n"), true);
 }
 
-void StopPlaying()
-{
+void StopPlaying() {
   if (decoder) {
     decoder->stop();
     delete decoder;
@@ -217,64 +215,65 @@ void StopPlaying()
   strcpy_P(title, PSTR("Stopped"));
 }
 
-void HandleStop(WiFiClient *client)
-{
+void HandleStop(WiFiClient *client) {
   Serial.printf_P(PSTR("HandleStop()\n"));
   StopPlaying();
   RedirectToIndex(client);
 }
 
-void MDCallback(void *cbData, const char *type, bool isUnicode, const char *str)
-{
+void MDCallback(void *cbData, const char *type, bool isUnicode, const char *str) {
   const char *ptr = reinterpret_cast<const char *>(cbData);
   (void) isUnicode; // Punt this ball for now
   (void) ptr;
-  if (strstr_P(type, PSTR("Title"))) { 
+  if (strstr_P(type, PSTR("Title"))) {
     strncpy(title, str, sizeof(title));
-    title[sizeof(title)-1] = 0;
+    title[sizeof(title) - 1] = 0;
   } else {
     // Who knows what to do?  Not me!
   }
 }
-void StatusCallback(void *cbData, int code, const char *string)
-{
+void StatusCallback(void *cbData, int code, const char *string) {
   const char *ptr = reinterpret_cast<const char *>(cbData);
   (void) code;
   (void) ptr;
-  strncpy_P(status, string, sizeof(status)-1);
-  status[sizeof(status)-1] = 0;
+  strncpy_P(status, string, sizeof(status) - 1);
+  status[sizeof(status) - 1] = 0;
 }
 
 #ifdef ESP8266
-const int preallocateBufferSize = 5*1024;
+const int preallocateBufferSize = 5 * 1024;
 const int preallocateCodecSize = 29192; // MP3 codec max mem needed
 #else
-const int preallocateBufferSize = 16*1024;
+const int preallocateBufferSize = 16 * 1024;
 const int preallocateCodecSize = 85332; // AAC+SBR codec max mem needed
 #endif
 void *preallocateBuffer = NULL;
 void *preallocateCodec = NULL;
 
-void setup()
-{
+void setup() {
   // First, preallocate all the memory needed for the buffering and codecs, never to be freed
   preallocateBuffer = malloc(preallocateBufferSize);
   preallocateCodec = malloc(preallocateCodecSize);
   if (!preallocateBuffer || !preallocateCodec) {
     Serial.begin(115200);
-    Serial.printf_P(PSTR("FATAL ERROR:  Unable to preallocate %d bytes for app\n"), preallocateBufferSize+preallocateCodecSize);
-    while (1) delay(1000); // Infinite halt
+    Serial.printf_P(PSTR("FATAL ERROR:  Unable to preallocate %d bytes for app\n"), preallocateBufferSize + preallocateCodecSize);
+    while (1) {
+      delay(1000);  // Infinite halt
+    }
   }
 
   Serial.begin(115200);
 
-  delay(1000);
+  delay(3000);
+#ifndef ESP8266
+  Serial.printf_P(PSTR("Consider using BackgroundAudio instead, it is much faster and stable.\nhttps://github.com/earlephilhower/BackgroundAudio\n"));
+#endif
   Serial.printf_P(PSTR("Connecting to WiFi\n"));
 
   WiFi.disconnect();
   WiFi.softAPdisconnect(true);
   WiFi.mode(WIFI_STA);
-  
+
   WiFi.begin(ssid, password);
 
   // Try forever
@@ -283,13 +282,13 @@ void setup()
     delay(1000);
   }
   Serial.printf_P(PSTR("Connected\n"));
-  
+
   Serial.printf_P(PSTR("Go to http://"));
   Serial.print(WiFi.localIP());
   Serial.printf_P(PSTR("/ to control the web radio.\n"));
 
   server.begin();
-  
+
   strcpy_P(url, PSTR("none"));
   strcpy_P(status, PSTR("OK"));
   strcpy_P(title, PSTR("Idle"));
@@ -297,24 +296,27 @@ void setup()
   audioLogger = &Serial;
   file = NULL;
   buff = NULL;
+#if defined(ARDUINO_ARCH_RP2040)
+  out = new AudioOutputPWM(44100, 0);
+#else
   out = new AudioOutputI2S();
+#endif
   decoder = NULL;
 
   LoadSettings();
 }
 
-void StartNewURL()
-{
+void StartNewURL() {
   Serial.printf_P(PSTR("Changing URL to: %s, vol=%d\n"), url, volume);
 
   newUrl = false;
   // Stop and free existing ones
-  Serial.printf_P(PSTR("Before stop...Free mem=%d\n"), ESP.getFreeHeap());
+  Serial.printf_P(PSTR("Before stop...Free mem=%d\n"), MOBO.getFreeHeap());
   StopPlaying();
-  Serial.printf_P(PSTR("After stop...Free mem=%d\n"), ESP.getFreeHeap());
+  Serial.printf_P(PSTR("After stop...Free mem=%d\n"), MOBO.getFreeHeap());
   SaveSettings();
   Serial.printf_P(PSTR("Saved settings\n"));
-  
+
   file = new AudioFileSourceICYStream(url);
   Serial.printf_P(PSTR("created icystream\n"));
   file->RegisterMetadataCB(MDCallback, NULL);
@@ -326,7 +328,7 @@ void StartNewURL()
   decoder->RegisterStatusCB(StatusCallback, NULL);
   Serial.printf_P("Decoder start...\n");
   decoder->begin(buff, out);
-  out->SetGain(((float)volume)/100.0);
+  out->SetGain(((float)volume) / 100.0);
   if (!decoder->isRunning()) {
     Serial.printf_P(PSTR("Can't connect to URL"));
     StopPlaying();
@@ -336,31 +338,31 @@ void StartNewURL()
   Serial.printf_P("Done start new URL\n");
 }
 
-void LoadSettings()
-{
+void LoadSettings() {
   // Restore from EEPROM, check the checksum matches
   Settings s;
   uint8_t *ptr = reinterpret_cast<uint8_t *>(&s);
   EEPROM.begin(sizeof(s));
-  for (size_t i=0; i<sizeof(s); i++) {
+  for (size_t i = 0; i < sizeof(s); i++) {
     ptr[i] = EEPROM.read(i);
   }
   EEPROM.end();
   int16_t sum = 0x1234;
-  for (size_t i=0; i<sizeof(url); i++) sum += s.url[i];
+  for (size_t i = 0; i < sizeof(url); i++) {
+    sum += s.url[i];
+  }
   sum += s.isAAC;
   sum += s.volume;
   if (s.checksum == sum) {
     strcpy(url, s.url);
     isAAC = s.isAAC;
     volume = s.volume;
-    Serial.printf_P(PSTR("Resuming stream from EEPROM: %s, type=%s, vol=%d\n"), url, isAAC?"AAC":"MP3", volume);
+    Serial.printf_P(PSTR("Resuming stream from EEPROM: %s, type=%s, vol=%d\n"), url, isAAC ? "AAC" : "MP3", volume);
     newUrl = true;
   }
 }
 
-void SaveSettings()
-{
+void SaveSettings() {
   // Store in "EEPROM" to restart automatically
   Settings s;
   memset(&s, 0, sizeof(s));
@@ -368,20 +370,21 @@ void SaveSettings()
   s.isAAC = isAAC;
   s.volume = volume;
   s.checksum = 0x1234;
-  for (size_t i=0; i<sizeof(url); i++) s.checksum += s.url[i];
+  for (size_t i = 0; i < sizeof(url); i++) {
+    s.checksum += s.url[i];
+  }
   s.checksum += s.isAAC;
   s.checksum += s.volume;
   uint8_t *ptr = reinterpret_cast<uint8_t *>(&s);
   EEPROM.begin(sizeof(s));
-  for (size_t i=0; i<sizeof(s); i++) {
+  for (size_t i = 0; i < sizeof(s); i++) {
     EEPROM.write(i, ptr[i]);
   }
   EEPROM.commit();
   EEPROM.end();
 }
 
-void PumpDecoder()
-{
+void PumpDecoder() {
   if (decoder && decoder->isRunning()) {
     strcpy_P(status, PSTR("Playing")); // By default we're OK unless the decoder says otherwise
     if (!decoder->loop()) {
@@ -389,29 +392,28 @@ void PumpDecoder()
       StopPlaying();
       retryms = millis() + 2000;
     }
-}
-
-}
-
-void loop()
-{
-  static int lastms = 0;
-  if (millis()-lastms > 1000) {
-    lastms = millis();
-    Serial.printf_P(PSTR("Running for %d seconds%c...Free mem=%d\n"), lastms/1000, !decoder?' ':(decoder->isRunning()?'*':' '), ESP.getFreeHeap());
   }
 
-  if (retryms && millis()-retryms>0) {
+}
+
+void loop() {
+  static int lastms = 0;
+  if (millis() - lastms > 1000) {
+    lastms = millis();
+    Serial.printf_P(PSTR("Running for %d seconds%c...Free mem=%d\n"), lastms / 1000, !decoder ? ' ' : (decoder->isRunning() ? '*' : ' '), MOBO.getFreeHeap());
+  }
+
+  if (retryms && millis() - retryms > 0) {
     retryms = 0;
     newUrl = true;
   }
-  
+
   if (newUrl) {
     StartNewURL();
   }
 
   PumpDecoder();
-  
+
   char *reqUrl;
   char *params;
   WiFiClient client = server.available();
@@ -446,5 +448,3 @@ void loop()
     client.stop();
   }
 }
-
-#endif

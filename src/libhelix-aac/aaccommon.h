@@ -1,46 +1,46 @@
-/* ***** BEGIN LICENSE BLOCK *****  
- * Source last modified: $Id: aaccommon.h,v 1.1 2005/02/26 01:47:34 jrecker Exp $ 
- *   
- * Portions Copyright (c) 1995-2005 RealNetworks, Inc. All Rights Reserved.  
- *       
- * The contents of this file, and the files included with this file, 
- * are subject to the current version of the RealNetworks Public 
- * Source License (the "RPSL") available at 
- * http://www.helixcommunity.org/content/rpsl unless you have licensed 
- * the file under the current version of the RealNetworks Community 
- * Source License (the "RCSL") available at 
- * http://www.helixcommunity.org/content/rcsl, in which case the RCSL 
- * will apply. You may also obtain the license terms directly from 
- * RealNetworks.  You may not use this file except in compliance with 
- * the RPSL or, if you have a valid RCSL with RealNetworks applicable 
- * to this file, the RCSL.  Please see the applicable RPSL or RCSL for 
- * the rights, obligations and limitations governing use of the 
- * contents of the file. 
- *   
- * This file is part of the Helix DNA Technology. RealNetworks is the 
- * developer of the Original Code and owns the copyrights in the 
- * portions it created. 
- *   
- * This file, and the files included with this file, is distributed 
- * and made available on an 'AS IS' basis, WITHOUT WARRANTY OF ANY 
- * KIND, EITHER EXPRESS OR IMPLIED, AND REALNETWORKS HEREBY DISCLAIMS 
- * ALL SUCH WARRANTIES, INCLUDING WITHOUT LIMITATION, ANY WARRANTIES 
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, QUIET 
- * ENJOYMENT OR NON-INFRINGEMENT. 
- *  
- * Technology Compatibility Kit Test Suite(s) Location:  
- *    http://www.helixcommunity.org/content/tck  
- *  
- * Contributor(s):  
- *   
- * ***** END LICENSE BLOCK ***** */  
+/* ***** BEGIN LICENSE BLOCK *****
+    Source last modified: $Id: aaccommon.h,v 1.1 2005/02/26 01:47:34 jrecker Exp $
+
+    Portions Copyright (c) 1995-2005 RealNetworks, Inc. All Rights Reserved.
+
+    The contents of this file, and the files included with this file,
+    are subject to the current version of the RealNetworks Public
+    Source License (the "RPSL") available at
+    http://www.helixcommunity.org/content/rpsl unless you have licensed
+    the file under the current version of the RealNetworks Community
+    Source License (the "RCSL") available at
+    http://www.helixcommunity.org/content/rcsl, in which case the RCSL
+    will apply. You may also obtain the license terms directly from
+    RealNetworks.  You may not use this file except in compliance with
+    the RPSL or, if you have a valid RCSL with RealNetworks applicable
+    to this file, the RCSL.  Please see the applicable RPSL or RCSL for
+    the rights, obligations and limitations governing use of the
+    contents of the file.
+
+    This file is part of the Helix DNA Technology. RealNetworks is the
+    developer of the Original Code and owns the copyrights in the
+    portions it created.
+
+    This file, and the files included with this file, is distributed
+    and made available on an 'AS IS' basis, WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESS OR IMPLIED, AND REALNETWORKS HEREBY DISCLAIMS
+    ALL SUCH WARRANTIES, INCLUDING WITHOUT LIMITATION, ANY WARRANTIES
+    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, QUIET
+    ENJOYMENT OR NON-INFRINGEMENT.
+
+    Technology Compatibility Kit Test Suite(s) Location:
+      http://www.helixcommunity.org/content/tck
+
+    Contributor(s):
+
+ * ***** END LICENSE BLOCK ***** */
 
 /**************************************************************************************
- * Fixed-point HE-AAC decoder
- * Jon Recker (jrecker@real.com)
- * February 2005
- *
- * aaccommon.h - implementation-independent API's, datatypes, and definitions
+    Fixed-point HE-AAC decoder
+    Jon Recker (jrecker@real.com)
+    February 2005
+
+    aaccommon.h - implementation-independent API's, datatypes, and definitions
  **************************************************************************************/
 
 #ifndef _AACCOMMON_H
@@ -51,7 +51,7 @@
 
 // Can't fit in ESP8266 RAM
 #ifndef ESP8266
-  #define AAC_ENABLE_SBR 1 
+#define AAC_ENABLE_SBR 1
 #endif
 
 #pragma GCC optimize ("O3")
@@ -98,60 +98,60 @@
 
 /* AAC file format */
 enum {
-	AAC_FF_Unknown = 0,		/* should be 0 on init */
+    AAC_FF_Unknown = 0,		/* should be 0 on init */
 
-	AAC_FF_ADTS = 1,
-	AAC_FF_ADIF = 2,
-	AAC_FF_RAW =  3
+    AAC_FF_ADTS = 1,
+    AAC_FF_ADIF = 2,
+    AAC_FF_RAW =  3
 
 };
 
 /* syntactic element type */
 enum {
-	AAC_ID_INVALID = -1,
+    AAC_ID_INVALID = -1,
 
-	AAC_ID_SCE =  0,
-	AAC_ID_CPE =  1,
-	AAC_ID_CCE =  2,
-	AAC_ID_LFE =  3,
-	AAC_ID_DSE =  4,
-	AAC_ID_PCE =  5,
-	AAC_ID_FIL =  6,
-	AAC_ID_END =  7
+    AAC_ID_SCE =  0,
+    AAC_ID_CPE =  1,
+    AAC_ID_CCE =  2,
+    AAC_ID_LFE =  3,
+    AAC_ID_DSE =  4,
+    AAC_ID_PCE =  5,
+    AAC_ID_FIL =  6,
+    AAC_ID_END =  7
 };
 
 typedef struct _AACDecInfo {
-	/* pointers to platform-specific state information */
-	void *psInfoBase;	/* baseline MPEG-4 LC decoding */
-	void *psInfoSBR;	/* MPEG-4 SBR decoding */
-	
-	/* raw decoded data, before rounding to 16-bit PCM (for postprocessing such as SBR) */
-	void *rawSampleBuf[AAC_MAX_NCHANS];
-	int rawSampleBytes;
-	int rawSampleFBits;
+    /* pointers to platform-specific state information */
+    void *psInfoBase;	/* baseline MPEG-4 LC decoding */
+    void *psInfoSBR;	/* MPEG-4 SBR decoding */
 
-	/* fill data (can be used for processing SBR or other extensions) */
-	unsigned char *fillBuf;
-	int fillCount;
-	int fillExtType;
+    /* raw decoded data, before rounding to 16-bit PCM (for postprocessing such as SBR) */
+    void *rawSampleBuf[AAC_MAX_NCHANS];
+    int rawSampleBytes;
+    int rawSampleFBits;
 
-	/* block information */
-	int prevBlockID;
-	int currBlockID;
-	int currInstTag;
-	int sbDeinterleaveReqd[MAX_NCHANS_ELEM];
-	int adtsBlocksLeft;
+    /* fill data (can be used for processing SBR or other extensions) */
+    unsigned char *fillBuf;
+    int fillCount;
+    int fillExtType;
 
-	/* user-accessible info */
-	int bitRate;
-	int nChans;
-	int sampRate;
-	int profile;
-	int format;
-	int sbrEnabled;
-	int tnsUsed;
-	int pnsUsed;
-	int frameCount;
+    /* block information */
+    int prevBlockID;
+    int currBlockID;
+    int currInstTag;
+    int sbDeinterleaveReqd[MAX_NCHANS_ELEM];
+    int adtsBlocksLeft;
+
+    /* user-accessible info */
+    int bitRate;
+    int nChans;
+    int sampRate;
+    int profile;
+    int format;
+    int sbrEnabled;
+    int tnsUsed;
+    int pnsUsed;
+    int frameCount;
 
 } AACDecInfo;
 
@@ -198,10 +198,10 @@ extern const /*short*/ int sfBandTabShort[76];
 extern const int sfBandTabLongOffset[NUM_SAMPLE_RATES];
 extern const /*short*/ int sfBandTabLong[325];
 extern const int tnsMaxBandsShortOffset[AAC_NUM_PROFILES];
-extern const unsigned /*char*/ int tnsMaxBandsShort[2*NUM_SAMPLE_RATES];
+extern const unsigned /*char*/ int tnsMaxBandsShort[2 * NUM_SAMPLE_RATES];
 extern const unsigned /*char*/ int tnsMaxOrderShort[AAC_NUM_PROFILES];
 extern const int tnsMaxBandsLongOffset[AAC_NUM_PROFILES];
-extern const unsigned /*char*/ int tnsMaxBandsLong[2*NUM_SAMPLE_RATES];
+extern const unsigned /*char*/ int tnsMaxBandsLong[2 * NUM_SAMPLE_RATES];
 extern const unsigned /*char*/ int tnsMaxOrderLong[AAC_NUM_PROFILES];
 
 #endif	/* _AACCOMMON_H */

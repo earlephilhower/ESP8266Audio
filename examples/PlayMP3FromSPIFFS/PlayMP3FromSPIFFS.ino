@@ -5,10 +5,10 @@ void loop() {}
 #else
 
 #ifdef ESP32
-  #include <WiFi.h>
-  #include "SPIFFS.h"
+#include <WiFi.h>
+#include "SPIFFS.h"
 #else
-  #include <ESP8266WiFi.h>
+#include <ESP8266WiFi.h>
 #endif
 #include "AudioFileSourceSPIFFS.h"
 #include "AudioFileSourceID3.h"
@@ -17,7 +17,7 @@ void loop() {}
 
 // To run, set your ESP8266 build to 160MHz, and include a SPIFFS of 512KB or greater.
 // Use the "Tools->ESP8266/ESP32 Sketch Data Upload" menu to write the MP3 to SPIFFS
-// Then upload the sketch normally.  
+// Then upload the sketch normally.
 
 // pno_cs from https://ccrma.stanford.edu/~jos/pasp/Sound_Examples.html
 
@@ -28,15 +28,14 @@ AudioFileSourceID3 *id3;
 
 
 // Called when a metadata event occurs (i.e. an ID3 tag, an ICY block, etc.
-void MDCallback(void *cbData, const char *type, bool isUnicode, const char *string)
-{
+void MDCallback(void *cbData, const char *type, bool isUnicode, const char *string) {
   (void)cbData;
   Serial.printf("ID3 callback for: %s = '", type);
 
   if (isUnicode) {
     string += 2;
   }
-  
+
   while (*string) {
     char a = *(string++);
     if (isUnicode) {
@@ -49,9 +48,8 @@ void MDCallback(void *cbData, const char *type, bool isUnicode, const char *stri
 }
 
 
-void setup()
-{
-  WiFi.mode(WIFI_OFF); 
+void setup() {
+  WiFi.mode(WIFI_OFF);
   Serial.begin(115200);
   delay(1000);
   SPIFFS.begin();
@@ -66,10 +64,11 @@ void setup()
   mp3->begin(id3, out);
 }
 
-void loop()
-{
+void loop() {
   if (mp3->isRunning()) {
-    if (!mp3->loop()) mp3->stop();
+    if (!mp3->loop()) {
+      mp3->stop();
+    }
   } else {
     Serial.printf("MP3 done\n");
     delay(1000);
