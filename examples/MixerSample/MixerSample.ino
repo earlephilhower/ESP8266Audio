@@ -1,16 +1,8 @@
 #include <Arduino.h>
-
-#if defined(ARDUINO_ARCH_RP2040)
-#define WIFI_OFF
-class __x {
-  public: __x() {};
-    void mode() {};
-};
-__x WiFi;
-#elif defined(ESP32)
-#include <WiFi.h>
-#else
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
+#else
+#include <WiFi.h>
 #endif
 
 #include "AudioFileSourcePROGMEM.h"
@@ -79,6 +71,4 @@ void loop() {
       }
     }
   }
-
 }
-

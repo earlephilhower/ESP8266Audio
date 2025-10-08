@@ -2,17 +2,11 @@
 #include "AudioFileSourcePROGMEM.h"
 #include "AudioGeneratorMOD.h"
 #include "AudioOutputI2S.h"
-#if defined(ARDUINO_ARCH_RP2040)
-#define WIFI_OFF
-class __x {
-  public: __x() {};
-    void mode() {};
-};
-__x WiFi;
-#elif defined(ESP32)
-#include <WiFi.h>
-#else
+
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
+#else
+#include <WiFi.h>
 #endif
 
 // enigma.mod sample from the mod archive: https://modarchive.org/index.php?request=view_by_moduleid&query=42146
@@ -48,4 +42,3 @@ void loop() {
     delay(1000);
   }
 }
-

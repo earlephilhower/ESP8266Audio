@@ -4,15 +4,10 @@
 
 #include <Arduino.h>
 
-#if defined(ARDUINO_ARCH_RP2040)
-void setup() {}
-void loop() {}
-#else
-
-#if defined(ESP32)
-#include <WiFi.h>
-#else
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
+#else
+#include <WiFi.h>
 #endif
 
 #include <time.h>
@@ -194,4 +189,3 @@ void loop() {
   sayTime(tmstruct.tm_hour, tmstruct.tm_min, talkie);
   delay(1000);
 }
-#endif

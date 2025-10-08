@@ -1,20 +1,8 @@
 #include <Arduino.h>
-#ifdef ESP32
-void setup() {
-  Serial.begin(115200);
-  Serial.printf("ERROR - ESP32 does not support LittleFS\n");
-}
-void loop() {}
-#else
-#if defined(ARDUINO_ARCH_RP2040)
-#define WIFI_OFF
-class __x {
-  public: __x() {};
-    void mode() {};
-};
-__x WiFi;
-#else
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
+#else
+#include <WiFi.h>
 #endif
 #include <AudioOutputI2S.h>
 #include <AudioGeneratorMIDI.h>
@@ -56,5 +44,3 @@ void loop() {
     delay(1000);
   }
 }
-
-#endif
