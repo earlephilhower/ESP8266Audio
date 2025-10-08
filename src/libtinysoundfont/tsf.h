@@ -1871,7 +1871,7 @@ TSFDEF int tsf_get_presetcount(const tsf* f) {
 }
 
 TSFDEF const char* tsf_get_presetname(const tsf* f, int preset) {
-    if (f->presets[preset].regions == NULL && preset >= 0 && preset < f->presetNum) {
+    if (preset >= 0 && preset < f->presetNum && f->presets[preset].regions == NULL) {
         tsf_load_preset(f, f->hydra, preset);
     }
     return (preset < 0 || preset >= f->presetNum ? TSF_NULL : f->presets[preset].presetName);
