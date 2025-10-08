@@ -36,51 +36,84 @@ jobs:
       run: |
         bash ./tests/common.sh
 
-  build-esp8266:
-    name: Build ESP8266
+  build-all-esp8266:
+    name: Build all examples on Arduino-ESP8266 latest release
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chunk: [0, 1, 2, 3, 4]
+        shift: [1-, 2-, 3-, 4-, 5-]
+    defaults:
+      run:
+        shell: bash
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: true
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
-    - name: Build Sketches
-      env:
-        TRAVIS_BUILD_DIR: ${{ github.workspace }}
-        TRAVIS_TAG: ${{ github.ref }}
-        BUILD_TYPE: build
-        BUILD_MOD: 5
-        BUILD_REM: ${{ matrix.chunk }}
+    - name: Install Arduino-CLI, ESP32 core, this library
       run: |
-        bash ./tests/common.sh
+        wget --quiet https://downloads.arduino.cc/arduino-cli/nightly/arduino-cli_nightly-latest_Linux_64bit.tar.gz
+        tar xf arduino-cli_nightly-latest_Linux_64bit.tar.gz
+        ./arduino-cli config init
+        mkdir -p ~/Arduino/libraries
+        cp -a /home/runner/work/ESP8266Audio/ESP8266Audio ~/Arduino/libraries/.
+        mkdir -p ~/Arduino/hardware/esp8266com
+        cd ~/Arduino/hardware/esp8266com
+        git clone https://github.com/esp8266/Arduino.git esp8266
+        cd esp8266
+        git submodule update --init --recursive
+        cd tools
+        ./get.py -q
+    - name: Build examples ESP8266
+      run: |
+        mkdir esp8266
+        rm -f *.elf
+        # Get initial list and shift off to the starting point
+        sketches=$(find ~/Arduino/libraries/ESP8266Audio/examples -name "*.ino" | sort | tr '\n' ' ' | cut -f${{matrix.shift}} -d " ")
+        while [ $(echo $sketches | wc -w) -gt 0 ]; do
+            sketch=$(echo $sketches | cut -f1 -d " ")
+            ./tests/build-ci-esp32.sh esp8266com:esp8266:d1_mini:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,eesz=4M2M,ip=lm2f,dbg=Disabled,lvl=None____,optim=Smallest,wipe=none,baud=921600,iramfloat=no esp8266 $sketch
+            # Shift out 5
+            sketches=$(echo $sketches | cut -f6- -d " ")
+        done
+        size ./*.elf
 
-  build-esp32:
-    name: Build ESP-32
+  build-all-esp32:
+    name: Build all examples on Arduino-ESP32 latest release
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chunk: [0, 1, 2, 3, 4]
+        shift: [1-, 2-, 3-, 4-, 5-]
+    defaults:
+      run:
+        shell: bash
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: true
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
-    - name: Build Sketches
-      env:
-        TRAVIS_BUILD_DIR: ${{ github.workspace }}
-        TRAVIS_TAG: ${{ github.ref }}
-        BUILD_TYPE: build_esp32
-        BUILD_MOD: 5
-        BUILD_REM: ${{ matrix.chunk }}
+    - name: Install Arduino-CLI, ESP32 core, this library
       run: |
-        bash ./tests/common.sh
+        wget --quiet https://downloads.arduino.cc/arduino-cli/nightly/arduino-cli_nightly-latest_Linux_64bit.tar.gz
+        tar xf arduino-cli_nightly-latest_Linux_64bit.tar.gz
+        ./arduino-cli config init
+        ./arduino-cli config add board_manager.additional_urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+        ./arduino-cli config set library.enable_unsafe_install true
+        ./arduino-cli core update-index
+        ./arduino-cli core install esp32:esp32
+        mkdir -p ~/Arduino/libraries
+        cp -a /home/runner/work/ESP8266Audio/ESP8266Audio ~/Arduino/libraries/.
+    - name: Build examples ESP32C6
+      run: |
+        mkdir esp32c6
+        rm -f *.elf
+        # Get initial list and shift off to the starting point
+        sketches=$(find ~/Arduino/libraries/ESP8266Audio/examples -name "*.ino" | sort | tr '\n' ' ' | cut -f${{matrix.shift}} -d " ")
+        while [ $(echo $sketches | wc -w) -gt 0 ]; do
+            sketch=$(echo $sketches | cut -f1 -d " ")
+            ./tests/build-ci-esp32.sh esp32:esp32:esp32c6:PartitionScheme=huge_app esp32c6 $sketch
+            # Shift out 5
+            sketches=$(echo $sketches | cut -f6- -d " ")
+        done
+        size ./*.elf
 
 # Run host test suite under valgrind for runtime checking of code.
   host-tests:
