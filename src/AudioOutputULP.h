@@ -64,10 +64,6 @@ private:
     const uint32_t bufferStart = indexAddress + 1;
 };
 
-#else
-
-#error Only the ESP32 supports ULP audio output
-
 #endif
 
 #endif
