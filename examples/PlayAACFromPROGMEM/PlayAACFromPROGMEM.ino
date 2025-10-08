@@ -8,10 +8,10 @@ AudioFileSourcePROGMEM *in;
 AudioGeneratorAAC *aac;
 AudioOutputI2S *out;
 
-void setup()
-{
+void setup() {
   Serial.begin(115200);
-  
+
+  audioLogger = &Serial;
   in = new AudioFileSourcePROGMEM(sampleaac, sizeof(sampleaac));
   aac = new AudioGeneratorAAC();
   out = new AudioOutputI2S();
@@ -19,9 +19,7 @@ void setup()
   aac->begin(in, out);
 }
 
-
-void loop()
-{
+void loop() {
   if (aac->isRunning()) {
     aac->loop();
   } else {
@@ -29,4 +27,3 @@ void loop()
     delay(1000);
   }
 }
-

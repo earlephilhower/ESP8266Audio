@@ -6,6 +6,8 @@
 #include "AudioFileSourceBuffer.h"
 #include "AudioOutputMixer.h"
 
+#define MP3 "../../examples/PlayMP3FromSPIFFS/data/pno-cs.mp3"
+
 // Called when a metadata event occurs (i.e. an ID3 tag, an ICY block, etc.
 void MDCallback(void *cbData, const char *type, bool isUnicode, const char *string)
 {
@@ -45,7 +47,7 @@ int main(int argc, char **argv)
 {
     (void) argc;
     (void) argv;
-    AudioFileSourceSTDIO *in = new AudioFileSourceSTDIO("jamonit.mp3");
+    AudioFileSourceSTDIO *in = new AudioFileSourceSTDIO(MP3);
     AudioFileSourceBuffer *buff = new AudioFileSourceBuffer(in, 2048);
     buff->RegisterStatusCB(StatusCallback, (void*)"buffer");
     AudioFileSourceID3 *id3 = new AudioFileSourceID3(buff);

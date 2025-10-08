@@ -1,37 +1,40 @@
 /*
-  AudioFileSourceSPIRAMBuffer
-  Buffered file source in external SPI RAM
+    AudioFileSourceSPIRAMBuffer
+    Buffered file source in external SPI RAM
 
-  Copyright (C) 2017  Sebastien Decourriere
-  Based on AudioFileSourceBuffer class from Earle F. Philhower, III
+    Copyright (C) 2017  Sebastien Decourriere
+    Based on AudioFileSourceBuffer class from Earle F. Philhower, III
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _AUDIOFILESOURCESPIRAMBUFFER_H
-#define _AUDIOFILESOURCESPIRAMBUFFER_H
+#if defined(ESP32) || defined(ESP8266)
+#pragma once
 
 #include "AudioFileSource.h"
 #include <SPI.h>
-#include <ESP8266Spiram.h> // https://github.com/Gianbacchio/ESP8266_Spiram
-
+#include "spiram-fast.h"
+//#define FAKERAM
 // #define SPIBUF_DEBUG
 
-class AudioFileSourceSPIRAMBuffer : public AudioFileSource
-{
-  public:
-    AudioFileSourceSPIRAMBuffer(AudioFileSource *in, uint8_t csPin, uint32_t bufferBytes);
+class AudioFileSourceSPIRAMBuffer : public AudioFileSource {
+public:
+#ifdef FAKERAM
+    AudioFileSourceSPIRAMBuffer(AudioFileSource *in, uint8_t csPin = 15, uint32_t bufferBytes = 2048);
+#else
+    AudioFileSourceSPIRAMBuffer(AudioFileSource *in, uint8_t csPin = 15, uint32_t bufferBytes = 128 * 1024);
+#endif
     virtual ~AudioFileSourceSPIRAMBuffer() override;
 
     virtual uint32_t read(void *data, uint32_t len) override;
@@ -42,20 +45,20 @@ class AudioFileSourceSPIRAMBuffer : public AudioFileSource
     virtual uint32_t getPos() override;
     virtual bool loop() override;
 
-  private:
+private:
     virtual void fill();
 
-  private:
+private:
     AudioFileSource *src;
-    ESP8266Spiram *Spiram;
-    uint32_t ramSize;
-    uint32_t writePtr;
-    uint32_t readPtr;
-    uint16_t length;
-    uint32_t bytesAvailable;
+    ESP8266SPIRAM ram;
+    size_t ramSize;
+    size_t writePtr;
+    size_t readPtr;
     bool filled;
+
+#ifdef FAKERAM
+    char fakeRAM[2048];
+#endif
 };
 
-
 #endif
-

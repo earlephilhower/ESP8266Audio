@@ -1,7 +1,7 @@
 {
     "name": "ESP8266Audio",
-    "description": "Audio file format and I2S DAC library",
-    "keywords": "ESP8266, ESP32, MP3, AAC, WAV, MOD, FLAC, RTTTL, I2S, DAC, Delta-Sigma",
+    "description": "Audio file format and I2S DAC library for ESP8266, ESP32, and Raspberry Pi Pico RP2040",
+    "keywords": "ESP8266, ESP32, MP3, AAC, WAV, MOD, FLAC, RTTTL, MIDI, I2S, DAC, Delta-Sigma, TTS",
     "authors": [
         {
             "name": "Earle F. Philhower, III",
@@ -12,16 +12,15 @@
     ],
     "repository": {
         "type": "git",
-         "url": "https://github.com/earlephilhower/ESP8266Audio"
+        "url": "https://github.com/earlephilhower/ESP8266Audio"
     },
-    "version": "1.1.3",
+    "version": "2.1.0",
     "homepage": "https://github.com/earlephilhower/ESP8266Audio",
-    "dependencies": {
-        "ESP8266Spiram": "1.0",
-        "SPI": "1.0"
-    },
     "frameworks": "Arduino",
     "examples": [
         "examples/*/*.ino"
-    ]
+    ],
+    "build": {
+        "libLDFMode": "deep"
+    }
 }
