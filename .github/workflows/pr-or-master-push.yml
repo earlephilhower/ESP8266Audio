@@ -139,7 +139,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: arduino/arduino-lint-action@v2
+      - uses: arduino/arduino-lint-action@4de5fc895deecbda2f6b1cc05de7a8fdd5c4c51f # v2
         with:
           library-manager: 'update'
 
@@ -152,7 +152,7 @@ jobs:
       with:
         submodules: true
     - name: Run codespell
-      uses: codespell-project/actions-codespell@master
+      uses: codespell-project/actions-codespell@406322ec52dd7b488e48c1c4b82e2a8b3a1bf630 # v2.1
       with:
         skip: ./src/libmad,./src/libhelix-aac,./src/libopus,./src/libflac
         ignore_words_list: ESP8266,esp8266,esp,dout,DOUT,ser,ans,inout,numer,hist
