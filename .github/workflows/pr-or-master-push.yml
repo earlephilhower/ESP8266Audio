@@ -11,6 +11,11 @@ on:
       - master
   pull_request:
 
+permissions:
+  contents: read
+  pull-requests: write
+
+
 jobs:
 
   build-rp2040:
