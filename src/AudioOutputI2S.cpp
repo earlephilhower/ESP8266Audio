@@ -49,6 +49,7 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int
     wclkPin = 25;
     doutPin = 22;
     mclkPin = 0;
+    use_mclk = false;
     SetGain(1.0);
 }
 
@@ -80,7 +81,7 @@ bool AudioOutputI2S::SetPinout() {
 
     i2s_pin_config_t pins = {
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
-        .mck_io_num = mclkPin,
+        .mck_io_num = use_mclk ? mclkPin : I2S_PIN_NO_CHANGE,
 #endif
         .bck_io_num = bclkPin,
         .ws_io_num = wclkPin,
@@ -90,11 +91,6 @@ bool AudioOutputI2S::SetPinout() {
     i2s_set_pin((i2s_port_t)portNo, &pins);
     return true;
 #else
-    (void)bclkPin;
-    (void)wclkPin;
-    (void)doutPin;
-    (void)mclkPin;
-    (void)use_mclk;
     return false;
 #endif
 }
@@ -103,6 +99,7 @@ bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout) {
     bclkPin = bclk;
     wclkPin = wclk;
     doutPin = dout;
+    use_mclk = false;
     if (i2sOn) {
         return SetPinout();
     }
@@ -116,6 +113,7 @@ bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout, int mclk) {
     doutPin = dout;
 #if defined(ESP32) || defined(ARDUINO_ARCH_RP2040)
     mclkPin = mclk;
+    use_mclk = true;
     if (i2sOn) {
         return SetPinout();
     }
@@ -298,8 +296,10 @@ bool AudioOutputI2S::begin(bool txDAC) {
         i2s.setSysClk(hertz);
         i2s.setBCLK(bclkPin);
         i2s.setDATA(doutPin);
-        i2s.setMCLK(mclkPin);
-        i2s.setMCLKmult(256);
+        if (use_mclk) {
+            i2s.setMCLK(mclkPin);
+            i2s.setMCLKmult(256);
+        }
         if (swap_clocks) {
             i2s.swapClocks();
         }
