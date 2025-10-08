@@ -25,8 +25,8 @@ AudioOutputMixerStub::AudioOutputMixerStub(AudioOutputMixer *sink, int id) : Aud
     this->id = id;
     this->parent = sink;
     SetGain(1.0);
-    this->myHz = 0;
-    this->lastHz = 0;
+    this->newHz = 44100;
+    this->lastHz = -1;
 }
 
 AudioOutputMixerStub::~AudioOutputMixerStub() {
