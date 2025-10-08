@@ -41,6 +41,8 @@ public:
 protected:
     AudioOutputMixer *parent;
     int id;
+    int newHz;
+    int lastHz;
 };
 
 // Single mixer object per output

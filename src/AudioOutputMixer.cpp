@@ -25,6 +25,8 @@ AudioOutputMixerStub::AudioOutputMixerStub(AudioOutputMixer *sink, int id) : Aud
     this->id = id;
     this->parent = sink;
     SetGain(1.0);
+    this->newHz = 44100;
+    this->lastHz = -1;
 }
 
 AudioOutputMixerStub::~AudioOutputMixerStub() {
@@ -32,7 +34,8 @@ AudioOutputMixerStub::~AudioOutputMixerStub() {
 }
 
 bool AudioOutputMixerStub::SetRate(int hz) {
-    return parent->SetRate(hz, id);
+    newHz = hz;
+    return true;
 }
 
 bool AudioOutputMixerStub::SetBitsPerSample(int bits) {
@@ -51,6 +54,10 @@ bool AudioOutputMixerStub::ConsumeSample(int16_t sample[2]) {
     int16_t amp[2];
     amp[LEFTCHANNEL] = Amplify(sample[LEFTCHANNEL]);
     amp[RIGHTCHANNEL] = Amplify(sample[RIGHTCHANNEL]);
+    if (newHz != lastHz) { // Avoid setting on each sample unless things change
+        parent->SetRate(newHz, id);
+        lastHz = newHz;
+    }
     return parent->ConsumeSample(amp, id);
 }
 
