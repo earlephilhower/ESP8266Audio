@@ -72,6 +72,21 @@ bool AudioGeneratorTalkie::begin(AudioFileSource *source, AudioOutput *output) {
         return false;
     }
     this->output = output;
+
+    if (!output->SetBitsPerSample(16)) {
+        return false;
+    }
+    if (!output->SetChannels(2)) {
+        return false;
+    }
+    if (!output->begin()) {
+        return false;
+    }
+    if (!output->SetRate(8000)) {
+        return false;
+    }
+
+
     if (source) {
         file = source;
         if (!file->isOpen()) {
@@ -94,20 +109,6 @@ bool AudioGeneratorTalkie::begin(AudioFileSource *source, AudioOutput *output) {
         frameLeft = 0;
         running = false;
     }
-
-    if (!output->SetRate(8000)) {
-        return false;
-    }
-    if (!output->SetBitsPerSample(16)) {
-        return false;
-    }
-    if (!output->SetChannels(2)) {
-        return false;
-    }
-    if (!output->begin()) {
-        return false;
-    }
-
 
 
     return true;
