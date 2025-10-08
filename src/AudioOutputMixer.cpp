@@ -33,8 +33,7 @@ AudioOutputMixerStub::~AudioOutputMixerStub() {
     parent->RemoveInput(id);
 }
 
-bool AudioOutputMixerStub::SetRate(int hz)
-{
+bool AudioOutputMixerStub::SetRate(int hz) {
     newHz = hz;
     return true;
 }
@@ -51,8 +50,7 @@ bool AudioOutputMixerStub::begin() {
     return parent->begin(id);
 }
 
-bool AudioOutputMixerStub::ConsumeSample(int16_t sample[2])
-{
+bool AudioOutputMixerStub::ConsumeSample(int16_t sample[2]) {
     int16_t amp[2];
     amp[LEFTCHANNEL] = Amplify(sample[LEFTCHANNEL]);
     amp[RIGHTCHANNEL] = Amplify(sample[RIGHTCHANNEL]);
