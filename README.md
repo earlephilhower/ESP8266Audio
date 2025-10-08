@@ -1,39 +1,34 @@
-# ESP8266Audio - supports ESP8266 & ESP32 & Raspberry Pi RP2040[![Gitter](https://badges.gitter.im/ESP8266Audio/community.svg)](https://gitter.im/ESP8266Audio/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) 
+# ESP8266Audio - supports ESP8266 & ESP32 & Raspberry Pi Pico RP2040 and Pico 2 RP2350 [![Gitter](https://badges.gitter.im/ESP8266Audio/community.svg)](https://gitter.im/ESP8266Audio/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 Arduino library for parsing and decoding MOD, WAV, MP3, FLAC, MIDI, AAC, and RTTL files and playing them on an I2S DAC or even using a software-simulated delta-sigma DAC with dynamic 32x-128x oversampling.
 
+# ESP32, Raspberry Pi Pico (RP2040 and RP2350) Users
+Consider using [BackgroundAudio](https://github.com/earlephilhower/BackgroundAudio) instead of this library as it can provide a simpler usage model and better results and performance on the Pico by using an interrupt-based, frame-aligned output model.
+
+# ESP8266 and ESP32 Users
 ESP8266 is fully supported and most mature, but ESP32 is also mostly there with built-in DAC as well as external ones.
 
-For real-time, autonomous speech synthesis, check out [ESP8266SAM](https://github.com/earlephilhower/ESP8266SAM), a library which uses this one and a port of an ancient format-based synthesis program to allow your ESP8266 to talk with low memory and no network required.
+For real-time, autonomous speech synthesis, check out [ESP8266SAM](https://github.com/earlephilhower/ESP8266SAM), a library which uses this one and a port of an ancient formant-based synthesis program to allow your ESP8266 to talk with low memory and no network required.
 
 ## Disclaimer
-All this code is released under the GPL, and all of it is to be used at your own risk.  If you find any bugs, please let me know via the GitHub issue tracker or drop me an email.  The MOD and MP3 routines were taken from StellaPlayer and libMAD respectively.  The software I2S delta-sigma 32x oversampling DAC was my own creation, and sounds quite good if I do say so myself.
+All this code is released under the GPL, and all of it is to be used at your own risk.  If you find any bugs, please let me know via the GitHub issue tracker or drop me an email.
 
-The AAC decode code is from the Helix project and licensed under RealNetwork's RSPL license.  For commercial use you're still going to need the usual AAC licensing from [Via Licensing](http://www.via-corp.com/us/en/licensing/aac/overview.html).
-
-On the ESP32, AAC-SBR is supported (many webradio stations use this to reduce bandwidth even further).  The ESP8266, however, does not support it due to a lack of onboard RAM.
-
-MIDI decoding comes from a highly ported [MIDITONES](https://github.com/LenShustek/miditones) combined with a massively memory-optimized [TinySoundFont](https://github.com/schellingb/TinySoundFont), see the respective source files for more information.
-
-Opus, OGG, and OpusFile are from [Xiph.org](https://xiph.org) with the Xiph license and patent described in src/{opusfile,libggg,libopus}/COPYING..  **NOTE** Opus decoding currently only works on the ESP32 due to the large memory requirements of opusfile.  PRs to rewrite it to be less memory intensive would be much appreciated.
+* The MOD and MP3 routines were taken from StellarPlayer and libMAD respectively.
+* The software I2S delta-sigma 32x oversampling DAC was my own creation, and sounds quite good if I do say so myself.
+* The AAC decode code is from the Helix project and licensed under RealNetwork's RSPL license.  For commercial use you're still going to need the usual AAC licensing from [Via Licensing](http://www.via-corp.com/us/en/licensing/aac/overview.html).  On the ESP32, AAC-SBR is supported (many webradio stations use this to reduce bandwidth even further).  The ESP8266, however, does not support it due to a lack of onboard RAM.
+* MIDI decoding comes from a highly ported [MIDITONES](https://github.com/LenShustek/miditones) combined with a massively memory-optimized [TinySoundFont](https://github.com/schellingb/TinySoundFont), see the respective source files for more information.
+* Opus, OGG, and OpusFile are from [Xiph.org](https://xiph.org) with the Xiph license and patent described in src/{opusfile,libggg,libopus}/COPYING..  **NOTE** Opus decoding currently only works on the ESP32 due to the large memory requirements of opusfile.  PRs to rewrite it to be less memory intensive would be much appreciated.
 
 ## Neat Things People Have Done With ESP8266Audio
 If you have a neat use for this library, [I'd love to hear about it](mailto:earlephilhower@yahoo.com)!
 
-My personal use of the ESP8266Audio library is only to drive a 3D-printed, network-time-setting alarm clock for my kids which can play an MP3 instead of a bell to wake them up, called [Psychoclock](https://github.com/earlephilhower/psychoclock).
-
-Harald Sattler has built a neat German [word clock with MP3 alarm](http://www.harald-sattler.de/html/mini-wecker.htm). Detailed discussion on the process and models are included.
-
-Erich Heinemann has developed a Stomper (instrument for playing samples in real-time during a live stage performance) that you can find more info about [here](https://github.com/ErichHeinemann/hman-stomper).
-
-Dagnall53 has integrated this into a really neat MQTT based model train controller to add sounds to his set.  More info is available [here](https://github.com/dagnall53/ESPMQTTRocnetSound), including STL files for 3D printed components!
-
-JohannesMTC has built a similar project especially for model trains: https://github.com/JohannesMTC/ESP32_MAS
-
-A neat MQTT-driven ESP8266 light-and-sound device (alarm? toy? who can say!) was built by @CosmicMac, available at https://github.com/CosmicMac/ESParkle
-
-A very interesting "linear clock" with a stepper motor, NTP time keeping, and configurable recorded chimes with schematics, 3D printer plans, and source code, is now available https://janderogee.com/projects/linear_clock/linear_clock.htm
-
-Source and instructions for a gorgeous wooden MP3-playing clock, FM radio and a walkie-talkie using the ESP8266 and AVR microcontrollers is available https://github.com/zduka/mp3-player
+* My personal use of the ESP8266Audio library is only to drive a 3D-printed, network-time-setting alarm clock for my kids which can play an MP3 instead of a bell to wake them up, called [Psychoclock](https://github.com/earlephilhower/psychoclock).
+* Harald Sattler has built a neat German [word clock with MP3 alarm](http://www.harald-sattler.de/html/mini-wecker.htm). Detailed discussion on the process and models are included.
+* Erich Heinemann has developed a Stomper (instrument for playing samples in real-time during a live stage performance) that you can find more info about [here](https://github.com/ErichHeinemann/hman-stomper).
+* Dagnall53 has integrated this into a really neat MQTT based model train controller to add sounds to his set.  More info is available [here](https://github.com/dagnall53/ESPMQTTRocnetSound), including STL files for 3D printed components!
+* JohannesMTC has built a similar project especially for model trains: https://github.com/JohannesMTC/ESP32_MAS
+* A neat MQTT-driven ESP8266 light-and-sound device (alarm? toy? who can say!) was built by @CosmicMac, available at https://github.com/CosmicMac/ESParkle
+* A very interesting "linear clock" with a stepper motor, NTP time keeping, and configurable recorded chimes with schematics, 3D printer plans, and source code, is now available https://janderogee.com/projects/linear_clock/linear_clock.htm
+* Source and instructions for a gorgeous wooden MP3-playing clock, FM radio and a walkie-talkie using the ESP8266 and AVR microcontrollers is available https://github.com/zduka/mp3-player
 
 ## Prerequisites
 First, make sure you are running the 2.6.3/later or GIT head version of the Arduino libraries for ESP8266, or the latest ESP32 SDK from Espressif.
@@ -147,7 +142,7 @@ AudioGeneratorRTTTL:  Enjoy the pleasures of monophonic, 4-octave ringtones on y
 ## AudioOutput classes
 AudioOutput:  Base class for all output drivers.  Takes a sample at a time and returns true/false if there is buffer space for it.  If it returns false, it is the calling object's (AudioGenerator's) job to keep the data that didn't fit and try again later.
 
-AudioOutputI2S: Interface for any I2S 16-bit DAC.  Sends stereo or mono signals out at whatever frequency set.  Tested with Adafruit's I2SDAC and a Beyond9032 DAC from eBay.  Tested up to 44.1KHz. To use the internal DAC on ESP32, instantiate this class as `AudioOutputI2S(0,1)`, see example `PlayMODFromPROGMEMToDAC` and code in [AudioOutputI2S.cpp](src/AudioOutputI2S.cpp#L29) for details.
+AudioOutputI2S: Interface for any I2S 16-bit DAC.  Sends stereo or mono signals out at whatever frequency set.  Tested with Adafruit's I2SDAC and a Beyond9032 DAC from eBay.  Tested up to 44.1KHz. To use the internal DAC on ESP32, instantiate this class as `AudioOutputI2S(0,AudioOutputI2S::INTERNAL_DAC)`, see example `PlayMODFromPROGMEMToDAC` and code in [AudioOutputI2S.cpp](src/AudioOutputI2S.cpp#L29) for details. To use the hardware Pulse Density Modulation (PDM) on ESP32, instantiate this class as `AudioOutputI2S(0,AudioOutputI2S::INTERNAL_PDM)`. For both later cases, default output pins are GPIO25 and GPIO26.
 
 AudioOutputI2SNoDAC:  Abuses the I2S interface to play music without a DAC.  Turns it into a 32x (or higher) oversampling delta-sigma DAC.  Use the schematic below to drive a speaker or headphone from the I2STx pin (i.e. Rx).  Note that with this interface, depending on the transistor used, you may need to disconnect the Rx pin from the driver to perform serial uploads.  Mono-only output, of course.
 
@@ -199,7 +194,8 @@ Use the `AudioOutputI2S*No*DAC` object instead of the `AudioOutputI2S` in your c
 ESP8266-GND ------------------+  |  +------+ K| 
                                  |  |      | E|
 ESP8266-I2SOUT (Rx) -----/\/\/\--+  |      \ R|
-                                    |       +-|
+or ESP32 DOUT pin                   |       +-|
+                                    |
 USB 5V -----------------------------+
 
 You may also want to add a 220uF cap from USB5V to GND just to help filter out any voltage droop during high volume playback.
@@ -212,11 +208,18 @@ ESP8266-RX(I2S tx) -- Resistor (~1K ohm, not critical) -- 2N3904 Base
 ESP8266-GND        -- 2N3904 Emitter
 USB-5V             -- Speaker + Terminal
 2N3904-Collector   -- Speaker - Terminal
+
+*For ESP32, default output pin is GPIO22. Note that GPIO25 ang GPIO26 are occupied by wclk/bclk and can not be used.
 ```
 
 *NOTE*:  A prior version of this schematic had a direct connection from the ESP8266 to the base of the transistor.  While this does provide the maximum amplitude, it also can draw more current from the 8266 than is safe, and can also cause the transistor to overheat.
 
 As of the latest ESP8266Audio release, with the software delta-sigma DAC the LRCLK and BCLK pins *can* be used by an application.  Simply use normal `pinMode` and `digitalWrite` or `digitalRead` as desired.
+
+### Hardware PDM on ESP32
+
+Hardware PDM outputs 128 * 48Khz pulses regardless of sample rate.
+It seems that currently hardware PDM either does not output constant One at maximum sample level, or does not output 3.3V voltage at pulse sound is not as loud as desired.  You may consider using software delta-sigma DAC instead.
 
 ### High pitched buzzing with the 1-T circuit
 The 1-T amp can _NOT_ drive any sort of amplified speaker.  If there is a power or USB input to the speaker, or it has lights or Bluetooth or a battery, it can _NOT_ be used with this circuit.
@@ -265,10 +268,11 @@ I've been told the Wemos SD card shield uses GPIO15 as the SD chip select.  This
 There's no ESP8266-specific code in the AudioGenerator routines, so porting to other controllers should be relatively easy assuming they have the same endianness as the Xtensa core used.  Drop me a line if you're doing this, I may be able to help point you in the right direction.
 
 ## Thanks
-Thanks to the authors of StellaPlayer and libMAD for releasing their code freely, and to the maintainers and contributors to the ESP8266 Arduino port.
+Thanks to the authors of StellarPlayer and libMAD for releasing their code freely, and to the maintainers and contributors to the ESP8266 Arduino port.
 
 Also, big thanks to @tueddy for getting the initial ESP32 porting into the tree!
 
 -Earle F. Philhower, III
+
  earlephilhower@yahoo.com
 

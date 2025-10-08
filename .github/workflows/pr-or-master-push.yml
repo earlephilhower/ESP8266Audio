@@ -13,62 +13,102 @@ on:
 
 jobs:
 
-  build-esp8266:
-    name: Build ESP8266
+  build-rp2040:
+    name: Build RP2040
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chunk: [0, 1, 2, 3, 4]
+        shift: [1-, 2-, 3-, 4-, 5-]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
-    - name: Build Sketches
-      env:
-        TRAVIS_BUILD_DIR: ${{ github.workspace }}
-        TRAVIS_TAG: ${{ github.ref }}
-        BUILD_TYPE: build
-        BUILD_MOD: 5
-        BUILD_REM: ${{ matrix.chunk }}
+    - name: Install Arduino-CLI, RP2040 core, this library
       run: |
-        bash ./tests/common.sh
+        wget --quiet https://downloads.arduino.cc/arduino-cli/nightly/arduino-cli_nightly-latest_Linux_64bit.tar.gz
+        tar xf arduino-cli_nightly-latest_Linux_64bit.tar.gz
+        ./arduino-cli config init
+        ./arduino-cli config add board_manager.additional_urls https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
+        ./arduino-cli config set library.enable_unsafe_install true
+        ./arduino-cli core update-index
+        ./arduino-cli core install rp2040:rp2040
+        mkdir -p ~/Arduino/libraries
+        cp -a /home/runner/work/ESP8266Audio/ESP8266Audio ~/Arduino/libraries/.
+    - name: Build examples RP2040
+      run: |
+        ./tests/build-ci.sh rp2040 ${{matrix.shift}} "rp2040:rp2040:rpipicow:flash=2097152_262144,freq=200,opt=Small,os=none,profile=Disabled,rtti=Disabled,stackprotect=Disabled,exceptions=Disabled,dbgport=Disabled,dbglvl=None,usbstack=picosdk,wificountry=worldwide,ipbtstack=ipv4only,uploadmethod=default"
 
+  build-esp8266:
+    name: Build all examples on Arduino-ESP8266 latest release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shift: [1-, 2-, 3-, 4-, 5-]
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    - name: Install Arduino-CLI, ESP8266 core, this library
+      run: |
+        wget --quiet https://downloads.arduino.cc/arduino-cli/nightly/arduino-cli_nightly-latest_Linux_64bit.tar.gz
+        tar xf arduino-cli_nightly-latest_Linux_64bit.tar.gz
+        ./arduino-cli config init
+        mkdir -p ~/Arduino/libraries
+        cp -a /home/runner/work/ESP8266Audio/ESP8266Audio ~/Arduino/libraries/.
+        mkdir -p ~/Arduino/hardware/esp8266com
+        cd ~/Arduino/hardware/esp8266com
+        git clone https://github.com/esp8266/Arduino.git esp8266
+        cd esp8266
+        git submodule update --init --recursive
+        cd tools
+        ./get.py -q
+    - name: Build examples ESP8266
+      run: |
+        ./tests/build-ci.sh esp8266 ${{matrix.shift}} "esp8266com:esp8266:d1_mini:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,eesz=4M2M,ip=lm2f,dbg=Disabled,lvl=None____,optim=Smallest,wipe=none,baud=921600,iramfloat=no"
 
   build-esp32:
-    name: Build ESP-32
+    name: Build all examples on Arduino-ESP32 latest release
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chunk: [0, 1, 2, 3, 4]
+        shift: [1-, 2-, 3-, 4-, 5-]
+    defaults:
+      run:
+        shell: bash
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-    - name: Build Sketches
-      env:
-        TRAVIS_BUILD_DIR: ${{ github.workspace }}
-        TRAVIS_TAG: ${{ github.ref }}
-        BUILD_TYPE: build_esp32
-        BUILD_MOD: 5
-        BUILD_REM: ${{ matrix.chunk }}
+    - name: Install Arduino-CLI, ESP32 core, this library
       run: |
-        bash ./tests/common.sh
+        wget --quiet https://downloads.arduino.cc/arduino-cli/nightly/arduino-cli_nightly-latest_Linux_64bit.tar.gz
+        tar xf arduino-cli_nightly-latest_Linux_64bit.tar.gz
+        ./arduino-cli config init
+        ./arduino-cli config add board_manager.additional_urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+        ./arduino-cli config set library.enable_unsafe_install true
+        ./arduino-cli core update-index
+        ./arduino-cli core install esp32:esp32
+        mkdir -p ~/Arduino/libraries
+        cp -a /home/runner/work/ESP8266Audio/ESP8266Audio ~/Arduino/libraries/.
+    - name: Build examples ESP32C6
+      run: |
+        ./tests/build-ci.sh esp32c6 ${{matrix.shift}} "esp32:esp32:esp32c6:PartitionScheme=huge_app"
 
 # Run host test suite under valgrind for runtime checking of code.
   host-tests:
     name: Host tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
     - name: Run host tests
@@ -84,29 +124,37 @@ jobs:
         valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./mp3
         valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./aac
         valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./wav
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./flac
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./mod
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./wav
         valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./midi
+        valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all --error-exitcode=999 ./opus
 
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: arduino/arduino-lint-action@v1
+      - uses: actions/checkout@v4
+      - uses: arduino/arduino-lint-action@v2
         with:
           library-manager: 'update'
 
-# Validate orthography
+# Style and spelling
   code-spell:
-    name: Check spelling
+    name: Spelling, Style
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
     - name: Run codespell
       uses: codespell-project/actions-codespell@master
       with:
-        skip: ./src/libmad,./src/libhelix-aac,./src/libopus
+        skip: ./src/libmad,./src/libhelix-aac,./src/libopus,./src/libflac
         ignore_words_list: ESP8266,esp8266,esp,dout,DOUT,ser,ans,inout,numer,hist
+    - name: Run astyle on all code/examples
+      run: |
+        sudo apt update
+        sudo apt install astyle
+        ./tests/restyle.sh
+        # If anything changed, GIT should return an error and fail the test
+        git diff --exit-code

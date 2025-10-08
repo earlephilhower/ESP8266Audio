@@ -1,28 +1,28 @@
 /*
-  AudioGeneratorMIDI
-  Audio output generator that plays MIDI files using a SF2 SoundFont
-    
-  Copyright (C) 2017  Earle F. Philhower, III
+    AudioGeneratorMIDI
+    Audio output generator that plays MIDI files using a SF2 SoundFont
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
+    Copyright (C) 2017  Earle F. Philhower, III
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef _AUDIOGENERATORMIDI_H
 #define _AUDIOGENERATORMIDI_H
 
-#if __GNUC__ == 8
-// Do not build, GCC8 has a compiler bug
+#if defined(ESP32) && (__GNUC__ >= 8) && (__XTENSA__)
+// Do not build, Espressif's GCC8+ has a compiler bug
 #else // __GNUC__ == 8
 
 #include "AudioGenerator.h"
@@ -30,28 +30,36 @@
 #define TSF_NO_STDIO
 #include "libtinysoundfont/tsf.h"
 
-class AudioGeneratorMIDI : public AudioGenerator
-{
-  public:
-    AudioGeneratorMIDI() { freq=44100; running = false; };
+class AudioGeneratorMIDI : public AudioGenerator {
+public:
+    AudioGeneratorMIDI() {
+        freq = 44100;
+        running = false;
+    };
     virtual ~AudioGeneratorMIDI() override {};
     bool SetSoundfont(AudioFileSource *newsf2) {
-      if (isRunning()) return false;
-      sf2 = newsf2;
-      MakeStreamFromAFS(sf2, &afsSF2);
-      return true;
+        if (isRunning()) {
+            return false;
+        }
+        sf2 = newsf2;
+        MakeStreamFromAFS(sf2, &afsSF2);
+        return true;
     }
     bool SetSampleRate(int newfreq) {
-      if (isRunning()) return false;
-      freq = newfreq;
-      return true;
+        if (isRunning()) {
+            return false;
+        }
+        freq = newfreq;
+        return true;
     }
     virtual bool begin(AudioFileSource *mid, AudioOutput *output) override;
     virtual bool loop() override;
     virtual bool stop() override;
-    virtual bool isRunning() override { return running; };
+    virtual bool isRunning() override {
+        return running;
+    };
 
-  private:
+private:
     int freq;
     tsf *g_tsf;
     struct tsf_stream buffer;
@@ -60,18 +68,18 @@ class AudioGeneratorMIDI : public AudioGenerator
     AudioFileSource *sf2;
     AudioFileSource *midi;
 
-  protected:
+protected:
     struct midi_header {
-      int8_t MThd[4];
-      uint32_t header_size;
-      uint16_t format_type;
-      uint16_t number_of_tracks;
-      uint16_t time_division;
+        int8_t MThd[4];
+        uint32_t header_size;
+        uint16_t format_type;
+        uint16_t number_of_tracks;
+        uint16_t time_division;
     };
 
     struct track_header {
-      int8_t MTrk[4];
-      uint32_t track_size;
+        int8_t MTrk[4];
+        uint32_t track_size;
     };
 
     enum { MAX_TONEGENS = 32,         /* max tone generators: tones we can play simultaneously */
@@ -94,24 +102,27 @@ class AudioGeneratorMIDI : public AudioGenerator
     unsigned long earliest_time = 0;
 
     struct tonegen_status {         /* current status of a tone generator */
-      bool playing;                /* is it playing? */
-      char track;                   /* if so, which track is the note from? */
-      char note;                    /* what note is playing? */
-      char instrument;              /* what instrument? */
+        bool playing;                 /* is it playing? */
+        char track;                   /* if so, which track is the note from? */
+        char note;                    /* what note is playing? */
+        char instrument;              /* what instrument? */
+        int playIndex;                /* is index provided?
+                                       Unique identifier generated when note starts playing.
+                                       This help us to turn the note off faster */
     } tonegen[MAX_TONEGENS];
 
     struct track_status {           /* current processing point of a MIDI track */
-      int trkptr;                  /* ptr to the next note change */
-      int trkend;                  /* ptr past the end of the track */
-      unsigned long time;          /* what time we're at in the score */
-      unsigned long tempo;         /* the tempo last set, in usec per qnote */
-      unsigned int preferred_tonegen;      /* for strategy2, try to use this generator */
-      unsigned char cmd;           /* CMD_xxxx next to do */
-      unsigned char note;          /* for which note */
-      unsigned char chan;          /* from which channel it was */
-      unsigned char velocity;      /* the current volume */
-      unsigned char last_event;    /* the last event, for MIDI's "running status" */
-      bool tonegens[MAX_TONEGENS]; /* which tone generators our notes are playing on */
+        int trkptr;                  /* ptr to the next note change */
+        int trkend;                  /* ptr past the end of the track */
+        unsigned long time;          /* what time we're at in the score */
+        unsigned long tempo;         /* the tempo last set, in usec per qnote */
+        unsigned int preferred_tonegen;      /* for strategy2, try to use this generator */
+        unsigned char cmd;           /* CMD_xxxx next to do */
+        unsigned char note;          /* for which note */
+        unsigned char chan;          /* from which channel it was */
+        unsigned char velocity;      /* the current volume */
+        unsigned char last_event;    /* the last event, for MIDI's "running status" */
+        bool tonegens[MAX_TONEGENS]; /* which tone generators our notes are playing on */
     } track[MAX_TRACKS];
 
     int midi_chan_instrument[16];   /* which instrument is currently being played on each channel */
@@ -129,37 +140,38 @@ class AudioGeneratorMIDI : public AudioGenerator
 
 
     /* portable string length */
-    int strlength (const char *str) {
-      int i;
-      for (i = 0; str[i] != '\0'; ++i);
-      return i;
+    int strlength(const char *str) {
+        int i;
+        for (i = 0; str[i] != '\0'; ++i);
+        return i;
     }
 
 
     /* match a constant character sequence */
 
-    int charcmp (const char *buf, const char *match) {
-      int len, i;
-      len = strlength (match);
-      for (i = 0; i < len; ++i)
-        if (buf[i] != match[i])
-          return 0;
-      return 1;
+    int charcmp(const char *buf, const char *match) {
+        int len, i;
+        len = strlength(match);
+        for (i = 0; i < len; ++i)
+            if (buf[i] != match[i]) {
+                return 0;
+            }
+        return 1;
     }
 
-    unsigned char buffer_byte (int offset);
-    unsigned short buffer_short (int offset);
-    unsigned int buffer_int32 (int offset);
+    unsigned char buffer_byte(int offset);
+    unsigned short buffer_short(int offset);
+    unsigned int buffer_int32(int offset);
 
-    void midi_error (const char *msg, int curpos);
-    void chk_bufdata (int ptr, unsigned long int len);
-    uint16_t rev_short (uint16_t val);
-    uint32_t rev_long (uint32_t val);
-    void process_header (void);
-    void start_track (int tracknum);
+    void midi_error(const char *msg, int curpos);
+    void chk_bufdata(int ptr, unsigned long int len);
+    uint16_t rev_short(uint16_t val);
+    uint32_t rev_long(uint32_t val);
+    void process_header(void);
+    void start_track(int tracknum);
 
-    unsigned long get_varlen (int *ptr);
-    void find_note (int tracknum);
+    unsigned long get_varlen(int *ptr);
+    void find_note(int tracknum);
     void PrepareMIDI(AudioFileSource *src);
     int PlayMIDI();
     void StopMIDI();

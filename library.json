@@ -12,15 +12,15 @@
     ],
     "repository": {
         "type": "git",
-         "url": "https://github.com/earlephilhower/ESP8266Audio"
+        "url": "https://github.com/earlephilhower/ESP8266Audio"
     },
-    "version": "1.9.6",
+    "version": "2.0.0",
     "homepage": "https://github.com/earlephilhower/ESP8266Audio",
     "frameworks": "Arduino",
     "examples": [
         "examples/*/*.ino"
     ],
-	"build": {
-		"libLDFMode": "deep"
-	}
+    "build": {
+        "libLDFMode": "deep"
+    }
 }
