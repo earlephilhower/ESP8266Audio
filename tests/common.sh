@@ -101,7 +101,9 @@ EOL
     echo $(( 1 - $? ))
 }
 
-
+function skip_sketch()
+{
+}
 
 if [ "$BUILD_MOD" == "" ]; then
     export BUILD_MOD=1
