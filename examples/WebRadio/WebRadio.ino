@@ -126,13 +126,13 @@ Change URL: <input type="text" name="url">
 </body>)KEWL";
 
 void HandleIndex(WiFiClient *client) {
-  char buff[std::max(sizeof(BODY) + sizeof(title) + sizeof(status) + sizeof(url) + 3 * 2, sizeof(BODY))];
+  char buff[std::max(sizeof(BODY) + sizeof(title) + sizeof(status) + sizeof(url) + 3 * 2, sizeof(HEAD))];
 
   Serial.printf_P(PSTR("Sending INDEX...Free mem=%d\n"), MOBO.getFreeHeap());
   WebHeaders(client, NULL);
   WebPrintf(client, DOCTYPE);
   client->write("<html>", 6);
-  sprintf_P(buff, "%s", HEAD);
+  strcpy_P(buff, HEAD);
   client->write(buff, strlen(buff));
   sprintf_P(buff, BODY, title, volume, volume, status, url);
   client->write(buff, strlen(buff));

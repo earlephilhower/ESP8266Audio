@@ -101,8 +101,20 @@ EOL
     echo $(( 1 - $? ))
 }
 
+# ESP8266 CI infra
 function skip_sketch()
 {
+    local sketch=$1
+    local sketchname=$2
+    local sketchdir=$3
+    local sketchdirname=$4
+
+    if [[ "${sketchdirname}.ino" != "$sketchname" ]]; then
+        echo "Skipping $sketch (not the main sketch file)"
+    fi
+    if skip_ino "$sketch" || [[ -f "$sketchdir/.test.skip" ]]; then
+        echo "Skipping $sketch"
+    fi
 }
 
 if [ "$BUILD_MOD" == "" ]; then

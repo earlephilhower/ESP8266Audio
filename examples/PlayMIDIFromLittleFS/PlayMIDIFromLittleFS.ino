@@ -1,3 +1,8 @@
+#if (defined(ESP32) && (__GNUC__ >= 8) && (__XTENSA__))
+// GCC compiler bug for the Xtensa ESP32s, no MIDI for you. :(
+void setup() {}
+void loop() {}
+#else
 #include <Arduino.h>
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
@@ -44,3 +49,5 @@ void loop() {
     delay(1000);
   }
 }
+
+#endif
