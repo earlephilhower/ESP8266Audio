@@ -55,7 +55,7 @@ bool AudioOutputMixerStub::ConsumeSample(int16_t sample[2])
     int16_t amp[2];
     amp[LEFTCHANNEL] = Amplify(sample[LEFTCHANNEL]);
     amp[RIGHTCHANNEL] = Amplify(sample[RIGHTCHANNEL]);
-    parent->SetRate(myHz);
+    parent->SetRate(myHz, id);
     return parent->ConsumeSample(amp, id);
 }
 
