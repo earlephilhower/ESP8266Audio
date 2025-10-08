@@ -12,4 +12,5 @@ Then tag it
     git tag X.Y.Z
     git push origin X.Y.Z
 
-Then on the GH web interface make a new release from that tag.
+Then on the GH web interface it will generate a draft release from that tag
+that can be released if proper through the GUI.
