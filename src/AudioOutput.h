@@ -41,11 +41,12 @@ public:
         return true;
     }
     virtual bool SetGain(float f) {
-        if (f > 4.0) {
-            f = 4.0;
-        } if (f < 0.0) {
-            f = 0.0;
-        } gainF2P6 = (uint8_t)(f * (1 << 6));
+        if (f > 4.0f) {
+            f = 4.0f;
+        } else if (f < 0.0f) {
+            f = 0.0f;
+        }
+        gainF2P6 = (uint8_t)(f * (1 << 6));
         return true;
     }
     virtual bool begin() {
