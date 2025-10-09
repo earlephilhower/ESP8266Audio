@@ -39,10 +39,12 @@ bool AudioOutputMixerStub::SetRate(int hz) {
 }
 
 bool AudioOutputMixerStub::SetBitsPerSample(int bits) {
-    return parent->SetBitsPerSample(bits, id);
+    this->bps = bits;
+    return parent->SetBitsPerSample(16, id); // We're always going to produce 16b samples for sanity's sake
 }
 
 bool AudioOutputMixerStub::SetChannels(int channels) {
+    this->channels = channels;
     return parent->SetChannels(channels, id);
 }
 
@@ -52,13 +54,18 @@ bool AudioOutputMixerStub::begin() {
 
 bool AudioOutputMixerStub::ConsumeSample(int16_t sample[2]) {
     int16_t amp[2];
-    amp[LEFTCHANNEL] = Amplify(sample[LEFTCHANNEL]);
-    amp[RIGHTCHANNEL] = Amplify(sample[RIGHTCHANNEL]);
+    int16_t ms[2];
+
+    ms[0] = sample[0];
+    ms[1] = sample[1];
+    MakeSampleStereo16(ms);
+    ms[LEFTCHANNEL] = Amplify(ms[LEFTCHANNEL]);
+    ms[RIGHTCHANNEL] = Amplify(ms[RIGHTCHANNEL]);
     if (newHz != lastHz) { // Avoid setting on each sample unless things change
         parent->SetRate(newHz, id);
         lastHz = newHz;
     }
-    return parent->ConsumeSample(amp, id);
+    return parent->ConsumeSample(ms, id);
 }
 
 bool AudioOutputMixerStub::stop() {
