@@ -1,21 +1,21 @@
 /*
-  AudioGeneratorMP3
-  Audio output generator using the Helix MP3 decoder
-  
-  Copyright (C) 2017  Earle F. Philhower, III
+    AudioGeneratorMP3
+    Audio output generator using the Helix MP3 decoder
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
+    Copyright (C) 2017  Earle F. Philhower, III
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef _AUDIOGENERATORMP3A_H
@@ -24,9 +24,8 @@
 #include "AudioGenerator.h"
 #include "libhelix-mp3/mp3dec.h"
 
-class AudioGeneratorMP3a : public AudioGenerator
-{
-  public:
+class AudioGeneratorMP3a : public AudioGenerator {
+public:
     AudioGeneratorMP3a();
     virtual ~AudioGeneratorMP3a() override;
     virtual bool begin(AudioFileSource *source, AudioOutput *output) override;
@@ -34,7 +33,7 @@ class AudioGeneratorMP3a : public AudioGenerator
     virtual bool stop() override;
     virtual bool isRunning() override;
 
-  protected:
+protected:
     // Helix MP3 decoder
     HMP3Decoder hMP3Decoder;
 

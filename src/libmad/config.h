@@ -5,7 +5,7 @@
 /* #undef DEBUG */
 
 // Uncomment to show heap and stack space on entry
-#define stack(a,b,c)
+#define stackenter(a,b,c)
 
 // Helper function to see if we can allocate one chunk on the stack
 # ifdef __cplusplus
@@ -96,8 +96,8 @@ extern int stackfree();
 /* Define to enable a fast subband synthesis approximation optimization. */
 #define OPT_SSO 1
 
-/* Define to influence a strict interpretation of the ISO/IEC standards, even
-   if this is in opposition with best accepted practices. */
+/*  Define to influence a strict interpretation of the ISO/IEC standards, even
+    if this is in opposition with best accepted practices. */
 #undef OPT_STRICT
 
 /* Name of package */
@@ -133,15 +133,15 @@ extern int stackfree();
 /* Version number of package */
 #define VERSION "0.15.1b-esp8266"
 
-/* Define to 1 if your processor stores words with the most significant byte
-   first (like Motorola and SPARC, unlike Intel and VAX). */
+/*  Define to 1 if your processor stores words with the most significant byte
+    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
 
-/* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
+/*  Define to `__inline__' or `__inline' if that's what the C compiler
+    calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus
 /* #undef inline */
 #endif

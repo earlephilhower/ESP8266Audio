@@ -4,10 +4,10 @@ void setup() {}
 void loop() {}
 #else
 #ifdef ESP32
-    #include <WiFi.h>
-    #include "SPIFFS.h"
+#include <WiFi.h>
+#include "SPIFFS.h"
 #else
-    #include <ESP8266WiFi.h>
+#include <ESP8266WiFi.h>
 #endif
 #include "AudioFileSourceSPIFFS.h"
 #include "AudioGeneratorOpus.h"
@@ -19,9 +19,8 @@ AudioGeneratorOpus *opus;
 AudioFileSourceSPIFFS *file;
 AudioOutputI2S *out;
 
-void setup()
-{
-  WiFi.mode(WIFI_OFF); 
+void setup() {
+  WiFi.mode(WIFI_OFF);
   Serial.begin(115200);
   delay(1000);
   SPIFFS.begin();
@@ -34,10 +33,11 @@ void setup()
   opus->begin(file, out);
 }
 
-void loop()
-{
+void loop() {
   if (opus->isRunning()) {
-    if (!opus->loop()) opus->stop();
+    if (!opus->loop()) {
+      opus->stop();
+    }
   } else {
     Serial.printf("Opus done\n");
     delay(1000);

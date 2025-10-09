@@ -9,25 +9,24 @@ AudioOutputI2S *out;
 AudioFileSourcePROGMEM *file;
 AudioGeneratorFLAC *flac;
 
-void setup()
-{
+void setup() {
   Serial.begin(115200);
   Serial.println("Starting up...\n");
 
   audioLogger = &Serial;
-  file = new AudioFileSourcePROGMEM( sample_flac, sizeof(sample_flac) );
+  file = new AudioFileSourcePROGMEM(sample_flac, sizeof(sample_flac));
   out = new AudioOutputI2S();
   flac = new AudioGeneratorFLAC();
   flac->begin(file, out);
 }
 
-void loop()
-{
+void loop() {
   if (flac->isRunning()) {
-    if (!flac->loop()) flac->stop();
+    if (!flac->loop()) {
+      flac->stop();
+    }
   } else {
     Serial.printf("FLAC done\n");
     delay(1000);
   }
 }
-

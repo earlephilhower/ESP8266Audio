@@ -1,43 +1,41 @@
 /*
-  AudioFileSourceHTTPStream
-  Connect to a HTTP based streaming service
-  
-  Copyright (C) 2017  Earle F. Philhower, III
+    AudioFileSourceHTTPStream
+    Connect to a HTTP based streaming service
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
+    Copyright (C) 2017  Earle F. Philhower, III
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined(ESP32) || defined(ESP8266)
 #pragma once
 
 #include <Arduino.h>
-#ifdef ESP32
-  #include <HTTPClient.h>
+#ifdef ESP8266
+#include <ESP8266HTTPClient.h>
 #else
-  #include <ESP8266HTTPClient.h>
+#include <HTTPClient.h>
 #endif
 #include "AudioFileSource.h"
 
-class AudioFileSourceHTTPStream : public AudioFileSource
-{
-  friend class AudioFileSourceICYStream;
+class AudioFileSourceHTTPStream : public AudioFileSource {
+    friend class AudioFileSourceICYStream;
 
-  public:
+public:
     AudioFileSourceHTTPStream();
     AudioFileSourceHTTPStream(const char *url);
     virtual ~AudioFileSourceHTTPStream() override;
-    
+
     virtual bool open(const char *url) override;
     virtual uint32_t read(void *data, uint32_t len) override;
     virtual uint32_t readNonBlock(void *data, uint32_t len) override;
@@ -46,12 +44,18 @@ class AudioFileSourceHTTPStream : public AudioFileSource
     virtual bool isOpen() override;
     virtual uint32_t getSize() override;
     virtual uint32_t getPos() override;
-    bool SetReconnect(int tries, int delayms) { reconnectTries = tries; reconnectDelayMs = delayms; return true; }
-    void useHTTP10 () { http.useHTTP10(true); }
+    bool SetReconnect(int tries, int delayms) {
+        reconnectTries = tries;
+        reconnectDelayMs = delayms;
+        return true;
+    }
+    void useHTTP10() {
+        http.useHTTP10(true);
+    }
 
-    enum { STATUS_HTTPFAIL=2, STATUS_DISCONNECTED, STATUS_RECONNECTING, STATUS_RECONNECTED, STATUS_NODATA };
+    enum { STATUS_HTTPFAIL = 2, STATUS_DISCONNECTED, STATUS_RECONNECTING, STATUS_RECONNECTED, STATUS_NODATA };
 
-  private:
+private:
     virtual uint32_t readInternal(void *data, uint32_t len, bool nonBlock);
 #if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION_MAJOR >= 3
     NetworkClient client;
@@ -65,7 +69,3 @@ class AudioFileSourceHTTPStream : public AudioFileSource
     int reconnectDelayMs;
     char saveURL[128];
 };
-
-
-#endif
-
