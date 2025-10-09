@@ -5,7 +5,7 @@
 /* #undef DEBUG */
 
 // Uncomment to show heap and stack space on entry
-#define stack(a,b,c)
+#define stackenter(a,b,c)
 
 // Helper function to see if we can allocate one chunk on the stack
 # ifdef __cplusplus

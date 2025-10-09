@@ -36,7 +36,7 @@
     DESCRIPTION:	initialize stream struct
 */
 void mad_stream_init(struct mad_stream *stream) {
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     stream->buffer     = 0;
     stream->bufend     = 0;
     stream->skiplen    = 0;
@@ -62,7 +62,7 @@ void mad_stream_init(struct mad_stream *stream) {
     DESCRIPTION:	deallocate any dynamic memory associated with stream
 */
 void mad_stream_finish(struct mad_stream *stream) {
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     (void) stream;
 
     mad_bit_finish(&stream->anc_ptr);
@@ -75,7 +75,7 @@ void mad_stream_finish(struct mad_stream *stream) {
 */
 void mad_stream_buffer(struct mad_stream *stream,
                        unsigned char const *buffer, unsigned long length) {
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     stream->buffer = buffer;
     stream->bufend = buffer + length;
 
@@ -92,7 +92,7 @@ void mad_stream_buffer(struct mad_stream *stream,
     DESCRIPTION:	arrange to skip bytes before the next frame
 */
 void mad_stream_skip(struct mad_stream *stream, unsigned long length) {
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     stream->skiplen += length;
 }
 
@@ -102,7 +102,7 @@ void mad_stream_skip(struct mad_stream *stream, unsigned long length) {
 */
 int mad_stream_sync(struct mad_stream *stream) {
     register unsigned char const *ptr, *end;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     ptr = mad_bit_nextbyte(&stream->ptr);
     end = stream->bufend;
@@ -126,7 +126,7 @@ int mad_stream_sync(struct mad_stream *stream) {
     DESCRIPTION:	return a string description of the current error condition
 */
 char const *mad_stream_errorstr(struct mad_stream const *stream) {
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     switch (stream->error) {
     case MAD_ERROR_NONE:		 return PSTR("no error");
 

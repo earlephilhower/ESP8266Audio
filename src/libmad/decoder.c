@@ -326,7 +326,7 @@ int run_sync(struct mad_decoder *decoder) {
     struct mad_frame *frame;
     struct mad_synth *synth;
     int result = 0;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     if (decoder->input_func == 0) {
         return 0;

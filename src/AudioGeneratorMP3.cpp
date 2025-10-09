@@ -394,11 +394,11 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output) {
 // and to determine if there's enough stack space to allocate some blocks there
 // instead of precious heap.
 
-#undef stack
+#undef stackenter
 extern "C" {
 #ifdef ESP32
     //TODO - add ESP32 checks
-    void stack(const char *s, const char *t, int i) {
+    void stackenter(const char *s, const char *t, int i) {
     }
     int stackfree() {
         return 8192;
@@ -407,7 +407,7 @@ extern "C" {
 #include <cont.h>
     extern cont_t g_cont;
 
-    void stack(const char *s, const char *t, int i) {
+    void stackenter(const char *s, const char *t, int i) {
         (void) t;
         (void) i;
         register uint32_t *sp asm("a1");
@@ -436,7 +436,7 @@ extern "C" {
         return freestack;
     }
 #else
-    void stack(const char *s, const char *t, int i) {
+    void stackenter(const char *s, const char *t, int i) {
         (void) s;
         (void) t;
         (void) i;
