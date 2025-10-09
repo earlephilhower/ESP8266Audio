@@ -240,6 +240,13 @@ If you've built the amp but are not getting any sound, @msmcmickey wrote up a ve
 2. If connected properly, do you have ~5 volts between the collector and emitter?
 3.  Was the transistor possibly damaged/overheated during soldering, or by connecting it improperly? Out-of-circuit diode check voltage drop test using a multimeter from base->emitter and base->collector should be between .5 and .7 volts. If it's shorted or open or conducting in both directions, then replace it and make sure it's connected properly.
 
+### User-Submitted Improvements for 1-Bit Output Modes (Sigma-Delta I2S, PDM)
+
+To improve the quality of the output, a 20kHZ low pass filter (LPF) was suggested by @kimstik
+![LPF Schematic](images/lpf.png)
+
+@MarianoSys provided a small amplification circuit that minimizes power draw when idle and provides some visual feedback, described in his [PDF](images/PWM%20audio%20amplifier%20with%20only%201%20transistor,%20power=0%20when%20RX%20signal%20is%20idle%20(high).pdf)
+
 ## SPDIF optical output 
 The proper way would be using optical TOSLINK transmitter (i.e. TOTXxxx). For testing, you can try with ~660nm red LED and resistor. Same as your basic Blink project with external LED, just that the LED will blink a bit faster. 
 ```
