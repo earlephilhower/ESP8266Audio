@@ -98,7 +98,7 @@ void mad_header_init(struct mad_header *header) {
     DESCRIPTION:	initialize frame struct
 */
 void mad_frame_init(struct mad_frame *frame) {
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     mad_header_init(&frame->header);
 
     frame->options = 0;

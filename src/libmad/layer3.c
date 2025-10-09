@@ -537,7 +537,7 @@ enum mad_error III_sideinfo(struct mad_bitptr *ptr, unsigned int nch,
                             unsigned int *priv_bitlen) {
     unsigned int ngr, gr, ch, i;
     enum mad_error result = MAD_ERROR_NONE;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     *data_bitlen = 0;
     *priv_bitlen = lsf ? ((nch == 1) ? 1 : 2) : ((nch == 1) ? 5 : 3);
@@ -635,7 +635,7 @@ unsigned int III_scalefactors_lsf(struct mad_bitptr *ptr,
     struct mad_bitptr start;
     unsigned int scalefac_compress, index, slen[4], part, n, i;
     unsigned int const *nsfb;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     start = *ptr;
 
@@ -745,7 +745,7 @@ unsigned int III_scalefactors(struct mad_bitptr *ptr, struct channel *channel,
                               struct channel const *gr0ch, unsigned int scfsi) {
     struct mad_bitptr start;
     unsigned int slen1, slen2, sfbi;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     start = *ptr;
 
@@ -849,7 +849,7 @@ void III_exponents(struct channel const *channel,
                    unsigned int const *sfbwidth, signed int exponents[39]) {
     signed int gain;
     unsigned int scalefac_multiplier, sfbi;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     gain = (signed int) channel->global_gain - 210;
     scalefac_multiplier = (channel->flags & scalefac_scale) ? 2 : 1;
@@ -919,7 +919,7 @@ mad_fixed_t III_requantize(unsigned int value, signed int exp) {
     signed int frac;
     struct fixedfloat power;
 
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     frac = exp % 4;  /* assumes sign(frac) == sign(exp) */
     exp /= 4;
 
@@ -979,7 +979,7 @@ enum mad_error III_huffdecode(struct mad_bitptr *ptr, mad_fixed_t xr[576],
     mad_fixed_t const *sfbound;
     register unsigned long bitcache;
 
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     bits_left = (signed) channel->part2_3_length - (signed) part2_length;
     if (bits_left < 0) {
         return MAD_ERROR_BADPART3LEN;
@@ -1334,7 +1334,7 @@ enum mad_error III_reorder(mad_fixed_t xr[576], struct channel const *channel,
     //    if (!tmp) return MAD_ERROR_NOMEM;
     //  }
 
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     /* this is probably wrong for 8000 Hz mixed blocks */
 
@@ -1388,7 +1388,7 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
                           unsigned int const *sfbwidth) {
     short modes[39];
     unsigned int sfbi, l, n, i;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     if (granule->ch[0].block_type !=
             granule->ch[1].block_type ||
@@ -1605,7 +1605,7 @@ static
 void III_aliasreduce(mad_fixed_t xr[576], int lines) {
     mad_fixed_t const *bound;
     int i;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     bound = &xr[lines];
     for (xr += 18; xr < bound; xr += 18) {
@@ -1711,7 +1711,7 @@ static inline
 void sdctII(mad_fixed_t const x[18], mad_fixed_t X[18]) {
     mad_fixed_t tmp[9];
     int i;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     /* scale[i] = 2 * cos(PI * (2 * i + 1) / (2 * 18)) */
     static mad_fixed_t const scale[9] PROGMEM = {
@@ -1760,7 +1760,7 @@ static inline
 void dctIV(mad_fixed_t const y[18], mad_fixed_t X[18]) {
     mad_fixed_t tmp[18];
     int i;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     /* scale[i] = 2 * cos(PI * (2 * i + 1) / (4 * 18)) */
     static mad_fixed_t const scale[18] PROGMEM = {
@@ -1805,7 +1805,7 @@ static inline
 void imdct36(mad_fixed_t const x[18], mad_fixed_t y[36]) {
     mad_fixed_t tmp[18];
     int i;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     /* DCT-IV */
 
@@ -2129,7 +2129,7 @@ static
 void III_imdct_l(mad_fixed_t const X[18], mad_fixed_t z[36],
                  unsigned int block_type) {
     unsigned int i;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     /* IMDCT */
 
@@ -2232,7 +2232,7 @@ void III_imdct_s(mad_fixed_t const X[18], mad_fixed_t z[36]) {
     // MAD_F_MLA may produce non-32b aligned reads, so copy from progmem to stack and work from there...
     mad_fixed_t imdct_s_lcl[6][6];
     memcpy_P(imdct_s_lcl, imdct_s, sizeof(imdct_s));
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     /* IMDCT */
 
@@ -2308,7 +2308,7 @@ static
 void III_overlap(mad_fixed_t const output[36], mad_fixed_t overlap[18],
                  mad_fixed_t sample[18][32], unsigned int sb) {
     unsigned int i;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
 # if defined(ASO_INTERLEAVE2)
     {
@@ -2394,7 +2394,7 @@ void III_overlap_z(mad_fixed_t overlap[18],
 static
 void III_freqinver(mad_fixed_t sample[18][32], unsigned int sb) {
     unsigned int i;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
 # if 1 || defined(ASO_INTERLEAVE1) || defined(ASO_INTERLEAVE2)
     {
@@ -2439,7 +2439,7 @@ enum mad_error III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
     xr[0] = frame->xr_raw; //xr_raw;
     xr[1] = frame->xr_raw + 576; //xr_raw + 576;
 
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     {
         unsigned int sfreq;
 
@@ -2623,7 +2623,7 @@ int mad_layer_III(struct mad_stream *stream, struct mad_frame *frame) {
     struct sideinfo si;
     enum mad_error error;
     int result = 0;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     nch = MAD_NCHANNELS(header);
     si_len = (header->flags & MAD_FLAG_LSF_EXT) ?
