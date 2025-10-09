@@ -53,7 +53,7 @@ static int16_t scale(mad_fixed_t sample) {
     DESCRIPTION:	initialize synth struct
 */
 void mad_synth_init(struct mad_synth *synth) {
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     mad_synth_mute(synth);
 
     synth->phase = 0;
@@ -69,7 +69,7 @@ void mad_synth_init(struct mad_synth *synth) {
 */
 void mad_synth_mute(struct mad_synth *synth) {
     unsigned int ch, s, v;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     for (ch = 0; ch < 2; ++ch) {
         for (s = 0; s < 16; ++s) {
@@ -164,7 +164,7 @@ void dct32(mad_fixed_t const in[32], unsigned int slot,
     mad_fixed_t t160, t161, t162, t163, t164, t165, t166, t167;
     mad_fixed_t t168, t169, t170, t171, t172, t173, t174, t175;
     mad_fixed_t t176;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     /* costab[i] = cos(PI / (2 * 32) * i) */
 
 # if defined(OPT_DCTO)
@@ -584,7 +584,7 @@ enum mad_flow synth_full(struct mad_synth *synth, struct mad_frame const *frame,
     register mad_fixed_t const(*Dptr)[32], *ptr;
     register mad_fixed64hi_t hi;
     register mad_fixed64lo_t lo;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     for (unsigned int start = startns; start < endns; start ++) {
         for (ch = 0; ch < nch; ++ch) {
@@ -732,7 +732,7 @@ enum mad_flow synth_half(struct mad_synth *synth, struct mad_frame const *frame,
     register mad_fixed_t const(*Dptr)[32], *ptr;
     register mad_fixed64hi_t hi;
     register mad_fixed64lo_t lo;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     for (unsigned int start = startns; start < endns; start ++) {
         for (ch = 0; ch < nch; ++ch) {
             sbsample = &frame->sbsample[ch];

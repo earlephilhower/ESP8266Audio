@@ -86,7 +86,7 @@ static const unsigned int crc_table[256] PROGMEM = {
     DESCRIPTION:	initialize bit pointer struct
 */
 void mad_bit_init(struct mad_bitptr *bitptr, unsigned char const *byte) {
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     bitptr->byte  = byte;
     bitptr->cache = 0;
     bitptr->left  = CHAR_BIT;
@@ -98,7 +98,7 @@ void mad_bit_init(struct mad_bitptr *bitptr, unsigned char const *byte) {
 */
 unsigned int mad_bit_length(struct mad_bitptr const *begin,
                             struct mad_bitptr const *end) {
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     return begin->left +
            CHAR_BIT * (end->byte - (begin->byte + 1)) + (CHAR_BIT - end->left);
 }
@@ -108,7 +108,7 @@ unsigned int mad_bit_length(struct mad_bitptr const *begin,
     DESCRIPTION:	return pointer to next unprocessed byte
 */
 unsigned char const *mad_bit_nextbyte(struct mad_bitptr const *bitptr) {
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     return bitptr->left == CHAR_BIT ? bitptr->byte : bitptr->byte + 1;
 }
 
@@ -117,7 +117,7 @@ unsigned char const *mad_bit_nextbyte(struct mad_bitptr const *bitptr) {
     DESCRIPTION:	advance bit pointer
 */
 void mad_bit_skip(struct mad_bitptr *bitptr, unsigned int len) {
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
     bitptr->byte += len / CHAR_BIT;
     bitptr->left -= len % CHAR_BIT;
 
@@ -183,7 +183,7 @@ unsigned long mad_bit_read(struct mad_bitptr *bitptr, unsigned int len) {
 void mad_bit_write(struct mad_bitptr *bitptr, unsigned int len,
                    unsigned long value) {
     unsigned char *ptr;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     ptr = (unsigned char *) bitptr->byte;
 
@@ -198,7 +198,7 @@ void mad_bit_write(struct mad_bitptr *bitptr, unsigned int len,
 unsigned short mad_bit_crc(struct mad_bitptr bitptr, unsigned int len,
                            unsigned short init) {
     unsigned int crc;
-    stack(__FUNCTION__, __FILE__, __LINE__);
+    stackenter(__FUNCTION__, __FILE__, __LINE__);
 
     for (crc = init; len >= 32; len -= 32) {
         unsigned long data;
