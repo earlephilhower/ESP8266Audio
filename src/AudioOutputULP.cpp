@@ -174,26 +174,26 @@ bool AudioOutputULP::begin() {
         }
         break;
     case 3:
-        for(int i = 0; i < 256; i++) {
+        for (int i = 0; i < 256; i++) {
             RTC_SLOW_MEM[dacTableStart1 + i * 2] = create_I_WR_REG(RTC_IO_PAD_DAC1_REG, 19, 26, i); //dac1: 0x1D4C0121 | (i << 10)
             RTC_SLOW_MEM[dacTableStart1 + 1 + i * 2] = create_I_BXI(retAddress1); // 0x80000000 + retAddress1 * 4
             RTC_SLOW_MEM[dacTableStart2 + i * 2] = create_I_WR_REG(RTC_IO_PAD_DAC2_REG, 19, 26, i); //dac2: 0x1D4C0122 | (i << 10)
             RTC_SLOW_MEM[dacTableStart2 + 1 + i * 2] = create_I_BXI(retAddress2); // 0x80000000 + retAddress2 * 4
-          }
-          break;
+        }
+        break;
     }
 
     //set all samples to 128 (silence)
     for (int i = 0; i < totalSampleWords; i++) {
         RTC_SLOW_MEM[bufferStart + i] = 0x8080;
     }
-  
+
     //start
     RTC_SLOW_MEM[indexAddress] = 0;
     ulp_run(0);
 
     //wait until ULP starts using samples and the index of output sample advances
-    while(RTC_SLOW_MEM[indexAddress] == 0) {
+    while (RTC_SLOW_MEM[indexAddress] == 0) {
         delay(1);
     }
 
