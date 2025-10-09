@@ -44,7 +44,7 @@ jobs:
         cp -a /home/runner/work/ESP8266Audio/ESP8266Audio ~/Arduino/libraries/.
     - name: Build examples RP2040
       run: |
-        ./tests/build-ci.sh rp2040 ${{matrix.shift}} "rp2040:rp2040:rpipicow:flash=2097152_262144,freq=200,opt=Small,os=none,profile=Disabled,rtti=Disabled,stackprotect=Disabled,exceptions=Disabled,dbgport=Disabled,dbglvl=None,usbstack=picosdk,wificountry=worldwide,ipbtstack=ipv4only,uploadmethod=default"
+        ./tests/build-ci.sh rp2040 ${{matrix.shift}} "rp2040:rp2040:rpipicow:flash=2097152_262144,freq=200,opt=Small,os=none,profile=Disabled,rtti=Disabled,stackprotect=Disabled,exceptions=Disabled,dbgport=Disabled,dbglvl=None,usbstack=picosdk,wificountry=worldwide,ipbtstack=ipv4only,uploadmethod=default" 1
 
   build-esp8266:
     name: Build all examples on Arduino-ESP8266 latest release
@@ -75,7 +75,7 @@ jobs:
         ./get.py -q
     - name: Build examples ESP8266
       run: |
-        ./tests/build-ci.sh esp8266 ${{matrix.shift}} "esp8266com:esp8266:d1_mini:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,eesz=4M2M,ip=lm2f,dbg=Disabled,lvl=None____,optim=Smallest,wipe=none,baud=921600,iramfloat=no"
+        ./tests/build-ci.sh esp8266 ${{matrix.shift}} "esp8266com:esp8266:d1_mini:xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,eesz=4M2M,ip=lm2f,dbg=Disabled,lvl=None____,optim=Smallest,wipe=none,baud=921600,iramfloat=no" 1
 
   build-esp32:
     name: Build all examples on Arduino-ESP32 latest release
@@ -103,7 +103,8 @@ jobs:
         cp -a /home/runner/work/ESP8266Audio/ESP8266Audio ~/Arduino/libraries/.
     - name: Build examples ESP32C6
       run: |
-        ./tests/build-ci.sh esp32c6 ${{matrix.shift}} "esp32:esp32:esp32c6:PartitionScheme=huge_app"
+        # TODO - Don't use -Werror on ESP32, I2S deprecation warnings
+        ./tests/build-ci.sh esp32c6 ${{matrix.shift}} "esp32:esp32:esp32c6:PartitionScheme=huge_app" 0
 
 # Run host test suite under valgrind for runtime checking of code.
   host-tests:
