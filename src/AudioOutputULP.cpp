@@ -58,6 +58,11 @@ bool AudioOutputULP::begin() {
 
     //calculate the actual ULP clock
     unsigned long rtc_8md256_period = rtc_clk_cal(RTC_CAL_8MD256, 1000);
+    // If that failed, (return 0) then we need to wait for calibration to happen...
+    while (!rtc_8md256_period) {
+        delay(20);  // Don't hog the CPU
+        rtc_8md256_period = rtc_clk_cal(RTC_CAL_8MD256, 1000);
+    }
     unsigned long rtc_fast_freq_hz = 1000000ULL * (1 << RTC_CLK_CAL_FRACT) * 256 / rtc_8md256_period;
 
     //initialize DACs
