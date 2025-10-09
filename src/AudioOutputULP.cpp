@@ -23,6 +23,7 @@
 #include "AudioOutputULP.h"
 #include <esp32/ulp.h>
 #include <driver/rtc_io.h>
+#include <soc/rtc_io_reg.h>
 #include <driver/dac.h>
 #include <soc/rtc.h>
 #include <math.h>
