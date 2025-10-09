@@ -17,7 +17,10 @@ sketches=$(find ~/Arduino/libraries/ESP8266Audio/examples -name "*.ino" | sort |
 while [ $(echo $sketches | wc -w) -gt 0 ]; do
     sketch=$(echo $sketches | cut -f1 -d " ")
     echo "::group::Compiling $(basename $sketch) for $fqbn into $outdir"
-    ./arduino-cli compile -b "$fqbn" -v --warnings all --build-path "$outdir" "$sketch" || exit 255
+    ./arduino-cli compile -b "$fqbn" -v --warnings all \
+        --build-property "compiler.c.extra_flags=-Wall -Wextra -Werror -Wdouble-promotion -Wno-ignored-qualifiers" \
+        --build-property  "compiler.cpp.extra_flags=-Wall -Wextra -Werror -Wdouble-promotion -Wno-ignored-qualifiers -Wno-overloaded-virtual" \
+        --build-path "$outdir" "$sketch" || exit 255
     mv -f "$outdir"/*.elf .
     echo "::endgroup::"
     # Shift out 5
