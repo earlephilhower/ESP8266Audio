@@ -53,7 +53,6 @@ bool AudioOutputMixerStub::begin() {
 }
 
 bool AudioOutputMixerStub::ConsumeSample(int16_t sample[2]) {
-    int16_t amp[2];
     int16_t ms[2];
 
     ms[0] = sample[0];
