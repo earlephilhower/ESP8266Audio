@@ -1,0 +1,3 @@
+[submodule "lib/opus"]
+	path = lib/opus
+	url = https://gitlab.xiph.org/xiph/opus.git

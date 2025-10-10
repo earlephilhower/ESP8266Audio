@@ -3,7 +3,7 @@
 #include "AudioOutputSTDIO.h"
 #include "AudioGeneratorOpus.h"
 
-#define OPUS "../../examples/PlayOpusFromSPIFFS/data/gs-16b-2c-44100hz.opus"
+#define OPUS "../../examples/PlayOpusFromLittleFS/data/gs-16b-2c-44100hz.opus"
 
 int main(int argc, char **argv)
 {

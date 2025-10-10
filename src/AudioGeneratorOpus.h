@@ -2,7 +2,7 @@
     AudioGeneratorOpus
     Audio output generator that plays Opus audio files
 
-    Copyright (C) 2020  Earle F. Philhower, III
+    Copyright (C) 2025  Earle F. Philhower, III
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,8 +22,7 @@
 #define _AUDIOGENERATOROPUS_H
 
 #include <AudioGenerator.h>
-//#include "libopus/opus.h"
-#include "opusfile/opusfile.h"
+#include "libopus/include/opus.h"
 
 class AudioGeneratorOpus : public AudioGenerator {
 public:
@@ -34,35 +33,34 @@ public:
     virtual bool stop() override;
     virtual bool isRunning() override;
 
-protected:
-    // Opus callbacks, need static functions to bounce into C++ from C
-    static int OPUS_read(void *_stream, unsigned char *_ptr, int _nbytes) {
-        return static_cast<AudioGeneratorOpus*>(_stream)->read_cb(_ptr, _nbytes);
-    }
-    static int OPUS_seek(void *_stream, opus_int64 _offset, int _whence) {
-        return static_cast<AudioGeneratorOpus*>(_stream)->seek_cb(_offset, _whence);
-    }
-    static opus_int64 OPUS_tell(void *_stream) {
-        return static_cast<AudioGeneratorOpus*>(_stream)->tell_cb();
-    }
-    static int OPUS_close(void *_stream) {
-        return static_cast<AudioGeneratorOpus*>(_stream)->close_cb();
-    }
-
-    // Actual Opus callbacks
-    int read_cb(unsigned char *_ptr, int _nbytes);
-    int seek_cb(opus_int64 _offset, int _whence);
-    opus_int64 tell_cb();
-    int close_cb();
-
 private:
-    OpusFileCallbacks cb = {OPUS_read, OPUS_seek, OPUS_tell, OPUS_close};
-    OggOpusFile *of;
-    int prev_li; // To detect changes in streams
+    OpusDecoder *od = nullptr;
 
-    int16_t *buff;
+    uint8_t *packet; // Raw compressed, demuxed packet
+    uint32_t packetOff;
+    opus_int16 *buff; // Decoded PCM
     uint32_t buffPtr;
     uint32_t buffLen;
+
+    bool demux();
+    uint8_t hdr[27]; // Page header
+    enum {WaitHeader, WaitSegment, ReadPacket} state;
+    uint8_t type;
+    uint64_t agp;
+    uint32_t ssn;
+    uint32_t psn;
+    uint32_t pcs;
+    uint16_t ps; // packet lacing segments
+    uint16_t readPS;
+    uint8_t seg[256]; // Packet lacing in the current page
+    uint16_t curSeg;
+    uint32_t lacingBytesToRead;
+    void processPacket();
+    // From the OpusHead
+    uint16_t preskip;
+    uint8_t channels;
+    uint32_t samplerate;
+    uint16_t gain;
 };
 
 #endif
