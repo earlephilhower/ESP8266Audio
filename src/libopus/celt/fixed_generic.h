@@ -1,33 +1,33 @@
-/*  Copyright (C) 2007-2009 Xiph.Org Foundation
-    Copyright (C) 2003-2008 Jean-Marc Valin
-    Copyright (C) 2007-2008 CSIRO */
+/* Copyright (C) 2007-2009 Xiph.Org Foundation
+   Copyright (C) 2003-2008 Jean-Marc Valin
+   Copyright (C) 2007-2008 CSIRO */
 /**
-    @file fixed_generic.h
-    @brief Generic fixed-point operations
+   @file fixed_generic.h
+   @brief Generic fixed-point operations
 */
 /*
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions
-    are met:
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
 
-    - Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
+   - Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
 
-    - Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
+   - Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
 
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
-    OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-    EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-    PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-    PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #ifndef FIXED_GENERIC_H
@@ -55,6 +55,13 @@
 #define MULT16_32_Q15(a,b) ((opus_val32)SHR((opus_int64)((opus_val16)(a))*(b),15))
 #else
 #define MULT16_32_Q15(a,b) ADD32(SHL(MULT16_16((a),SHR((b),16)),1), SHR(MULT16_16SU((a),((b)&0x0000ffff)),15))
+#endif
+
+/** 32x32 multiplication, followed by a 16-bit shift right. Results fits in 32 bits */
+#if OPUS_FAST_INT64
+#define MULT32_32_Q16(a,b) ((opus_val32)SHR((opus_int64)(a)*(opus_int64)(b),16))
+#else
+#define MULT32_32_Q16(a,b) (ADD32(ADD32(ADD32((opus_val32)(SHR32(((opus_uint32)((a)&0x0000ffff)*(opus_uint32)((b)&0x0000ffff)),16)), MULT16_16SU(SHR32(a,16),((b)&0x0000ffff))), MULT16_16SU(SHR32(b,16),((a)&0x0000ffff))), SHL32(MULT16_16(SHR32(a,16),SHR32(b,16)),16)))
 #endif
 
 /** 32x32 multiplication, followed by a 31-bit shift right. Results fits in 32 bits */
@@ -102,9 +109,9 @@
 
 #define SATURATE16(x) (EXTRACT16((x)>32767 ? 32767 : (x)<-32768 ? -32768 : (x)))
 
-/** Shift by a and round-to-neareast 32-bit value. Result is a 16-bit value */
+/** Shift by a and round-to-nearest 32-bit value. Result is a 16-bit value */
 #define ROUND16(x,a) (EXTRACT16(PSHR32((x),(a))))
-/** Shift by a and round-to-neareast 32-bit value. Result is a saturated 16-bit value */
+/** Shift by a and round-to-nearest 32-bit value. Result is a saturated 16-bit value */
 #define SROUND16(x,a) EXTRACT16(SATURATE(PSHR32(x,a), 32767));
 
 /** Divide by two */
@@ -130,6 +137,9 @@
 
 /** 16x16 multiplication where the result fits in 16 bits */
 #define MULT16_16_16(a,b)     ((((opus_val16)(a))*((opus_val16)(b))))
+
+/** 32x32 multiplication where the result fits in 32 bits */
+#define MULT32_32_32(a,b)     ((((opus_val32)(a))*((opus_val32)(b))))
 
 /* (opus_val32)(opus_val16) gives TI compiler a hint that it's 16x16->32 multiply */
 /** 16x16 multiplication where the result fits in 32 bits */
@@ -166,11 +176,12 @@
 #include "mips/fixed_generic_mipsr1.h"
 #endif
 
-static OPUS_INLINE opus_val16 SIG2WORD16_generic(celt_sig x) {
-    x = PSHR32(x, SIG_SHIFT);
-    x = MAX32(x, -32768);
-    x = MIN32(x, 32767);
-    return EXTRACT16(x);
+static OPUS_INLINE opus_val16 SIG2WORD16_generic(celt_sig x)
+{
+   x = PSHR32(x, SIG_SHIFT);
+   x = MAX32(x, -32768);
+   x = MIN32(x, 32767);
+   return EXTRACT16(x);
 }
 #define SIG2WORD16(x) (SIG2WORD16_generic(x))
 

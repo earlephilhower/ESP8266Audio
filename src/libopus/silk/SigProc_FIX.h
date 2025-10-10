@@ -1,28 +1,28 @@
 /***********************************************************************
-    Copyright (c) 2006-2011, Skype Limited. All rights reserved.
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions
-    are met:
-    - Redistributions of source code must retain the above copyright notice,
-    this list of conditions and the following disclaimer.
-    - Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
-    - Neither the name of Internet Society, IETF or IETF Trust, nor the
-    names of specific contributors, may be used to endorse or promote
-    products derived from this software without specific prior written
-    permission.
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-    POSSIBILITY OF SUCH DAMAGE.
+Copyright (c) 2006-2011, Skype Limited. All rights reserved.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+- Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimer.
+- Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+- Neither the name of Internet Society, IETF or IETF Trust, nor the
+names of specific contributors, may be used to endorse or promote
+products derived from this software without specific prior written
+permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
 ***********************************************************************/
 
 #ifndef SILK_SIGPROC_FIX_H
@@ -41,7 +41,7 @@ extern "C"
 #include "typedef.h"
 #include "resampler_structs.h"
 #include "macros.h"
-#include "../celt/cpu_support.h"
+#include "cpu_support.h"
 
 #if defined(OPUS_X86_MAY_HAVE_SSE4_1)
 #include "x86/SigProc_FIX_sse.h"
@@ -57,7 +57,7 @@ extern "C"
 /********************************************************************/
 
 /*!
-    Initialize/reset the resampler state for a given pair of input/output sampling rates
+ * Initialize/reset the resampler state for a given pair of input/output sampling rates
 */
 opus_int silk_resampler_init(
     silk_resampler_state_struct *S,                 /* I/O  Resampler state                                             */
@@ -67,8 +67,8 @@ opus_int silk_resampler_init(
 );
 
 /*!
-    Resampler: convert from one sampling rate to another
-*/
+ * Resampler: convert from one sampling rate to another
+ */
 opus_int silk_resampler(
     silk_resampler_state_struct *S,                 /* I/O  Resampler state                                             */
     opus_int16                  out[],              /* O    Output signal                                               */
@@ -77,7 +77,7 @@ opus_int silk_resampler(
 );
 
 /*!
-    Downsample 2x, mediocre quality
+* Downsample 2x, mediocre quality
 */
 void silk_resampler_down2(
     opus_int32                  *S,                 /* I/O  State vector [ 2 ]                                          */
@@ -87,7 +87,7 @@ void silk_resampler_down2(
 );
 
 /*!
-    Downsample by a factor 2/3, low quality
+ * Downsample by a factor 2/3, low quality
 */
 void silk_resampler_down2_3(
     opus_int32                  *S,                 /* I/O  State vector [ 6 ]                                          */
@@ -97,10 +97,10 @@ void silk_resampler_down2_3(
 );
 
 /*!
-    second order ARMA filter;
-    slower than biquad() but uses more precise coefficients
-    can handle (slowly) varying coefficients
-*/
+ * second order ARMA filter;
+ * slower than biquad() but uses more precise coefficients
+ * can handle (slowly) varying coefficients
+ */
 void silk_biquad_alt_stride1(
     const opus_int16            *in,                /* I     input signal                                               */
     const opus_int32            *B_Q28,             /* I     MA coefficients [3]                                        */
@@ -314,13 +314,13 @@ void silk_insertion_sort_decreasing_int16(
 );
 
 void silk_insertion_sort_increasing_all_values_int16(
-    opus_int16                 *a,                 /* I/O   Unsorted / Sorted vector                                   */
-    const opus_int             L                   /* I     Vector length                                              */
+     opus_int16                 *a,                 /* I/O   Unsorted / Sorted vector                                   */
+     const opus_int             L                   /* I     Vector length                                              */
 );
 
 /* NLSF stabilizer, for a single input data vector */
 void silk_NLSF_stabilize(
-    opus_int16            *NLSF_Q15,          /* I/O   Unstable/stabilized normalized LSF vector in Q15 [L]       */
+          opus_int16            *NLSF_Q15,          /* I/O   Unstable/stabilized normalized LSF vector in Q15 [L]       */
     const opus_int16            *NDeltaMin_Q15,     /* I     Min distance vector, NDeltaMin_Q15[L] must be >= 1 [L+1]   */
     const opus_int              L                   /* I     Number of NLSF parameters in the input vector              */
 );
@@ -381,7 +381,7 @@ opus_int32 silk_inner_prod_aligned_scale(
     const opus_int              len                 /*    I vector lengths                                              */
 );
 
-opus_int64 silk_inner_prod16_aligned_64_c(
+opus_int64 silk_inner_prod16_c(
     const opus_int16            *inVec1,            /*    I input vector 1                                              */
     const opus_int16            *inVec2,            /*    I input vector 2                                              */
     const opus_int              len                 /*    I vector lengths                                              */
@@ -391,20 +391,21 @@ opus_int64 silk_inner_prod16_aligned_64_c(
 /*                                MACROS                            */
 /********************************************************************/
 
-/*  Rotate a32 right by 'rot' bits. Negative rot values result in rotating
-    left. Output is 32bit int.
-    Note: contemporary compilers recognize the C expression below and
-    compile it into a 'ror' instruction if available. No need for OPUS_INLINE ASM! */
-static OPUS_INLINE opus_int32 silk_ROR32(opus_int32 a32, opus_int rot) {
+/* Rotate a32 right by 'rot' bits. Negative rot values result in rotating
+   left. Output is 32bit int.
+   Note: contemporary compilers recognize the C expression below and
+   compile it into a 'ror' instruction if available. No need for OPUS_INLINE ASM! */
+static OPUS_INLINE opus_int32 silk_ROR32( opus_int32 a32, opus_int rot )
+{
     opus_uint32 x = (opus_uint32) a32;
     opus_uint32 r = (opus_uint32) rot;
-    opus_uint32 m = (opus_uint32) - rot;
-    if (rot == 0) {
+    opus_uint32 m = (opus_uint32) -rot;
+    if( rot == 0 ) {
         return a32;
-    } else if (rot < 0) {
-        return (opus_int32)((x << m) | (x >> (32 - m)));
+    } else if( rot < 0 ) {
+        return (opus_int32) ((x << m) | (x >> (32 - m)));
     } else {
-        return (opus_int32)((x << (32 - r)) | (x >> r));
+        return (opus_int32) ((x << (32 - r)) | (x >> r));
     }
 }
 
@@ -445,11 +446,11 @@ static OPUS_INLINE opus_int32 silk_ROR32(opus_int32 a32, opus_int rot) {
 /* (a32 * b32) */
 #define silk_SMULL(a32, b32)                ((opus_int64)(a32) * /*(opus_int64)*/(b32))
 
-/*  Adds two signed 32-bit values in a way that can overflow, while not relying on undefined behaviour
-    (just standard two's complement implementation-specific behaviour) */
+/* Adds two signed 32-bit values in a way that can overflow, while not relying on undefined behaviour
+   (just standard two's complement implementation-specific behaviour) */
 #define silk_ADD32_ovflw(a, b)              ((opus_int32)((opus_uint32)(a) + (opus_uint32)(b)))
-/*  Subtractss two signed 32-bit values in a way that can overflow, while not relying on undefined behaviour
-    (just standard two's complement implementation-specific behaviour) */
+/* Subtractss two signed 32-bit values in a way that can overflow, while not relying on undefined behaviour
+   (just standard two's complement implementation-specific behaviour) */
 #define silk_SUB32_ovflw(a, b)              ((opus_int32)((opus_uint32)(a) - (opus_uint32)(b)))
 
 /* Multiply-accumulate macros that allow overflow in the addition (ie, no asserts in debug mode) */
@@ -542,30 +543,38 @@ static OPUS_INLINE opus_int32 silk_ROR32(opus_int32 a32, opus_int rot) {
 #define SILK_FIX_CONST( C, Q )              ((opus_int32)((C) * ((opus_int64)1 << (Q)) + 0.5))
 
 /* silk_min() versions with typecast in the function call */
-static OPUS_INLINE opus_int silk_min_int(opus_int a, opus_int b) {
+static OPUS_INLINE opus_int silk_min_int(opus_int a, opus_int b)
+{
     return (((a) < (b)) ? (a) : (b));
 }
-static OPUS_INLINE opus_int16 silk_min_16(opus_int16 a, opus_int16 b) {
+static OPUS_INLINE opus_int16 silk_min_16(opus_int16 a, opus_int16 b)
+{
     return (((a) < (b)) ? (a) : (b));
 }
-static OPUS_INLINE opus_int32 silk_min_32(opus_int32 a, opus_int32 b) {
+static OPUS_INLINE opus_int32 silk_min_32(opus_int32 a, opus_int32 b)
+{
     return (((a) < (b)) ? (a) : (b));
 }
-static OPUS_INLINE opus_int64 silk_min_64(opus_int64 a, opus_int64 b) {
+static OPUS_INLINE opus_int64 silk_min_64(opus_int64 a, opus_int64 b)
+{
     return (((a) < (b)) ? (a) : (b));
 }
 
 /* silk_min() versions with typecast in the function call */
-static OPUS_INLINE opus_int silk_max_int(opus_int a, opus_int b) {
+static OPUS_INLINE opus_int silk_max_int(opus_int a, opus_int b)
+{
     return (((a) > (b)) ? (a) : (b));
 }
-static OPUS_INLINE opus_int16 silk_max_16(opus_int16 a, opus_int16 b) {
+static OPUS_INLINE opus_int16 silk_max_16(opus_int16 a, opus_int16 b)
+{
     return (((a) > (b)) ? (a) : (b));
 }
-static OPUS_INLINE opus_int32 silk_max_32(opus_int32 a, opus_int32 b) {
+static OPUS_INLINE opus_int32 silk_max_32(opus_int32 a, opus_int32 b)
+{
     return (((a) > (b)) ? (a) : (b));
 }
-static OPUS_INLINE opus_int64 silk_max_64(opus_int64 a, opus_int64 b) {
+static OPUS_INLINE opus_int64 silk_max_64(opus_int64 a, opus_int64 b)
+{
     return (((a) > (b)) ? (a) : (b));
 }
 
@@ -600,12 +609,14 @@ static OPUS_INLINE opus_int64 silk_max_64(opus_int64 a, opus_int64 b) {
 /* the following seems faster on x86 */
 #define silk_SMMUL(a32, b32)                (opus_int32)silk_RSHIFT64(silk_SMULL((a32), (b32)), 32)
 
-#if !defined(OPUS_X86_MAY_HAVE_SSE4_1)
+#if !defined(OVERRIDE_silk_burg_modified)
 #define silk_burg_modified(res_nrg, res_nrg_Q, A_Q16, x, minInvGain_Q30, subfr_length, nb_subfr, D, arch) \
     ((void)(arch), silk_burg_modified_c(res_nrg, res_nrg_Q, A_Q16, x, minInvGain_Q30, subfr_length, nb_subfr, D, arch))
+#endif
 
-#define silk_inner_prod16_aligned_64(inVec1, inVec2, len, arch) \
-    ((void)(arch),silk_inner_prod16_aligned_64_c(inVec1, inVec2, len))
+#if !defined(OVERRIDE_silk_inner_prod16)
+#define silk_inner_prod16(inVec1, inVec2, len, arch) \
+    ((void)(arch),silk_inner_prod16_c(inVec1, inVec2, len))
 #endif
 
 #include "Inlines.h"

@@ -155,7 +155,7 @@ jobs:
     - name: Run codespell
       uses: codespell-project/actions-codespell@406322ec52dd7b488e48c1c4b82e2a8b3a1bf630 # v2.1
       with:
-        skip: ./src/libmad,./src/libhelix-aac,./src/libopus,./src/libflac
+        skip: ./src/libmad,./src/libhelix-aac,./src/libopus,./src/libflac,./lib/opus
         ignore_words_list: ESP8266,esp8266,esp,dout,DOUT,ser,ans,inout,numer,hist
     - name: Run astyle on all code/examples
       run: |

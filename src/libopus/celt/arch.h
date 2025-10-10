@@ -1,41 +1,41 @@
-/*  Copyright (c) 2003-2008 Jean-Marc Valin
-    Copyright (c) 2007-2008 CSIRO
-    Copyright (c) 2007-2009 Xiph.Org Foundation
-    Written by Jean-Marc Valin */
+/* Copyright (c) 2003-2008 Jean-Marc Valin
+   Copyright (c) 2007-2008 CSIRO
+   Copyright (c) 2007-2009 Xiph.Org Foundation
+   Written by Jean-Marc Valin */
 /**
-    @file arch.h
-    @brief Various architecture definitions for CELT
+   @file arch.h
+   @brief Various architecture definitions for CELT
 */
 /*
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions
-    are met:
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
 
-    - Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
+   - Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
 
-    - Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
+   - Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
 
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
-    OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-    EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-    PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-    PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #ifndef ARCH_H
 #define ARCH_H
 
-#include "../opus_types.h"
-#include "../opus_defines.h"
+#include "opus_types.h"
+#include "opus_defines.h"
 
 # if !defined(__GNUC_PREREQ)
 #  if defined(__GNUC__)&&defined(__GNUC_MINOR__)
@@ -70,9 +70,13 @@ void celt_fatal(const char *str, const char *file, int line);
 #ifdef __GNUC__
 __attribute__((noreturn))
 #endif
-void celt_fatal(const char *str, const char *file, int line) {
-    fprintf(stderr, "Fatal (internal) error in %s, line %d: %s\n", file, line, str);
-    abort();
+void celt_fatal(const char *str, const char *file, int line)
+{
+   fprintf (stderr, "Fatal (internal) error in %s, line %d: %s\n", file, line, str);
+#if defined(_MSC_VER)
+   _set_abort_behavior( 0, _WRITE_ABORT_MSG);
+#endif
+   abort();
 }
 #endif
 
@@ -103,8 +107,8 @@ void celt_fatal(const char *str, const char *file, int line) {
 #define USUB32(a,b) ((a)-(b))
 
 /* Set this if opus_int64 is a native type of the CPU. */
-/*  Assume that all LP64 architectures have fast 64-bit types; also x86_64
-    (which can be ILP32 for x32) and Win64 (which is LLP64). */
+/* Assume that all LP64 architectures have fast 64-bit types; also x86_64
+   (which can be ILP32 for x32) and Win64 (which is LLP64). */
 #if defined(__x86_64__) || defined(__LP64__) || defined(_WIN64)
 #define OPUS_FAST_INT64 1
 #else
@@ -128,8 +132,8 @@ typedef opus_val32 celt_ener;
 #define Q15ONE 32767
 
 #define SIG_SHIFT 12
-/*  Safe saturation value for 32-bit signals. Should be less than
-    2^31*(1-0.85) to avoid blowing up on DC at deemphasis.*/
+/* Safe saturation value for 32-bit signals. Should be less than
+   2^31*(1-0.85) to avoid blowing up on DC at deemphasis.*/
 #define SIG_SAT (300000000)
 
 #define NORM_SCALING 16384
@@ -148,7 +152,7 @@ typedef opus_val32 celt_ener;
 #define ABS32(x) ((x) < 0 ? (-(x)) : (x))
 
 static OPUS_INLINE opus_int16 SAT16(opus_int32 x) {
-    return x > 32767 ? 32767 : x < -32768 ? -32768 : (opus_int16)x;
+   return x > 32767 ? 32767 : x < -32768 ? -32768 : (opus_int16)x;
 }
 
 #ifdef FIXED_DEBUG
@@ -184,15 +188,13 @@ typedef float celt_norm;
 typedef float celt_ener;
 
 #ifdef FLOAT_APPROX
-/*  This code should reliably detect NaN/inf even when -ffast-math is used.
-    Assumes IEEE 754 format. */
-static OPUS_INLINE int celt_isnan(float x) {
-    union {
-        float f;
-        opus_uint32 i;
-    } in;
-    in.f = x;
-    return ((in.i >> 23) & 0xFF) == 0xFF && (in.i & 0x007FFFFF) != 0;
+/* This code should reliably detect NaN/inf even when -ffast-math is used.
+   Assumes IEEE 754 format. */
+static OPUS_INLINE int celt_isnan(float x)
+{
+   union {float f; opus_uint32 i;} in;
+   in.f = x;
+   return ((in.i>>23)&0xFF)==0xFF && (in.i&0x007FFFFF)!=0;
 }
 #else
 #ifdef __FAST_MATH__
