@@ -5,7 +5,7 @@ mkdir libopus libopus/include libopus/src libopus/celt libopus/silk libopus/silk
 cp opus/include/*.h libopus/include/.
 cp opus.config.h libopus/include/config.h
 
-celt="arch.h bands.c bands.h celt.c celt_decoder.c celt.h celt_lpc.c celt_lpc.h cpu_support.h cwrs.c cwrs.h ecintrin.h entcode.c entcode.h entdec.c entdec.h entenc.c entenc.h fixed_debug.h fixed_generic.h float_cast.h kiss_fft.c _kiss_fft_guts.h kiss_fft.h laplace.c laplace.h mathops.c mathops.h mdct.c mdct.h mfrngcod.h modes.c modes.h os_support.h pitch.c pitch.h quant_bands.c quant_bands.h rate.c rate.h stack_alloc.h static_modes_fixed_arm_ne10.h static_modes_fixed.h static_modes_float_arm_ne10.h static_modes_float.h vq.c vq.h"
+celt="arch.h bands.c bands.h celt.c celt_decoder.c celt.h celt_lpc.c celt_lpc.h cpu_support.h cwrs.c cwrs.h ecintrin.h entcode.c entcode.h entdec.c entdec.h entenc.c entenc.h fixed_debug.h fixed_generic.h float_cast.h kiss_fft.c _kiss_fft_guts.h kiss_fft.h laplace.c laplace.h mathops.c mathops.h mdct.c mdct.h mfrngcod.h modes.c modes.h os_support.h pitch.c pitch.h quant_bands.c quant_bands.h rate.c rate.h stack_alloc.h static_modes_fixed.h static_modes_float.h vq.c vq.h"
 cd opus/celt
 for i in $celt; do
     cp -i $i ../../libopus/celt/.
