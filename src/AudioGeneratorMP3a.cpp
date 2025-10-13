@@ -163,9 +163,6 @@ bool AudioGeneratorMP3a::begin(AudioFileSource *source, AudioOutput *output) {
 
     output->begin();
 
-    // AAC always comes out at 16 bits
-    output->SetBitsPerSample(16);
-
     running = true;
 
     return true;

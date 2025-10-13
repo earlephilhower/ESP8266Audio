@@ -107,7 +107,7 @@ bool AudioGeneratorFLAC::loop() {
                     output->SetChannels(channels = newch);
                 }
                 if (newbps != bitsPerSample) {
-                    output->SetBitsPerSample(bitsPerSample = newbps);
+                    bitsPerSample = newbps;
                 }
             }
         }
@@ -116,7 +116,17 @@ bool AudioGeneratorFLAC::loop() {
         if (buffPtr == buffLen) {
             goto done; // At some point the flac better error and we'll return
         }
-        if (bitsPerSample <= 16) {
+        if (bitsPerSample <= 8) {
+            lastSample[AudioOutput::LEFTCHANNEL] = buff[0][buffPtr] & 0xffff;
+            if (channels == 2) {
+                lastSample[AudioOutput::RIGHTCHANNEL] = buff[1][buffPtr] & 0xffff;
+            } else {
+                lastSample[AudioOutput::RIGHTCHANNEL] = lastSample[AudioOutput::LEFTCHANNEL];
+            }
+            // Upsample from unsigned 8 bits to signed 16 bits
+            lastSample[AudioOutput::LEFTCHANNEL] = (((int16_t)(lastSample[AudioOutput::LEFTCHANNEL] & 0xff)) - 128) << 8;
+            lastSample[AudioOutput::RIGHTCHANNEL] = (((int16_t)(lastSample[AudioOutput::RIGHTCHANNEL] & 0xff)) - 128) << 8;
+        } else if (bitsPerSample <= 16) {
             lastSample[AudioOutput::LEFTCHANNEL] = buff[0][buffPtr] & 0xffff;
             if (channels == 2) {
                 lastSample[AudioOutput::RIGHTCHANNEL] = buff[1][buffPtr] & 0xffff;

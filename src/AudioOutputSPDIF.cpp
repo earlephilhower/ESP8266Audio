@@ -129,7 +129,6 @@ AudioOutputSPDIF::AudioOutputSPDIF(int dout_pin, int port, int dma_buf_count) {
 #endif
     i2sOn = true;
     mono = false;
-    bps = 16;
     channels = 2;
     frame_num = 0;
     SetGain(1.0);
@@ -205,14 +204,6 @@ bool AudioOutputSPDIF::SetRate(int hz) {
     I2SDriver.setRate(adjustedHz);
     audioLogger->printf_P(PSTR("S/PDIF rate set: %.3f\n"), I2SDriver.getActualRate() / 4);
 #endif
-    return true;
-}
-
-bool AudioOutputSPDIF::SetBitsPerSample(int bits) {
-    if ((bits != 16) && (bits != 8)) {
-        return false;
-    }
-    this->bps = bits;
     return true;
 }
 

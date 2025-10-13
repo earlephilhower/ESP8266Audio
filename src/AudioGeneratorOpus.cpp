@@ -93,7 +93,6 @@ bool AudioGeneratorOpus::begin(AudioFileSource *source, AudioOutput *output) {
 
     // These are fixed by Opus
     output->SetRate(48000);
-    output->SetBitsPerSample(16);
     output->SetChannels(2);
 
     running = true;

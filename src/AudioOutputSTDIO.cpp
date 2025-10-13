@@ -62,15 +62,10 @@ bool AudioOutputSTDIO::ConsumeSample(int16_t sample[2]) {
         return false;
     }
     for (int i = 0; i < channels; i++) {
-        if (bps == 8) {
-            uint8_t l = sample[i] & 0xff;
-            fwrite(&l, sizeof(l), 1, f);
-        } else {
-            uint8_t l = sample[i] & 0xff;
-            uint8_t h = (sample[i] >> 8) & 0xff;
-            fwrite(&l, sizeof(l), 1, f);
-            fwrite(&h, sizeof(h), 1, f);
-        }
+        uint8_t l = sample[i] & 0xff;
+        uint8_t h = (sample[i] >> 8) & 0xff;
+        fwrite(&l, sizeof(l), 1, f);
+        fwrite(&h, sizeof(h), 1, f);
     }
     return true;
 }
@@ -94,14 +89,14 @@ bool AudioOutputSTDIO::stop() {
     wavHeader[25] = (hertz >> 8) & 0xff;
     wavHeader[26] = (hertz >> 16) & 0xff;
     wavHeader[27] = (hertz >> 24) & 0xff;
-    int byteRate = hertz * bps * channels / 8;
+    int byteRate = hertz * 16 * channels / 8;
     wavHeader[28] = byteRate & 0xff;
     wavHeader[29] = (byteRate >> 8) & 0xff;
     wavHeader[30] = (byteRate >> 16) & 0xff;
     wavHeader[31] = (byteRate >> 24) & 0xff;
-    wavHeader[32] = channels * bps / 8;
+    wavHeader[32] = channels * 16 / 8;
     wavHeader[33] = 0;
-    wavHeader[34] = bps;
+    wavHeader[34] = 16;
     wavHeader[35] = 0;
 
     int datasize = ftell(f) - sizeof(wavHeader);

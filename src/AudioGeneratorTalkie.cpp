@@ -73,9 +73,6 @@ bool AudioGeneratorTalkie::begin(AudioFileSource *source, AudioOutput *output) {
     }
     this->output = output;
 
-    if (!output->SetBitsPerSample(16)) {
-        return false;
-    }
     if (!output->SetChannels(2)) {
         return false;
     }

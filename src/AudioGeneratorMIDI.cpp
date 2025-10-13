@@ -533,9 +533,6 @@ bool AudioGeneratorMIDI::begin(AudioFileSource *src, AudioOutput *out) {
     if (!out->SetRate(freq)) {
         return false;
     }
-    if (!out->SetBitsPerSample(16)) {
-        return false;
-    }
     if (!out->SetChannels(1)) {
         return false;
     }

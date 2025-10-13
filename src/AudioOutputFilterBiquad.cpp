@@ -47,10 +47,6 @@ bool AudioOutputFilterBiquad::SetRate(int hz) {
     return sink->SetRate(hz);
 }
 
-bool AudioOutputFilterBiquad::SetBitsPerSample(int bits) {
-    return sink->SetBitsPerSample(bits);
-}
-
 bool AudioOutputFilterBiquad::SetChannels(int channels) {
     return sink->SetChannels(channels);
 }

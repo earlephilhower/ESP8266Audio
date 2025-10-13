@@ -133,9 +133,6 @@ bool AudioGeneratorMOD::begin(AudioFileSource *source, AudioOutput *out) {
     if (!output->SetRate(sampleRate)) {
         return false;
     }
-    if (!output->SetBitsPerSample(16)) {
-        return false;
-    }
     if (!output->SetChannels(2)) {
         return false;
     }

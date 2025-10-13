@@ -28,7 +28,6 @@ public:
     AudioOutputFilterDecimate(uint8_t taps, const int16_t *tap, int num, int den, AudioOutput *sink);
     virtual ~AudioOutputFilterDecimate() override;
     virtual bool SetRate(int hz) override;
-    virtual bool SetBitsPerSample(int bits) override;
     virtual bool SetChannels(int chan) override;
     virtual bool SetGain(float f) override;
     virtual bool begin() override;

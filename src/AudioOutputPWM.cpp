@@ -25,7 +25,6 @@
 AudioOutputPWM::AudioOutputPWM(long sampleRate, pin_size_t data) {
     pwmOn = false;
     mono = false;
-    bps = 16;
     channels = 2;
     hertz = sampleRate;
     doutPin = data;
@@ -42,14 +41,6 @@ bool AudioOutputPWM::SetRate(int hz) {
     if (pwmOn) {
         pwm.setFrequency(hz);
     }
-    return true;
-}
-
-bool AudioOutputPWM::SetBitsPerSample(int bits) {
-    if ((bits != 16) && (bits != 8)) {
-        return false;
-    }
-    this->bps = bits;
     return true;
 }
 

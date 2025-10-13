@@ -7,7 +7,7 @@ class AudioOutputInternalDAC : public AudioOutput {
     dac_continuous_handle_t dac_handle = nullptr;
 
     void dac_init() {
-        ESP_LOGI("dac_init", "bps=%d, ch=%d, freq=%d", bps, channels, hertz);
+        ESP_LOGI("dac_init", "bps=%d, ch=%d, freq=%d", 16, channels, hertz);
 
         if (dac_handle) {
             dac_continuous_disable(dac_handle);
@@ -93,11 +93,7 @@ public:
         auto u8_samples = (uint8_t*)samples;
 
         for (int i = 0 ; i < count ; ++i) {
-            if (bps == 16) { // int16 to uint8
-                u8_samples[i] = (samples[i] + 32768) / 257;
-            } else {
-                u8_samples[i] = samples[i];
-            }
+            u8_samples[i] = (samples[i] + 32768) / 257;
         }
 
         dac_write(u8_samples, count);
@@ -110,13 +106,8 @@ public:
         }
         uint8_t u8_samples[2];
 
-        if (bps == 16) { // int16 to uint8
-            u8_samples[0] = (samples[0] + 32768) / 257;
-            u8_samples[1] = (samples[1] + 32768) / 257;
-        } else { // do narrowing conversion
-            u8_samples[0] = samples[0];
-            u8_samples[1] = samples[1];
-        }
+        u8_samples[0] = (samples[0] + 32768) / 257;
+        u8_samples[1] = (samples[1] + 32768) / 257;
 
         dac_write(u8_samples, channels);
         return true;
@@ -143,15 +134,6 @@ public:
     bool SetRate(int hz) override {
         if (hertz != hz) {
             hertz = hz;
-            flush();
-            dac_deinit();
-        }
-        return true;
-    }
-
-    bool SetBitsPerSample(int bits) override {
-        if (bps != bits) {
-            bps = bits;
             flush();
             dac_deinit();
         }

@@ -40,7 +40,6 @@ public:
     bool SetPinout(int bclkPin, int wclkPin, int doutPin, int mclkPin);
     virtual ~AudioOutputI2S() override;
     virtual bool SetRate(int hz) override;
-    virtual bool SetBitsPerSample(int bits) override;
     virtual bool SetChannels(int channels) override;
     virtual bool begin() override {
         return begin(true);
