@@ -32,10 +32,6 @@ public:
         hertz = hz;
         return true;
     }
-    virtual bool SetBitsPerSample(int bits) {
-        bps = bits;
-        return true;
-    }
     virtual bool SetChannels(int chan) {
         channels = chan;
         return true;
@@ -90,11 +86,6 @@ protected:
         if (channels == 1) {
             sample[RIGHTCHANNEL] = sample[LEFTCHANNEL];
         }
-        if (bps == 8) {
-            // Upsample from unsigned 8 bits to signed 16 bits
-            sample[LEFTCHANNEL] = (((int16_t)(sample[LEFTCHANNEL] & 0xff)) - 128) << 8;
-            sample[RIGHTCHANNEL] = (((int16_t)(sample[RIGHTCHANNEL] & 0xff)) - 128) << 8;
-        }
     };
 
     inline int16_t Amplify(int16_t s) {
@@ -110,7 +101,6 @@ protected:
 
 protected:
     uint16_t hertz;
-    uint8_t bps;
     uint8_t channels;
     uint8_t gainF2P6; // Fixed point 2.6
 

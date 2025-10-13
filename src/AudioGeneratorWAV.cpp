@@ -98,8 +98,11 @@ bool AudioGeneratorWAV::loop() {
             } else {
                 r = 0;
             }
-            lastSample[AudioOutput::LEFTCHANNEL] = l;
-            lastSample[AudioOutput::RIGHTCHANNEL] = r;
+
+            // Upsample from unsigned 8 bits to signed 16 bits
+            lastSample[AudioOutput::LEFTCHANNEL] = (((int16_t)(lastSample[AudioOutput::LEFTCHANNEL] & 0xff)) - 128) << 8;
+            lastSample[AudioOutput::RIGHTCHANNEL] = (((int16_t)(lastSample[AudioOutput::RIGHTCHANNEL] & 0xff)) - 128) << 8;
+
         } else if (bitsPerSample == 16) {
             if (!GetBufferedData(2, &lastSample[AudioOutput::LEFTCHANNEL])) {
                 stop();
@@ -310,10 +313,6 @@ bool AudioGeneratorWAV::begin(AudioFileSource *source, AudioOutput *output) {
 
     if (!output->SetRate(sampleRate)) {
         Serial.printf_P(PSTR("AudioGeneratorWAV::begin: failed to SetRate in output\n"));
-        return false;
-    }
-    if (!output->SetBitsPerSample(bitsPerSample)) {
-        Serial.printf_P(PSTR("AudioGeneratorWAV::begin: failed to SetBitsPerSample in output\n"));
         return false;
     }
     if (!output->SetChannels(channels)) {

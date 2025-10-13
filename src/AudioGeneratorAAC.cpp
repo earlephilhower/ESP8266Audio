@@ -211,10 +211,6 @@ bool AudioGeneratorAAC::begin(AudioFileSource *source, AudioOutput *output) {
 
     output->begin();
 
-    // AAC always comes out at 16 bits
-    output->SetBitsPerSample(16);
-
-
     memset(buff, 0, buffLen);
     memset(outSample, 0, 1024 * 2 * sizeof(int16_t));
 

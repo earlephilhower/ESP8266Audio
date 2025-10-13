@@ -106,8 +106,9 @@ bool AudioGeneratorFLAC::loop() {
                 if (newch != channels) {
                     output->SetChannels(channels = newch);
                 }
-                if (newbps != bitsPerSample) {
-                    output->SetBitsPerSample(bitsPerSample = newbps);
+                if (newbps != 16) {
+                    // Only 16-bit supported by outputs
+                    return false;
                 }
             }
         }

@@ -53,10 +53,6 @@ bool AudioOutputFilterDecimate::SetRate(int hz) {
     return sink->SetRate(hz);
 }
 
-bool AudioOutputFilterDecimate::SetBitsPerSample(int bits) {
-    return sink->SetBitsPerSample(bits);
-}
-
 bool AudioOutputFilterDecimate::SetChannels(int channels) {
     return sink->SetChannels(channels);
 }

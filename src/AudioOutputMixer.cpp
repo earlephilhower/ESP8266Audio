@@ -38,11 +38,6 @@ bool AudioOutputMixerStub::SetRate(int hz) {
     return true;
 }
 
-bool AudioOutputMixerStub::SetBitsPerSample(int bits) {
-    this->bps = bits;
-    return parent->SetBitsPerSample(16, id); // We're always going to produce 16b samples for sanity's sake
-}
-
 bool AudioOutputMixerStub::SetChannels(int channels) {
     this->channels = channels;
     return parent->SetChannels(channels, id);
@@ -99,11 +94,6 @@ bool AudioOutputMixer::SetRate(int hz) {
     return false;
 }
 
-bool AudioOutputMixer::SetBitsPerSample(int bits) {
-    (void) bits;
-    return false;
-}
-
 bool AudioOutputMixer::SetChannels(int channels) {
     (void) channels;
     return false;
@@ -127,11 +117,6 @@ bool AudioOutputMixer::stop() {
 bool AudioOutputMixer::SetRate(int hz, int id) {
     (void) id;
     return sink->SetRate(hz);
-}
-
-bool AudioOutputMixer::SetBitsPerSample(int bits, int id) {
-    (void) id;
-    return sink->SetBitsPerSample(bits);
 }
 
 bool AudioOutputMixer::SetChannels(int channels, int id) {

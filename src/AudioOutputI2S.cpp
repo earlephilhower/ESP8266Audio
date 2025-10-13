@@ -42,7 +42,6 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int
     //set defaults
     mono = false;
     lsb_justified = false;
-    bps = 16;
     channels = 2;
     hertz = 0; // Needs to be application-set
     bclkPin = 26;
@@ -57,7 +56,6 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int
 AudioOutputI2S::AudioOutputI2S(long sampleRate, pin_size_t sck, pin_size_t data) {
     i2sOn = false;
     mono = false;
-    bps = 16;
     channels = 2;
     hertz = sampleRate;
     bclkPin = sck;
@@ -137,14 +135,6 @@ bool AudioOutputI2S::SetRate(int hz) {
         i2s.setFrequency(hz);
 #endif
     }
-    return true;
-}
-
-bool AudioOutputI2S::SetBitsPerSample(int bits) {
-    if ((bits != 16) && (bits != 8)) {
-        return false;
-    }
-    this->bps = bits;
     return true;
 }
 
@@ -303,7 +293,7 @@ bool AudioOutputI2S::begin(bool txDAC) {
         if (swap_clocks) {
             i2s.swapClocks();
         }
-        i2s.setBitsPerSample(bps);
+        i2s.setBitsPerSample(16);
         i2s.begin(hertz);
     }
 #endif

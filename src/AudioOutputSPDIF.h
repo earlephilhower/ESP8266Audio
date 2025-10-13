@@ -51,7 +51,6 @@ public:
     virtual ~AudioOutputSPDIF() override;
     bool SetPinout(int bclkPin, int wclkPin, int doutPin);
     virtual bool SetRate(int hz) override;
-    virtual bool SetBitsPerSample(int bits) override;
     virtual bool SetChannels(int channels) override;
     virtual bool begin() override;
     virtual bool ConsumeSample(int16_t sample[2]) override;

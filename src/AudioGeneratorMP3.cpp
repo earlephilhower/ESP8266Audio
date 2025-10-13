@@ -310,7 +310,6 @@ bool AudioGeneratorMP3::begin(AudioFileSource *source, AudioOutput *output) {
     // Reset error count from previous file
     unrecoverable = 0;
 
-    output->SetBitsPerSample(16); // Constant for MP3 decoder
     output->SetChannels(2);
 
     if (!output->begin()) {

@@ -39,10 +39,6 @@ bool AudioOutputBuffer::SetRate(int hz) {
     return sink->SetRate(hz);
 }
 
-bool AudioOutputBuffer::SetBitsPerSample(int bits) {
-    return sink->SetBitsPerSample(bits);
-}
-
 bool AudioOutputBuffer::SetChannels(int channels) {
     return sink->SetChannels(channels);
 }
