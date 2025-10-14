@@ -61,6 +61,7 @@ bool AudioOutputI2S::SetBuffers(int dmaBufferCount, int dmaBufferBytes) {
 AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int use_apll) : AudioOutputI2S() {
     (void) port;
     (void) output_mode;
+    (void) use_apll;
     SetBuffers(dma_buf_count, 128 * 4);
 #ifdef ESP32
     _useAPLL = use_apll;

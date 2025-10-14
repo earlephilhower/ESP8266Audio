@@ -113,6 +113,8 @@ bool AudioOutputSPDIF::SetBuffers(int dmaBufferCount, int dmaBufferBytes) {
 
 
 AudioOutputSPDIF::AudioOutputSPDIF(int dout_pin, int port, int dma_buf_count) : AudioOutputSPDIF(dout_pin) {
+    (void) port;
+    (void) dma_buf_count;
     SetBuffers(dma_buf_count, DMA_BUF_SIZE_DEFAULT * 4);
 }
 
@@ -147,10 +149,9 @@ bool AudioOutputSPDIF::begin() {
 #endif
     assert(ESP_OK == i2s_channel_init_std_mode(_tx_handle, &std_cfg));
 #else
-    (void) dout_pin;
-    if (!I2SDriver.begin(dma_buf_count, DMA_BUF_SIZE_DEFAULT)) {
+    if (!I2SDriver.begin(_buffers, _bufferWords)) {
         audioLogger->println(F("ERROR: Unable to start I2S driver"));
-        return;
+        return false;
     }
 #endif
     i2sOn = true;
