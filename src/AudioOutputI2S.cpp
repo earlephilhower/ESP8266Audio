@@ -218,8 +218,8 @@ bool AudioOutputI2S::begin() {
             i2s.setBCLK(bclkPin);
         } else if (wclkPin == bclkPin - 1) {
             // Swapped!
-            i2s.setBCLK(bclkPin - 1;
-                        i2s.swapClocks();
+            i2s.setBCLK(bclkPin - 1);
+            i2s.swapClocks();
         } else {
             audioLogger->printf_P(PSTR("I2S: BCLK and WCLK must be adjacent\n"));
             return false;

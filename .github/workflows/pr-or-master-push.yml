@@ -104,7 +104,7 @@ jobs:
     - name: Build examples ESP32C6
       run: |
         # TODO - Don't use -Werror on ESP32, I2S deprecation warnings
-        ./tests/build-ci.sh esp32c6 ${{matrix.shift}} "esp32:esp32:esp32c6:PartitionScheme=huge_app" 0
+        ./tests/build-ci.sh esp32c6 ${{matrix.shift}} "esp32:esp32:esp32c6:PartitionScheme=huge_app" 1
 
 # Run host test suite under valgrind for runtime checking of code.
   host-tests:

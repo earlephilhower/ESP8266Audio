@@ -34,7 +34,7 @@
 
 #include "AudioOutput.h"
 
-#ifdef ESP32
+#if defined(ESP32) && SOC_DAC_SUPPORTED
 
 #include <driver/dac_oneshot.h>
 

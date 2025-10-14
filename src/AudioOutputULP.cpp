@@ -18,11 +18,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef ESP32
+#if defined(ESP32) && SOC_DAC_SUPPORTED
 
 #include "AudioOutputULP.h"
-
-#if CONFIG_IDF_TARGET_ESP32
 
 #include <esp32/ulp.h>
 #include <driver/rtc_io.h>
@@ -279,5 +277,4 @@ bool AudioOutputULP::stop() {
     return true;
 }
 
-#endif
 #endif

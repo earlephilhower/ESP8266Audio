@@ -98,6 +98,7 @@ AudioOutputSPDIF::AudioOutputSPDIF(int dout_pin) {
     SetGain(1.0);
     frame_num = 0;
     hertz = 44100;
+    i2sOn = false;
     SetBuffers(DMA_BUF_COUNT_DEFAULT, DMA_BUF_SIZE_DEFAULT * 4);
 }
 

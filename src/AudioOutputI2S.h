@@ -38,9 +38,7 @@ public:
     AudioOutputI2S(int port, int output_mode = EXTERNAL_I2S, int dma_buf_count = 8, int use_apll = APLL_DISABLE);
     enum : int { APLL_AUTO = -1, APLL_ENABLE = 1, APLL_DISABLE = 0 };
     enum : int { EXTERNAL_I2S = 0, INTERNAL_DAC = 1, INTERNAL_PDM = 2 };
-#ifdef ESP32
     AudioOutputI2S();
-#endif
 #elif defined(ARDUINO_ARCH_RP2040)
     [[deprecated]] AudioOutputI2S(long sampleRate, pin_size_t sck = 26, pin_size_t data = 28);
     AudioOutputI2S();
@@ -70,6 +68,7 @@ public:
     bool SetOutputModeMono(bool mono);  // Force mono output no matter the input
     bool SetLsbJustified(bool lsbJustified);  // Allow supporting non-I2S chips, e.g. PT8211
     [[deprecated("Use SetPinout() with an MCLK pin to enable")]] bool SetMclk(bool enabled) {
+        (void) enabled;
         return true;
     }
     [[deprecated("Use SetPinout() and specify the bclk/wclk to automatically set the clock swapping")]] bool SwapClocks(bool swap_clocks);  // Swap BCLK and WCLK
@@ -97,5 +96,9 @@ protected:
 #elif defined(ARDUINO_ARCH_RP2040)
     // Normal software-defined I2S
     I2S i2s;
+#elif defined(ESP8266)
+    // We can restore the old values and free up these pins when in NoDAC mode
+    uint32_t orig_bck;
+    uint32_t orig_ws;
 #endif
 };

@@ -1,6 +1,6 @@
 
 #pragma once
-
+#if defined(ESP32) && SOC_DAC_SUPPORTED
 #include "AudioOutput.h"
 #include <driver/dac_continuous.h>
 
@@ -152,3 +152,4 @@ public:
         return true;
     }
 };
+#endif
