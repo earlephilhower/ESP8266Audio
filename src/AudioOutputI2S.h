@@ -42,7 +42,7 @@ public:
     AudioOutputI2S();
 #endif
 #elif defined(ARDUINO_ARCH_RP2040)
-    [[deprecated]] AudioOutputI2S(long sampleRate = 44100, pin_size_t sck = 26, pin_size_t data = 28);
+    [[deprecated]] AudioOutputI2S(long sampleRate, pin_size_t sck = 26, pin_size_t data = 28);
     AudioOutputI2S();
 #endif
 #if defined(ESP32) || defined(ESP8266)

@@ -56,6 +56,8 @@ public:
     [[deprecated("Use AudioOutputSPDIF() and SetBuffers/SetPinout to configure")]] AudioOutputSPDIF(int dout_pin, int port0, int dma_buf_count = DMA_BUF_COUNT_DEFAULT);
     virtual ~AudioOutputSPDIF() override;
     [[deprecated("Use SetPinout(spdifPin) instead")]] bool SetPinout(int bclkPin, int wclkPin, int doutPin) {
+        (void) bclkPin;
+        (void) wclkPin;
         return SetPinout(doutPin);
     }
     bool SetPinout(int doutPin);
