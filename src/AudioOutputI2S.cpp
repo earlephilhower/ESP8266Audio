@@ -62,7 +62,9 @@ AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int
     (void) port;
     (void) output_mode;
     SetBuffers(dma_buf_count, 128 * 4);
+#ifdef ESP32
     _useAPLL = use_apll;
+#endif
 }
 
 #if SOC_CLK_APLL_SUPPORTED
@@ -195,8 +197,6 @@ bool AudioOutputI2S::begin() {
 
     i2sOn = (ESP_OK == i2s_channel_enable(_tx_handle));
 #elif defined(ESP8266)
-    (void)dma_buf_count;
-    (void)use_apll;
     if (!i2sOn) {
         orig_bck = READ_PERI_REG(PERIPHS_IO_MUX_MTDO_U);
         orig_ws = READ_PERI_REG(PERIPHS_IO_MUX_GPIO2_U);
