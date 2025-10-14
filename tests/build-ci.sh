@@ -21,7 +21,7 @@ while [ $(echo $sketches | wc -w) -gt 0 ]; do
     if [ 0"$werror" -gt 0 ]; then
         ./arduino-cli compile -b "$fqbn" -v --warnings all \
             --build-property "compiler.c.extra_flags=-Wall -Wextra -Werror -Wno-ignored-qualifiers" \
-            --build-property  "compiler.cpp.extra_flags=-Wall -Wextra -Werror -Wno-ignored-qualifiers -Wno-overloaded-virtual" \
+            --build-property "compiler.cpp.extra_flags=-Wall -Wextra -Werror -Wno-ignored-qualifiers -Wno-overloaded-virtual" \
             --build-path "$outdir" "$sketch" || exit 255
    else
        ./arduino-cli compile -b "$fqbn" -v --warnings all --build-path "$outdir" "$sketch" || exit 255

@@ -30,8 +30,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined(ESP32) || defined(ESP8266)
 #pragma once
+
+#if defined(ESP32) || defined(ESP8266)
+
+#if defined(ESP32)
+#include <driver/i2s_std.h>
+#endif
 
 #include "AudioOutput.h"
 
@@ -47,9 +52,16 @@
 
 class AudioOutputSPDIF : public AudioOutput {
 public:
-    AudioOutputSPDIF(int dout_pin = SPDIF_OUT_PIN_DEFAULT, int port = 0, int dma_buf_count = DMA_BUF_COUNT_DEFAULT);
+    AudioOutputSPDIF(int dout_pin = SPDIF_OUT_PIN_DEFAULT);
+    [[deprecated("Use AudioOutputSPDIF() and SetBuffers/SetPinout to configure")]] AudioOutputSPDIF(int dout_pin, int port0, int dma_buf_count = DMA_BUF_COUNT_DEFAULT);
     virtual ~AudioOutputSPDIF() override;
-    bool SetPinout(int bclkPin, int wclkPin, int doutPin);
+    [[deprecated("Use SetPinout(spdifPin) instead")]] bool SetPinout(int bclkPin, int wclkPin, int doutPin) {
+        (void) bclkPin;
+        (void) wclkPin;
+        return SetPinout(doutPin);
+    }
+    bool SetPinout(int doutPin);
+    bool SetBuffers(int dmaBuffers = DMA_BUF_COUNT_DEFAULT, int dmaBufferBytes = DMA_BUF_SIZE_DEFAULT * 4);
     virtual bool SetRate(int hz) override;
     virtual bool SetChannels(int channels) override;
     virtual bool begin() override;
@@ -66,11 +78,17 @@ protected:
     virtual inline int AdjustI2SRate(int hz) {
         return rate_multiplier * hz;
     }
-    uint8_t portNo;
     bool mono;
     bool i2sOn;
+    int8_t doutPin;
     uint8_t frame_num;
     uint8_t rate_multiplier;
+    size_t _buffers;
+    size_t _bufferWords;
+#ifdef ESP32
+    i2s_chan_handle_t _tx_handle;
+#endif
+
 };
 
 #endif // _AUDIOOUTPUTSPDIF_H

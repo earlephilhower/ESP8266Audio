@@ -34,7 +34,9 @@
 
 #include "AudioOutput.h"
 
-#ifdef ESP32
+#if defined(ESP32) && SOC_DAC_SUPPORTED
+
+#include <driver/dac_oneshot.h>
 
 class AudioOutputULP : public AudioOutput {
 public:
@@ -54,6 +56,8 @@ private:
     uint8_t bufferedOddSample = 128;
     bool waitingOddSample = true; // must be set to false for mono output
     int activeDACs = 3; // 1:DAC1; 2:DAC2; 3:both;
+    dac_oneshot_handle_t d0;
+    dac_oneshot_handle_t d1;
     bool stereoOutput = true;
     const int opcodeCount = 20;
     const uint32_t dacTableStart1 = 2048 - 512;

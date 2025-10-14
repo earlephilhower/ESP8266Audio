@@ -25,59 +25,80 @@
 #if defined(ARDUINO_ARCH_RP2040)
 #include <Arduino.h>
 #include <I2S.h>
+#elif defined(ESP32)
+#include <driver/i2s_std.h>
 #endif
 
 class AudioOutputI2S : public AudioOutput {
 public:
 #if defined(ESP32) || defined(ESP8266)
-    AudioOutputI2S(int port = 0, int output_mode = EXTERNAL_I2S, int dma_buf_count = 8, int use_apll = APLL_DISABLE);
+#ifndef ESP8266
+    [[deprecated("Use AudioOutputI2S(dmaBuffers, dmaBufferBytes) for normal I2S, AudioOutputPDM() for PDM mode, or AudioOutputInternalDAC() for DAC mode")]]
+#endif
+    AudioOutputI2S(int port, int output_mode = EXTERNAL_I2S, int dma_buf_count = 8, int use_apll = APLL_DISABLE);
     enum : int { APLL_AUTO = -1, APLL_ENABLE = 1, APLL_DISABLE = 0 };
     enum : int { EXTERNAL_I2S = 0, INTERNAL_DAC = 1, INTERNAL_PDM = 2 };
+    AudioOutputI2S();
 #elif defined(ARDUINO_ARCH_RP2040)
-    AudioOutputI2S(long sampleRate = 44100, pin_size_t sck = 26, pin_size_t data = 28);
+    [[deprecated]] AudioOutputI2S(long sampleRate, pin_size_t sck = 26, pin_size_t data = 28);
+    AudioOutputI2S();
 #endif
-    bool SetPinout(int bclkPin, int wclkPin, int doutPin);
-    bool SetPinout(int bclkPin, int wclkPin, int doutPin, int mclkPin);
+#if defined(ESP32) || defined(ESP8266)
+#define __DMA_BUFF_BYTES (4608 / 2)
+#else
+#define __DMA_BUFF_BYTES 4608
+#endif
+    bool SetBuffers(int dmaBufferCount = 5, int dmaBufferBytes = __DMA_BUFF_BYTES);
+#undef __DMA_BUFF_BYTES
+    bool SetPinout(int bclkPin, int wclkPin, int doutPin, int mclkPin = -1);
+
+#if defined(ESP32) && SOC_CLK_APLL_SUPPORTED
+    bool SetUseAPLL();
+#endif
+
     virtual ~AudioOutputI2S() override;
     virtual bool SetRate(int hz) override;
     virtual bool SetChannels(int channels) override;
-    virtual bool begin() override {
-        return begin(true);
-    }
+    virtual bool begin() override;
     virtual bool ConsumeSample(int16_t sample[2]) override;
     virtual void flush() override;
     virtual bool stop() override;
 
-    bool begin(bool txDAC);
+    [[deprecated("Use AudioOutputInternalDAC() for DAC output, begin(void) for normal I2S")]] bool begin(bool txDAC);
     bool SetOutputModeMono(bool mono);  // Force mono output no matter the input
     bool SetLsbJustified(bool lsbJustified);  // Allow supporting non-I2S chips, e.g. PT8211
-    bool SetMclk(bool enabled);  // Enable MCLK output (if supported)
-    bool SwapClocks(bool swap_clocks);  // Swap BCLK and WCLK
+    [[deprecated("Use SetPinout() with an MCLK pin to enable")]] bool SetMclk(bool enabled) {
+        (void) enabled;
+        return true;
+    }
+    [[deprecated("Use SetPinout() and specify the bclk/wclk to automatically set the clock swapping")]] bool SwapClocks(bool swap_clocks);  // Swap BCLK and WCLK
 
 protected:
-    bool SetPinout();
     virtual int AdjustI2SRate(int hz) {
         return hz;
     }
-    uint8_t portNo;
-    int output_mode;
     bool mono;
-    int lsb_justified;
+    bool lsb_justified;
     bool i2sOn;
-    int dma_buf_count;
-    int use_apll;
-    bool use_mclk;
-    bool swap_clocks;
+
+    int8_t bclkPin;
+    int8_t wclkPin;
+    int8_t doutPin;
+    int8_t mclkPin;
+
+    size_t _buffers;
+    size_t _bufferWords;
+
+#ifdef ESP32
+    bool _useAPLL;
+    // I2S IDF object and info
+    i2s_chan_handle_t _tx_handle;
+#elif defined(ARDUINO_ARCH_RP2040)
+    // Normal software-defined I2S
+    I2S i2s;
+#elif defined(ESP8266)
     // We can restore the old values and free up these pins when in NoDAC mode
     uint32_t orig_bck;
     uint32_t orig_ws;
-
-    uint8_t bclkPin;
-    uint8_t wclkPin;
-    uint8_t doutPin;
-    uint8_t mclkPin;
-
-#if defined(ARDUINO_ARCH_RP2040)
-    I2S i2s;
 #endif
 };

@@ -20,7 +20,7 @@
 
 #include <Arduino.h>
 #ifdef ESP32
-#include "driver/i2s.h"
+#include <driver/i2s_std.h>
 #elif defined(ARDUINO_ARCH_RP2040) || ARDUINO_ESP8266_MAJOR >= 3
 #include <I2S.h>
 #elif ARDUINO_ESP8266_MAJOR < 3
@@ -39,7 +39,8 @@
 // So this new constructor adds the ability to pass both port and sck to the underlying class, but
 // uses the same defaults in the AudioOutputI2S constructor.
 //
-AudioOutputI2SNoDAC::AudioOutputI2SNoDAC(int port, int sck) : AudioOutputI2S(44100, sck, port) {
+AudioOutputI2SNoDAC::AudioOutputI2SNoDAC(int port, int sck) : AudioOutputI2S() {
+    SetPinout(sck, sck + 1, port); // TODO - allow RP2040 to disable unused pins like ESP
     SetOversampling(32);
     lastSamp = 0;
     cumErr = 0;
@@ -47,7 +48,8 @@ AudioOutputI2SNoDAC::AudioOutputI2SNoDAC(int port, int sck) : AudioOutputI2S(441
 
 #else
 
-AudioOutputI2SNoDAC::AudioOutputI2SNoDAC(int port) : AudioOutputI2S(port, false) {
+AudioOutputI2SNoDAC::AudioOutputI2SNoDAC(int port) : AudioOutputI2S() {
+    SetPinout(-1, -1, port);
     SetOversampling(32);
     lastSamp = 0;
     cumErr = 0;
@@ -59,8 +61,8 @@ AudioOutputI2SNoDAC::AudioOutputI2SNoDAC(int port) : AudioOutputI2S(port, false)
 }
 #endif
 
-
 AudioOutputI2SNoDAC::~AudioOutputI2SNoDAC() {
+    stop();
 }
 
 bool AudioOutputI2SNoDAC::SetOversampling(int os) {
@@ -120,11 +122,9 @@ bool AudioOutputI2SNoDAC::ConsumeSample(int16_t sample[2]) {
 
     // Either send complete pulse stream or nothing
 #ifdef ESP32
-    size_t i2s_bytes_written;
-    i2s_write((i2s_port_t)portNo, (const char *)dsBuff, sizeof(uint32_t) * (oversample / 32), &i2s_bytes_written, 0);
-    if (!i2s_bytes_written) {
-        return false;
-    }
+    size_t i2s_bytes_written = sizeof(uint32_t);
+    i2s_channel_write(_tx_handle, (const char *)dsBuff, sizeof(uint32_t) * (oversample / 32), &i2s_bytes_written, 10);
+    return i2s_bytes_written ? true : false;
 #elif defined(ESP8266)
     if (!i2s_write_sample_nb(dsBuff[0])) {
         return false;    // No room at the inn

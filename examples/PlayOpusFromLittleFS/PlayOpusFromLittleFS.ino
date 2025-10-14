@@ -42,12 +42,8 @@ void setup() {
 
   audioLogger = &Serial;
   file = new AudioFileSourceLittleFS("/gs-16b-2c-44100hz.opus");
-#ifdef ARDUINO_ARCH_RP2040
-  out = new AudioOutputI2S(48000, 26, 22);
-#else
   out = new AudioOutputI2S();
   // out->SetPinout(0, 1, 2); // Set the pinout if needed
-#endif
   opus = new AudioGeneratorOpus();
   opus->begin(file, out);
 }
