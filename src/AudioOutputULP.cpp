@@ -27,7 +27,7 @@
 #include <esp32/ulp.h>
 #include <driver/rtc_io.h>
 #include <soc/rtc_io_reg.h>
-#include <driver/dac.h>
+#include <driver/dac_oneshot.h>
 #include <soc/rtc.h>
 #include <math.h>
 
@@ -70,13 +70,18 @@ bool AudioOutputULP::begin() {
     unsigned long rtc_fast_freq_hz = 1000000ULL * (1 << RTC_CLK_CAL_FRACT) * 256 / rtc_8md256_period;
 
     //initialize DACs
+    dac_oneshot_handle_t d0;
+    dac_oneshot_handle_t d1;
+
     if (activeDACs & 1) {
-        dac_output_enable(DAC_CHANNEL_1);
-        dac_output_voltage(DAC_CHANNEL_1, 128);
+        dac_oneshot_config_t a = { DAC_CHAN_0 };
+        assert(ESP_OK == dac_oneshot_new_channel(&a, &d0));
+        dac_oneshot_output_voltage(d0, 128);
     }
     if (activeDACs & 2) {
-        dac_output_enable(DAC_CHANNEL_2);
-        dac_output_voltage(DAC_CHANNEL_2, 128);
+        dac_oneshot_config_t b = { DAC_CHAN_1 };
+        assert(ESP_OK == dac_oneshot_new_channel(&b, &d1));
+        dac_oneshot_output_voltage(d1, 128);
     }
 
     int retAddress1 = 9;
@@ -263,10 +268,12 @@ bool AudioOutputULP::stop() {
     ulp_run(0);
 
     if (activeDACs & 1) {
-        dac_output_voltage(DAC_CHANNEL_1, 128);
+        dac_oneshot_output_voltage(d0, 128);
+        dac_oneshot_del_channel(d0);
     }
     if (activeDACs & 2) {
-        dac_output_voltage(DAC_CHANNEL_2, 128);
+        dac_oneshot_output_voltage(d1, 128);
+        dac_oneshot_del_channel(d1);
     }
 
     return true;

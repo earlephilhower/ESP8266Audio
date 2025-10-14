@@ -1,3 +1,6 @@
+
+#pragma once
+
 #include "AudioOutput.h"
 #include <driver/dac_continuous.h>
 
@@ -17,7 +20,7 @@ class AudioOutputInternalDAC : public AudioOutput {
         dac_continuous_config_t dac_config = {
             .chan_mask = channels == 2 ? DAC_CHANNEL_MASK_ALL : DAC_CHANNEL_MASK_CH0,
             .desc_num = 2, // we dont need more
-            .buf_size = buffer_sz,
+            .buf_size = (size_t)buffer_sz,
             .freq_hz = hertz,
             .offset = 0,
             .clk_src = DAC_DIGI_CLK_SRC_APLL,

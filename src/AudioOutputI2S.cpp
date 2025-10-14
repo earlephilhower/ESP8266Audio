@@ -20,7 +20,7 @@
 
 #include <Arduino.h>
 #ifdef ESP32
-#include "driver/i2s.h"
+#include <driver/i2s_std.h>
 #elif defined(ARDUINO_ARCH_RP2040) || ARDUINO_ESP8266_MAJOR >= 3
 #include <I2S.h>
 #elif ARDUINO_ESP8266_MAJOR < 3
@@ -28,42 +28,59 @@
 #endif
 #include "AudioOutputI2S.h"
 
-#if defined(ESP32) || defined(ESP8266)
-AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int use_apll) {
-    this->portNo = port;
-    this->i2sOn = false;
-    this->dma_buf_count = dma_buf_count;
-    if (output_mode != EXTERNAL_I2S && output_mode != INTERNAL_DAC && output_mode != INTERNAL_PDM) {
-        output_mode = EXTERNAL_I2S;
-    }
-    this->output_mode = output_mode;
-    this->use_apll = use_apll;
-
-    //set defaults
+AudioOutputI2S::AudioOutputI2S() {
+    i2sOn = false;
     mono = false;
     lsb_justified = false;
     channels = 2;
-    hertz = 0; // Needs to be application-set
+    hertz = 44100; // Needs to be application-set
+#ifdef ESP32
     bclkPin = 26;
     wclkPin = 25;
     doutPin = 22;
-    mclkPin = 0;
-    use_mclk = false;
+#else
+    bclkPin = 26;
+    wclkPin = 27;
+    doutPin = 28;
+#endif
+    mclkPin = -1;
     SetGain(1.0);
+    SetBuffers(); // Default DMA sizes
 }
 
+bool AudioOutputI2S::SetBuffers(int dmaBufferCount, int dmaBufferBytes) {
+    if (i2sOn || (dmaBufferCount < 3) || (dmaBufferBytes & 3)) {
+        return false;
+    }
+    _buffers = dmaBufferCount;
+    _bufferWords = dmaBufferBytes / 4;
+    return true;
+}
+
+#if defined(ESP32) || defined(ESP8266)
+AudioOutputI2S::AudioOutputI2S(int port, int output_mode, int dma_buf_count, int use_apll) : AudioOutputI2S() {
+    (void) port;
+    (void) output_mode;
+    SetBuffers(dma_buf_count, 128 * 4);
+    _useAPLL = use_apll;
+}
+
+#if SOC_CLK_APLL_SUPPORTED
+bool AudioOutputI2S::SetUseAPLL() {
+    if (i2sOn) {
+        return false;
+    }
+    _useAPLL = true;
+    return true;
+}
+#endif
+
 #elif defined(ARDUINO_ARCH_RP2040)
-AudioOutputI2S::AudioOutputI2S(long sampleRate, pin_size_t sck, pin_size_t data) {
-    i2sOn = false;
-    mono = false;
-    channels = 2;
-    hertz = sampleRate;
+AudioOutputI2S::AudioOutputI2S(long sampleRate, pin_size_t sck, pin_size_t data) : AudioOutputI2S() {
+    (void) sampleRate;
     bclkPin = sck;
+    wclkPin = sck + 1;
     doutPin = data;
-    mclkPin = 0;
-    use_mclk = false;
-    swap_clocks = false;
-    SetGain(1.0);
 }
 #endif
 
@@ -71,68 +88,49 @@ AudioOutputI2S::~AudioOutputI2S() {
     stop();
 }
 
-bool AudioOutputI2S::SetPinout() {
-#ifdef ESP32
-    if (output_mode == INTERNAL_DAC || output_mode == INTERNAL_PDM) {
-        return false;    // Not allowed
-    }
-
-    i2s_pin_config_t pins = {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
-        .mck_io_num = use_mclk ? mclkPin : I2S_PIN_NO_CHANGE,
-#endif
-        .bck_io_num = bclkPin,
-        .ws_io_num = wclkPin,
-        .data_out_num = doutPin,
-        .data_in_num = I2S_PIN_NO_CHANGE
-    };
-    i2s_set_pin((i2s_port_t)portNo, &pins);
-    return true;
-#else
-    return false;
-#endif
-}
-
-bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout) {
-    bclkPin = bclk;
-    wclkPin = wclk;
-    doutPin = dout;
-    use_mclk = false;
+bool AudioOutputI2S::SwapClocks(bool swap) {
     if (i2sOn) {
-        return SetPinout();
+        return false;
     }
-
+    if (swap) {
+        auto t = bclkPin;
+        bclkPin = wclkPin;
+        wclkPin = t;
+    }
     return true;
 }
 
 bool AudioOutputI2S::SetPinout(int bclk, int wclk, int dout, int mclk) {
+    if (i2sOn) {
+        return false;
+    }
     bclkPin = bclk;
     wclkPin = wclk;
     doutPin = dout;
-#if defined(ESP32) || defined(ARDUINO_ARCH_RP2040)
     mclkPin = mclk;
-    use_mclk = true;
-    if (i2sOn) {
-        return SetPinout();
-    }
-#else
-    (void)mclk;
-#endif
     return true;
 }
 
 bool AudioOutputI2S::SetRate(int hz) {
-    if (this->hertz == hz) {
+    if (hertz == hz) {
         return true;
     }
-    this->hertz = hz;
+    hertz = hz;
     if (i2sOn) {
+        auto adj = AdjustI2SRate(hz);  // Possibly scale for NoDAC
 #ifdef ESP32
-        i2s_set_sample_rates((i2s_port_t)portNo, AdjustI2SRate(hz));
+        i2s_std_clk_config_t clk_cfg;
+        clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG((uint32_t)adj);
+#if SOC_CLK_APLL_SUPPORTED
+        clk_cfg.clk_src = _useAPLL ? i2s_clock_src_t::I2S_CLK_SRC_APLL : i2s_clock_src_t::I2S_CLK_SRC_DEFAULT;
+#endif
+        i2s_channel_disable(_tx_handle);
+        i2s_channel_reconfig_std_clock(_tx_handle, &clk_cfg);
+        i2s_channel_enable(_tx_handle);
 #elif defined(ESP8266)
-        i2s_set_rate(AdjustI2SRate(hz));
+        i2s_set_rate(adj);
 #elif defined(ARDUINO_ARCH_RP2040)
-        i2s.setFrequency(hz);
+        i2s.setFrequency(adj);
 #endif
     }
     return true;
@@ -152,115 +150,50 @@ bool AudioOutputI2S::SetOutputModeMono(bool mono) {
 }
 
 bool AudioOutputI2S::SetLsbJustified(bool lsbJustified) {
+    if (i2sOn) {
+        return false;
+    }
     this->lsb_justified = lsbJustified;
     return true;
 }
 
-bool AudioOutputI2S::SwapClocks(bool swap_clocks) {
-    if (i2sOn) {
-        return false; // Not allowed
-    }
-    this->swap_clocks = swap_clocks;
-    return true;
-}
-
-bool AudioOutputI2S::SetMclk(bool enabled) {
-    (void)enabled;
+bool AudioOutputI2S::begin() {
 #ifdef ESP32
-    if (output_mode == INTERNAL_DAC || output_mode == INTERNAL_PDM) {
-        return false;    // Not allowed
-    }
+    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_AUTO, I2S_ROLE_MASTER);
+    chan_cfg.dma_desc_num = _buffers;
+    chan_cfg.dma_frame_num = _bufferWords;
+    assert(ESP_OK == i2s_new_channel(&chan_cfg, &_tx_handle, nullptr));
 
-    use_mclk = enabled;
-#elif defined(ARDUINO_ARCH_RP2040)
-    use_mclk = enabled;
+    i2s_std_config_t std_cfg = {
+        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(hertz),
+        .slot_cfg = I2S_STD_MSB_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO),
+        .gpio_cfg = {
+            .mclk = mclkPin < 0 ? I2S_GPIO_UNUSED : (gpio_num_t)mclkPin,
+            .bclk = bclkPin < 0 ? I2S_GPIO_UNUSED : (gpio_num_t)bclkPin,
+            .ws = wclkPin < 0 ? I2S_GPIO_UNUSED : (gpio_num_t)wclkPin,
+            .dout = (gpio_num_t)doutPin,
+            .din = I2S_GPIO_UNUSED,
+            .invert_flags = {
+                .mclk_inv = false,
+                .bclk_inv = false,
+                .ws_inv = false,
+            },
+        },
+    };
+#if SOC_CLK_APLL_SUPPORTED
+    std_cfg.clk_cfg.clk_src = _useAPLL ? i2s_clock_src_t::I2S_CLK_SRC_APLL : i2s_clock_src_t::I2S_CLK_SRC_DEFAULT;
 #endif
-    return true;
-}
+    std_cfg.slot_cfg.bit_shift = !lsb_justified; // I2S = shift, LSBJ = no shift
+    assert(ESP_OK == i2s_channel_init_std_mode(_tx_handle, &std_cfg));
 
-bool AudioOutputI2S::begin(bool txDAC) {
-#ifdef ESP32
-    if (!i2sOn) {
-        if (use_apll == APLL_AUTO) {
-            // don't use audio pll on buggy rev0 chips
-            use_apll = APLL_DISABLE;
-            //esp_chip_info_t out_info;
-            //esp_chip_info(&out_info);
-            //if (out_info.revision > 0)
-            {
-                use_apll = APLL_ENABLE;
-            }
-        }
+    // Fill w/0s to start off
+    int16_t a[2] = {0, 0};
+    size_t written = 0;
+    do {
+        i2s_channel_preload_data(_tx_handle, (void*)a, sizeof(a), &written);
+    } while (written);
 
-        i2s_mode_t mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX);
-        if (output_mode == INTERNAL_DAC) {
-#if CONFIG_IDF_TARGET_ESP32
-            mode = (i2s_mode_t)(mode | I2S_MODE_DAC_BUILT_IN);
-#else
-            return false;
-#endif
-        } else if (output_mode == INTERNAL_PDM) {
-#if CONFIG_IDF_TARGET_ESP32
-            mode = (i2s_mode_t)(mode | I2S_MODE_PDM);
-#else
-            return false;
-#endif
-        }
-
-        i2s_comm_format_t comm_fmt;
-        if (output_mode == INTERNAL_DAC) {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
-            comm_fmt = (i2s_comm_format_t) I2S_COMM_FORMAT_STAND_MSB;
-#else
-            comm_fmt = (i2s_comm_format_t) I2S_COMM_FORMAT_I2S_MSB;
-#endif
-        } else if (lsb_justified) {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
-            comm_fmt = (i2s_comm_format_t) I2S_COMM_FORMAT_STAND_MSB;
-#else
-            comm_fmt = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_LSB);
-#endif
-        } else {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 2, 0)
-            comm_fmt = (i2s_comm_format_t)(I2S_COMM_FORMAT_STAND_I2S);
-#else
-            comm_fmt = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB);
-#endif
-        }
-
-        i2s_config_t i2s_config_dac = {
-            .mode = mode,
-            .sample_rate = 44100,
-            .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
-            .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
-            .communication_format = comm_fmt,
-            .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // lowest interrupt priority
-            .dma_buf_count = dma_buf_count,
-            .dma_buf_len = 128,
-            .use_apll = use_apll, // Use audio PLL
-            .tx_desc_auto_clear = true, // Silence on underflow
-            .fixed_mclk = use_mclk, // Unused
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
-            .mclk_multiple = I2S_MCLK_MULTIPLE_256, // Unused
-            .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT // Use bits per sample
-#endif
-        };
-        audioLogger->printf("+%d %p\n", portNo, &i2s_config_dac);
-        if (i2s_driver_install((i2s_port_t)portNo, &i2s_config_dac, 0, NULL) != ESP_OK) {
-            audioLogger->println("ERROR: Unable to install I2S drives\n");
-        }
-        if (output_mode == INTERNAL_DAC || output_mode == INTERNAL_PDM) {
-#if CONFIG_IDF_TARGET_ESP32
-            i2s_set_pin((i2s_port_t)portNo, NULL);
-            i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN);
-#else
-            return false;
-#endif
-        } else {
-            SetPinout();
-        }
-        i2s_zero_dma_buffer((i2s_port_t)portNo);
-    }
+    i2sOn = (ESP_OK == i2s_channel_enable(_tx_handle));
 #elif defined(ESP8266)
     (void)dma_buf_count;
     (void)use_apll;
@@ -268,43 +201,43 @@ bool AudioOutputI2S::begin(bool txDAC) {
         orig_bck = READ_PERI_REG(PERIPHS_IO_MUX_MTDO_U);
         orig_ws = READ_PERI_REG(PERIPHS_IO_MUX_GPIO2_U);
 #ifdef I2S_HAS_BEGIN_RXTX_DRIVE_CLOCKS
-        if (!i2s_rxtxdrive_begin(false, true, false, txDAC)) {
+        if (!i2s_rxtxdrive_begin(false, true, false, true)) {
             return false;
         }
 #else
         if (!i2s_rxtx_begin(false, true)) {
             return false;
         }
-        if (!txDAC) {
-            audioLogger->printf_P(PSTR("I2SNoDAC: esp8266 arduino core should be upgraded to avoid conflicts with SPI\n"));
-        }
 #endif
+        i2sOn = true;
     }
 #elif defined(ARDUINO_ARCH_RP2040)
-    (void)txDAC;
     if (!i2sOn) {
         i2s.setSysClk(hertz);
-        i2s.setBCLK(bclkPin);
+        if (wclkPin == bclkPin + 1) {
+            i2s.setBCLK(bclkPin);
+        } else if (wclkPin == bclkPin - 1) {
+            // Swapped!
+            i2s.setBCLK(bclkPin - 1;
+                        i2s.swapClocks();
+        } else {
+            audioLogger->printf_P(PSTR("I2S: BCLK and WCLK must be adjacent\n"));
+            return false;
+        }
         i2s.setDATA(doutPin);
-        if (use_mclk) {
+        if (mclkPin >= 0) {
             i2s.setMCLK(mclkPin);
             i2s.setMCLKmult(256);
         }
-        if (swap_clocks) {
-            i2s.swapClocks();
-        }
         i2s.setBitsPerSample(16);
-        i2s.begin(hertz);
+        i2sOn = i2s.begin(hertz);
     }
 #endif
-    i2sOn = true;
     SetRate(hertz ? hertz : 44100); // Default
     return true;
 }
 
 bool AudioOutputI2S::ConsumeSample(int16_t sample[2]) {
-
-    //return if we haven't called ::begin yet
     if (!i2sOn) {
         return false;
     }
@@ -322,18 +255,10 @@ bool AudioOutputI2S::ConsumeSample(int16_t sample[2]) {
     }
 #ifdef ESP32
     uint32_t s32;
-    if (output_mode == INTERNAL_DAC) {
-        int16_t l = Amplify(ms[LEFTCHANNEL]) + 0x8000;
-        int16_t r = Amplify(ms[RIGHTCHANNEL]) + 0x8000;
-        s32 = ((r & 0xffff) << 16) | (l & 0xffff);
-    } else {
-        s32 = ((Amplify(ms[RIGHTCHANNEL])) << 16) | (Amplify(ms[LEFTCHANNEL]) & 0xffff);
-    }
-    //"i2s_write_bytes" has been removed in the ESP32 Arduino 2.0.0,  use "i2s_write" instead.
-    //    return i2s_write_bytes((i2s_port_t)portNo, (const char *)&s32, sizeof(uint32_t), 0);
+    s32 = ((Amplify(ms[RIGHTCHANNEL])) << 16) | (Amplify(ms[LEFTCHANNEL]) & 0xffff);
 
-    size_t i2s_bytes_written;
-    i2s_write((i2s_port_t)portNo, (const char*)&s32, sizeof(uint32_t), &i2s_bytes_written, 0);
+    size_t i2s_bytes_written = sizeof(uint32_t);
+    i2s_channel_write(_tx_handle, (const char*)&s32, sizeof(uint32_t), &i2s_bytes_written, 10);
     return i2s_bytes_written;
 #elif defined(ESP8266)
     uint32_t s32 = ((Amplify(ms[RIGHTCHANNEL])) << 16) | (Amplify(ms[LEFTCHANNEL]) & 0xffff);
@@ -347,7 +272,7 @@ bool AudioOutputI2S::ConsumeSample(int16_t sample[2]) {
 void AudioOutputI2S::flush() {
 #ifdef ESP32
     // makes sure that all stored DMA samples are consumed / played
-    int buffersize = 128 * this->dma_buf_count;
+    int buffersize = _buffers * _bufferWords;
     int16_t samples[2] = {0x0, 0x0};
     for (int i = 0; i < buffersize; i++) {
         while (!ConsumeSample(samples)) {
@@ -365,9 +290,8 @@ bool AudioOutputI2S::stop() {
     }
 
 #ifdef ESP32
-    i2s_zero_dma_buffer((i2s_port_t)portNo);
-    audioLogger->printf("UNINSTALL I2S\n");
-    i2s_driver_uninstall((i2s_port_t)portNo); //stop & destroy i2s driver
+    i2s_channel_disable(_tx_handle);
+    i2s_del_channel(_tx_handle);
 #elif defined(ESP8266)
     i2s_end();
 #elif defined(ARDUINO_ARCH_RP2040)
