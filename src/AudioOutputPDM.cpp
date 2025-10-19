@@ -66,7 +66,9 @@ bool AudioOutputPDM::begin() {
         .gpio_cfg = {
             .clk = I2S_GPIO_UNUSED,
             .dout = (gpio_num_t)pdmPin,
+#if SOC_I2S_PDM_MAX_TX_LINES > 1
             .dout2 = I2S_GPIO_UNUSED,
+#endif
             .invert_flags = {
                 .clk_inv = false,
             },
