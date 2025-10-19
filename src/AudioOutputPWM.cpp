@@ -69,7 +69,7 @@ bool AudioOutputPWM::begin() {
 }
 
 bool AudioOutputPWM::ConsumeSample(int16_t sample[2]) {
-
+    //Serial.printf("%d\n", sample[0]);
     if (!pwmOn) {
         return false;
     }
