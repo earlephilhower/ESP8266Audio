@@ -37,6 +37,12 @@ public:
         samples++;
         return true;
     }
+    virtual uint16_t ConsumeSamples(int16_t *sample, uint16_t count) {
+        (void) sample;
+        uint16_t c = std::min((uint16_t)256, count);
+        samples += c;
+        return c;
+    }
     virtual bool stop() {
         endms = millis();
         return true;
