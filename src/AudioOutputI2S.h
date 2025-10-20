@@ -61,6 +61,10 @@ public:
     virtual bool SetChannels(int channels) override;
     virtual bool begin() override;
     virtual bool ConsumeSample(int16_t sample[2]) override;
+#ifdef ARDUINO_ARCH_RP2040
+    // Have an optimized block pass-thru for the Pico
+    virtual uint16_t ConsumeSamples(int16_t *samples, uint16_t count) override;
+#endif
     virtual void flush() override;
     virtual bool stop() override;
 
