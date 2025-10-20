@@ -270,6 +270,19 @@ bool AudioOutputI2S::ConsumeSample(int16_t sample[2]) {
 #endif
 }
 
+#ifdef ARDUINO_ARCH_RP2040
+uint16_t AudioOutputI2S::ConsumeSamples(int16_t *samples, uint16_t count) {
+    // We special case the normal stereo, no gain case.  OTW just use the regular full-fat path
+    if (this->mono || (gainF2P6 != 1<<6)) {
+        return AudioOutput::ConsumeSamples(samples, count);
+    }
+    auto ret = i2s.write((const uint8_t *)samples, count * 4);
+    ret /= 4;
+    return ret;
+}
+#endif
+
+
 void AudioOutputI2S::flush() {
 #ifdef ESP32
     // makes sure that all stored DMA samples are consumed / played
