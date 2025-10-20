@@ -38,4 +38,12 @@ def main():
             json.dump(library, fout, indent = 4);
     shutil.move("library.json.new", "library.json")
 
+    # src/ESP8266AudioVer.h
+    with open("src/ESP8266AudioVer.h", "w") as fout:
+        fout.write("#pragma once\n")
+        fout.write("#define ESP8266AUDIO_MAJOR " + str(major) + "\n")
+        fout.write("#define ESP8266AUDIO_MINOR " + str(minor) + "\n")
+        fout.write("#define ESP8266AUDIO_REVISION " + str(sub) + "\n")
+        fout.write('#define ESP8266AUDIO_VERSION_STR "' + str(args.version) + '"' + "\n")
+
 main()

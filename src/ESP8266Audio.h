@@ -2,6 +2,8 @@
 // In general a user should only include the specific headers they need
 // to miniimize build times.
 
+#include "ESP8266AudioVer.h"
+
 // Input stage
 #include "AudioFileSourceBuffer.h"
 #include "AudioFileSourceFATFS.h"
