@@ -21,8 +21,14 @@
 #ifndef _AUDIOFILESOURCESPIFFS_H
 #define _AUDIOFILESOURCESPIFFS_H
 
+#ifndef ARDUINO_ARCH_RP2040
+
 #include <Arduino.h>
 #include <FS.h>
+
+#ifdef ESP32
+#include <SPIFFS.h>
+#endif
 
 #include "AudioFileSource.h"
 #include "AudioFileSourceFS.h"
@@ -37,6 +43,7 @@ public:
     // Others are inherited from base
 };
 
+#endif
 
 #endif
 

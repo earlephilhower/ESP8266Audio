@@ -58,15 +58,12 @@
 
 #include "AudioGeneratorMIDI.h"
 
-#if defined(ESP32) && (__GNUC__ >= 8) && (__XTENSA__)
-// Do not build, Espressif's GCC8+ has a compiler bug
-#else // __GNUC__ == 8
-
-#pragma GCC optimize ("O3")
-
 #define TSF_NO_STDIO
+#define TSF_CONST_FILE
+#define TSF_SAMPLES_SHORT
 #define TSF_IMPLEMENTATION
 #include "libtinysoundfont/tsf.h"
+
 
 /****************  utility routines  **********************/
 
@@ -74,22 +71,6 @@
 
 void AudioGeneratorMIDI::midi_error(const char *msg, int curpos) {
     cb.st(curpos, msg);
-#if 0
-    int ptr;
-    audioLogger->printf("---> MIDI file error at position %04X (%d): %s\n", (uint16_t) curpos, (uint16_t) curpos, msg);
-    /* print some bytes surrounding the error */
-    ptr = curpos - 16;
-    if (ptr < 0) {
-        ptr = 0;
-    }
-    buffer.seek(buffer.data, ptr);
-    for (int i = 0; i < 32; i++) {
-        char c;
-        buffer.read(buffer.data, &c, 1);
-        audioLogger->printf((ptr + i) == curpos ? " [%02X]  " : "%02X ", (int) c & 0xff);
-    }
-    audioLogger->printf("\n");
-#endif
     running = false;
 }
 
@@ -119,8 +100,8 @@ void AudioGeneratorMIDI::process_header(void) {
     unsigned int time_division;
 
     chk_bufdata(hdrptr, sizeof(struct midi_header));
-    buffer.seek(buffer.data, hdrptr);
-    buffer.read(buffer.data, &hdr, sizeof(hdr));
+    file->seek(hdrptr, SEEK_SET);
+    file->read(&hdr, sizeof(hdr));
     if (!charcmp((char *) hdr.MThd, "MThd")) {
         midi_error("Missing 'MThd'", hdrptr);
     }
@@ -143,8 +124,10 @@ void AudioGeneratorMIDI::start_track(int tracknum) {
     unsigned long tracklen;
 
     chk_bufdata(hdrptr, sizeof(struct track_header));
-    buffer.seek(buffer.data, hdrptr);
-    buffer.read(buffer.data, &hdr, sizeof(hdr));
+    file->seek(hdrptr, SEEK_SET);
+    //buffer.seek(buffer.data, hdrptr);
+    file->read(&hdr, sizeof(hdr));
+    //buffer.read(buffer.data, &hdr, sizeof(hdr));
     if (!charcmp((char *)(hdr.MTrk), "MTrk")) {
         midi_error("Missing 'MTrk'", hdrptr);
     }
@@ -158,22 +141,28 @@ void AudioGeneratorMIDI::start_track(int tracknum) {
 
 unsigned char AudioGeneratorMIDI::buffer_byte(int offset) {
     unsigned char c;
-    buffer.seek(buffer.data, offset);
-    buffer.read(buffer.data, &c, 1);
+    file->seek(offset, SEEK_SET);
+    //buffer.seek(buffer.data, offset);
+    file->read(&c, 1);
+    //buffer.read(buffer.data, &c, 1);
     return c;
 }
 
 unsigned short AudioGeneratorMIDI::buffer_short(int offset) {
     unsigned short s;
-    buffer.seek(buffer.data, offset);
-    buffer.read(buffer.data, &s, sizeof(short));
+    file->seek(offset, SEEK_SET);
+    //buffer.seek(buffer.data, offset);
+    file->read(&s, sizeof(short));
+    //    buffer.read(buffer.data, &s, sizeof(short));
     return s;
 }
 
 unsigned int AudioGeneratorMIDI::buffer_int32(int offset) {
     uint32_t i;
-    buffer.seek(buffer.data, offset);
-    buffer.read(buffer.data, &i, sizeof(i));
+    file->seek(offset, SEEK_SET);
+    //buffer.seek(buffer.data, offset);
+    file->read(&i, sizeof(i));
+    //buffer.read(buffer.data, &i, sizeof(i));
     return i;
 }
 
@@ -345,18 +334,15 @@ note_off:
 
 
 // Open file, parse headers, get ready to process MIDI
-void AudioGeneratorMIDI::PrepareMIDI(AudioFileSource *src) {
-    MakeStreamFromAFS(src, &afsMIDI);
-    tsf_stream_wrap_cached(&afsMIDI, 32, 64, &buffer);
-    buflen = buffer.size(buffer.data);
+void AudioGeneratorMIDI::PrepareMIDI() { //AudioFileSource *src) {
+    buflen = file->getSize(); //buffer.size(buffer.data);
 
     /* process the MIDI file header */
 
-    hdrptr = buffer.tell(buffer.data);   /* pointer to file and track headers */
+    hdrptr = file->getPos(); // buffer.tell(buffer.data);   /* pointer to file and track headers */
     process_header();
-    printf("  Processing %d tracks.\n", num_tracks);
     if (num_tracks > MAX_TRACKS) {
-        midi_error("Too many tracks", buffer.tell(buffer.data));
+        midi_error("Too many tracks", file->getPos()); //buffer.tell(buffer.data));
     }
 
     /* initialize processing of all the tracks */
@@ -454,7 +440,7 @@ int AudioGeneratorMIDI::PlayMIDI() {
                 for (tgnum = 0; tgnum < num_tonegens; ++tgnum) {    /* find which generator is playing it */
                     tg = &tonegen[tgnum];
                     if (tg->playing && tg->track == tracknum && tg->note == trk->note) {
-                        tsf_note_off_fast(g_tsf, tg->instrument, tg->note, tg->playIndex);
+                        tsf_note_off/*_fast*/(g_tsf, tg->instrument, tg->note);//, tg->playIndex);
                         tg->playing = false;
                         tg->playIndex = -1;
                         trk->tonegens[tgnum] = false;
@@ -489,7 +475,7 @@ int AudioGeneratorMIDI::PlayMIDI() {
                 if (tg->instrument != midi_chan_instrument[trk->chan]) {    /* new instrument for this generator */
                     tg->instrument = midi_chan_instrument[trk->chan];
                 }
-                tg->playIndex = tsf_note_on_fast(g_tsf, tg->instrument, tg->note, trk->velocity / 127.0);  // velocity = 0...127
+                tg->playIndex = tsf_note_on/*_fast*/(g_tsf, tg->instrument, tg->note, trk->velocity / 127.0f);  // velocity = 0...127
             } else {
                 ++notes_skipped;
             }
@@ -502,15 +488,8 @@ int AudioGeneratorMIDI::PlayMIDI() {
 
 void AudioGeneratorMIDI::StopMIDI() {
 
-    buffer.close(buffer.data);
+    file->close();
     tsf_close(g_tsf);
-    printf("  %s %d tone generators were used.\n",
-           num_tonegens_used < num_tonegens ? "Only" : "All", num_tonegens_used);
-    if (notes_skipped)
-        printf
-        ("  %d notes were skipped because there weren't enough tone generators.\n", notes_skipped);
-
-    printf("  Done.\n");
 }
 
 
@@ -524,18 +503,17 @@ bool AudioGeneratorMIDI::begin(AudioFileSource *src, AudioOutput *out) {
     }
     memset(midi_chan_instrument, 0, sizeof(midi_chan_instrument));
 
-    g_tsf = tsf_load(&afsSF2);
-    if (!g_tsf) {
-        return false;
-    }
-    tsf_set_output(g_tsf, TSF_MONO, freq, -10 /* dB gain -10 */);
+    g_tsf = _tsf;
+    tsf_set_output(g_tsf, TSF_STEREO_INTERLEAVED, freq, -10 /* dB gain -10 */);
 
     if (!out->SetRate(freq)) {
         return false;
     }
-    if (!out->SetChannels(1)) {
+
+    if (!out->SetChannels(2)) {
         return false;
     }
+
     if (!out->begin()) {
         return false;
     }
@@ -545,7 +523,7 @@ bool AudioGeneratorMIDI::begin(AudioFileSource *src, AudioOutput *out) {
 
     running = true;
 
-    PrepareMIDI(src);
+    PrepareMIDI();//src);
 
     samplesToPlay = 0;
     numSamplesRendered = 0;
@@ -557,40 +535,37 @@ bool AudioGeneratorMIDI::begin(AudioFileSource *src, AudioOutput *out) {
 
 
 bool AudioGeneratorMIDI::loop() {
-    static int c = 0;
-
     if (!running) {
-        goto done;    // Nothing to do here!
+        file->loop();
+        output->loop();
+        return running;
     }
 
-    // First, try and push in the stored sample.  If we can't, then punt and try later
-    if (!output->ConsumeSample(lastSample)) {
-        goto done;    // Can't send, but no error detected
-    }
-
-    // Try and stuff the buffer one sample at a time
     do {
+#ifdef ESP8266
+        static int c = 0;
         c++;
-        if (c % 44100 == 0) {
+        if (c == 44100) {
+            c = 0;
             yield();
         }
-
-play:
+#endif
 
         if (sentSamplesRendered < numSamplesRendered) {
-            lastSample[AudioOutput::LEFTCHANNEL] = samplesRendered[sentSamplesRendered];
-            lastSample[AudioOutput::RIGHTCHANNEL] = samplesRendered[sentSamplesRendered];
-            sentSamplesRendered++;
+            auto toSend = numSamplesRendered - sentSamplesRendered;
+            auto ret = output->ConsumeSamples(samplesRendered + sentSamplesRendered * 2, toSend);
+            sentSamplesRendered += ret;
+            if (toSend != ret) {
+                break;
+            }
         } else if (samplesToPlay) {
-            numSamplesRendered = sizeof(samplesRendered) / sizeof(samplesRendered[0]);
-            if ((int)samplesToPlay < (int)(sizeof(samplesRendered) / sizeof(samplesRendered[0]))) {
+            numSamplesRendered = (sizeof(samplesRendered) / sizeof(samplesRendered[0])) / 2;
+            if ((int)samplesToPlay < (int)(sizeof(samplesRendered) / sizeof(samplesRendered[0])) / 2) {
                 numSamplesRendered = samplesToPlay;
             }
-            tsf_render_short_fast(g_tsf, samplesRendered, numSamplesRendered, 0);
-            lastSample[AudioOutput::LEFTCHANNEL] = samplesRendered[0];
-            lastSample[AudioOutput::RIGHTCHANNEL] = samplesRendered[0];
-            sentSamplesRendered = 1;
+            tsf_render_short(g_tsf, samplesRendered, numSamplesRendered, 0);
             samplesToPlay -= numSamplesRendered;
+            sentSamplesRendered = 0;
         } else {
             numSamplesRendered = 0;
             sentSamplesRendered = 0;
@@ -602,12 +577,10 @@ play:
                     sawEOF = true;
                     samplesToPlay = freq / 2;
                 }
-                goto play;
             }
         }
-    } while (running && output->ConsumeSample(lastSample));
+    } while (running);
 
-done:
     file->loop();
     output->loop();
 
@@ -619,47 +592,3 @@ bool AudioGeneratorMIDI::stop() {
     output->stop();
     return true;
 }
-
-
-int AudioGeneratorMIDI::afs_read(void *data, void *ptr, unsigned int size) {
-    AudioFileSource *s = reinterpret_cast<AudioFileSource *>(data);
-    return s->read(ptr, size);
-}
-
-int AudioGeneratorMIDI::afs_tell(void *data) {
-    AudioFileSource *s = reinterpret_cast<AudioFileSource *>(data);
-    return s->getPos();
-}
-
-int AudioGeneratorMIDI::afs_skip(void *data, unsigned int count) {
-    AudioFileSource *s = reinterpret_cast<AudioFileSource *>(data);
-    return s->seek(count, SEEK_CUR);
-}
-
-int AudioGeneratorMIDI::afs_seek(void *data, unsigned int pos) {
-    AudioFileSource *s = reinterpret_cast<AudioFileSource *>(data);
-    return s->seek(pos, SEEK_SET);
-}
-
-int AudioGeneratorMIDI::afs_close(void *data) {
-    AudioFileSource *s = reinterpret_cast<AudioFileSource *>(data);
-    return s->close();
-}
-
-int AudioGeneratorMIDI::afs_size(void *data) {
-    AudioFileSource *s = reinterpret_cast<AudioFileSource *>(data);
-    return s->getSize();
-}
-
-void AudioGeneratorMIDI::MakeStreamFromAFS(AudioFileSource *src, tsf_stream *afs) {
-    afs->data = reinterpret_cast<void*>(src);
-    afs->read = &afs_read;
-    afs->tell = &afs_tell;
-    afs->skip = &afs_skip;
-    afs->seek = &afs_seek;
-    afs->close = &afs_close;
-    afs->size = &afs_size;
-}
-
-#endif //__GNUC__ == 8
-

@@ -21,28 +21,39 @@
 #ifndef _AUDIOGENERATORMIDI_H
 #define _AUDIOGENERATORMIDI_H
 
-#if defined(ESP32) && (__GNUC__ >= 8) && (__XTENSA__)
+#if defined(xxxESP32) && (__GNUC__ >= 8) && (__XTENSA__)
 // Do not build, Espressif's GCC8+ has a compiler bug
 #else // __GNUC__ == 8
 
 #include "AudioGenerator.h"
 
 #define TSF_NO_STDIO
+#define TSF_CONST_FILE
+#define TSF_SAMPLES_SHORT
 #include "libtinysoundfont/tsf.h"
 
 class AudioGeneratorMIDI : public AudioGenerator {
 public:
     AudioGeneratorMIDI() {
-        freq = 44100;
+        freq = 22050;
         running = false;
     };
     virtual ~AudioGeneratorMIDI() override {};
+#if 0
     bool SetSoundfont(AudioFileSource *newsf2) {
         if (isRunning()) {
             return false;
         }
         sf2 = newsf2;
         MakeStreamFromAFS(sf2, &afsSF2);
+        return true;
+    }
+#endif
+    bool SetSoundFont(tsf *t) {
+        if (isRunning()) {
+            return false;
+        }
+        _tsf = t;
         return true;
     }
     bool SetSampleRate(int newfreq) {
@@ -62,10 +73,6 @@ public:
 private:
     int freq;
     tsf *g_tsf;
-    struct tsf_stream buffer;
-    struct tsf_stream afsMIDI;
-    struct tsf_stream afsSF2;
-    AudioFileSource *sf2;
     AudioFileSource *midi;
 
 protected:
@@ -138,7 +145,6 @@ protected:
          };   /* no more data left in this track */
 
 
-
     /* portable string length */
     int strlength(const char *str) {
         int i;
@@ -172,24 +178,17 @@ protected:
 
     unsigned long get_varlen(int *ptr);
     void find_note(int tracknum);
-    void PrepareMIDI(AudioFileSource *src);
+    void PrepareMIDI();//AudioFileSource *src);
     int PlayMIDI();
     void StopMIDI();
-
-    // tsf_stream <-> AudioFileSource
-    static int afs_read(void *data, void *ptr, unsigned int size);
-    static int afs_tell(void *data);
-    static int afs_skip(void *data, unsigned int count);
-    static int afs_seek(void *data, unsigned int pos);
-    static int afs_close(void *data);
-    static int afs_size(void *data);
-    void MakeStreamFromAFS(AudioFileSource *src, tsf_stream *afs);
 
     int samplesToPlay;
     bool sawEOF;
     int numSamplesRendered;
     int sentSamplesRendered ;
-    short samplesRendered[256];
+    short samplesRendered[256 * 2];
+
+    tsf *_tsf = nullptr;
 };
 
 #endif //__GNUC__ == 8
