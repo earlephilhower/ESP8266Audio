@@ -14,6 +14,8 @@
 #include <libtinysoundfont/scratch2010.h>
 #else
 // Pico and ESP32 can have up to 16MB ROMs, use the 1M General MIDI (1mgm) font or your own
+// For ESP32 be sure to use HUGE APP or another partition mode which allows you to have sketches larger than 1-2MB
+
 #include <libtinysoundfont/1mgm.h>
 #endif
 
