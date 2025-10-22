@@ -1632,9 +1632,9 @@ static void tsf_voice_render_short(tsf* f, struct tsf_voice* v, short* outputBuf
 //					// Simple linear interpolation.
 //					float alpha = (float)(tmpSourceSamplePosition - pos), val = (input[pos] * (1.0f - alpha) + input[nextPos] * alpha);
 #ifdef ESP8266
-                                        fixed16p16 val = pgm_read_word(&input[pos >> 8]);
+                                        int16_t val = pgm_read_word(&input[pos >> 8]);
 #else
-                                        fixed16p16 val = input[pos >> 8];
+                                        int16_t val = input[pos >> 8];
 #endif
 
 					// Low-pass filter.
@@ -1645,16 +1645,26 @@ static void tsf_voice_render_short(tsf* f, struct tsf_voice* v, short* outputBuf
 
                                         smp = *outL;
                                         smp += (val * gainLeftF16P16) >> 16;
-                                        if (smp > 32767) smp = 32767;
-                                        else if (smp < -32768) smp = -32768;
-                                        *outL++ = smp;
+                                        // We checn for OVF by verifying that all the bits in the upper half-word are the same.  If they're not then we ovf'd pos or neg
+                                        int16_t ovf = smp >> 16;
+                                        if ((ovf == 0) || (ovf == -1)) {
+                                            *outL++ = smp;
+                                        } else if (ovf < 0) {
+                                            *outL++ = -32768;
+                                        } else {
+                                            *outL++ = 32767;
+                                        }
 
                                         smp = *outL;
                                         smp += (val * gainRightF16P16) >> 16;
-                                        if (smp > 32767) smp = 32767;
-                                        else if (smp < -32768) smp = -32768;
-                                        *outL++ = smp;
-
+                                        int16_t ovfr = smp >> 16;
+                                        if ((ovfr == 0) || (ovfr == -1)) {
+                                            *outL++ = smp;
+                                        } else if (ovfr < 0) {
+                                            *outL++ = -32768;
+                                        } else {
+                                            *outL++ = 32767;
+                                        }
 
 //					*outL++ += val * gainLeft;
 //					*outL++ += val * gainRight;
