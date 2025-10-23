@@ -45,9 +45,17 @@
 #pragma GCC push_options
 #pragma GCC optimize ("O2")
 
-
 #ifndef TSF_INCLUDE_TSF_INL
 #define TSF_INCLUDE_TSF_INL
+
+#ifdef TSF_SAMPLES_SHORT
+#include "fastpow.h"
+#include "fastlog.h"
+#define TSF_POWF fastpow
+// Following have almost no impact on performance but can be used if your chip's implementations are bad.
+//#define TSF_EXP fastexp
+//#define TSF_LOG fastlog
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -326,9 +334,15 @@ TSFDEF float tsf_channel_get_tuning(tsf* f, int channel);
 #    define sqrtf (float)sqrt // powf, expf and sqrtf
 #  endif
 #  define TSF_POW     pow
+#ifndef TSF_POWF
 #  define TSF_POWF    powf
+#endif
+#ifndef TSF_EXPF
 #  define TSF_EXPF    expf
+#endif
+#ifndef TSF_LOG
 #  define TSF_LOG     log
+#endif
 #  define TSF_TAN     tan
 #  define TSF_LOG10   log10
 #  define TSF_SQRTF   sqrtf

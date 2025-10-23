@@ -2,7 +2,7 @@
 
 rm -rf libtinysoundfont
 mkdir libtinysoundfont
-cp TinySoundFont/tsf.h TinySoundFont/README* TinySoundFont/LICENSE libtinysoundfont/.
+cp TinySoundFont/tsf.h TinySoundFont/README* TinySoundFont/LICENSE TinySoundFont/fast*.h TinySoundFont/cast.h libtinysoundfont/.
 cd TinySoundFont/examples
 bash build-linux-gcc.sh
 cd ../..
