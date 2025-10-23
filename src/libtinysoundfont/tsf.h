@@ -210,7 +210,12 @@ TSFDEF int tsf_active_voice_count(tsf* f);
 //   buffer: target buffer of size samples * output_channels * sizeof(type)
 //   samples: number of samples to render
 //   flag_mixing: if 0 clear the buffer first, otherwise mix into existing data
+#ifndef TSF_SAMPLES_SHORT
 TSFDEF void tsf_render_short(tsf* f, short* buffer, int samples, int flag_mixing CPP_DEFAULT0);
+#else
+// The short render needs space for a long (32b) for all samples, so pass in a buffer of 2x the expected size.  Only the first `samples` samples will be valid on return
+TSFDEF void tsf_render_short_2x_buffer(tsf* f, short* buffer_2x, int samples, int flag_mixing CPP_DEFAULT0);
+#endif
 TSFDEF void tsf_render_float(tsf* f, float* buffer, int samples, int flag_mixing CPP_DEFAULT0);
 
 // Higher level channel based functions, set up channel parameters
@@ -1536,7 +1541,7 @@ static void tsf_voice_render(tsf* f, struct tsf_voice* v, float* outputBuffer, i
 	if (tmpLowpass.active || dynamicLowpass) v->lowpass = tmpLowpass;
 }
 #else
-static void tsf_voice_render_short(tsf* f, struct tsf_voice* v, short* outputBuffer, int numSamples)
+static void tsf_voice_render_short(tsf* f, struct tsf_voice* v, int32_t* outputBuffer, int numSamples)
 {
 #ifdef ESP8266
     static unsigned int smps = 0;
@@ -1547,7 +1552,7 @@ static void tsf_voice_render_short(tsf* f, struct tsf_voice* v, short* outputBuf
 #endif
 	TSF_CONST struct tsf_region* region = v->region;
         TSF_CONST short* input = f->shortSamples;
-	short* outL = outputBuffer;
+	int32_t* outL = outputBuffer;
 	//short* outR = (f->outputmode == TSF_STEREO_UNWEAVED ? outL + numSamples : TSF_NULL);
 
 	// Cache some values, to give them at least some chance of ending up in registers.
@@ -1643,18 +1648,19 @@ static void tsf_voice_render_short(tsf* f, struct tsf_voice* v, short* outputBuf
                                         // Do saturating adds for each channel
                                         fixed16p16 smp;
 
+                                        // No clipping because it eats 20% of the performance on the M0+ Pico!
+
                                         smp = *outL;
                                         smp += (val * gainLeftF16P16) >> 16;
-                                        if (smp > 32767) smp = 32767;
-                                        else if (smp < -32768) smp = -32768;
+//                                        if (smp > 32767) smp = 32767;
+//                                        else if (smp < -32768) smp = -32768;
                                         *outL++ = smp;
 
                                         smp = *outL;
                                         smp += (val * gainRightF16P16) >> 16;
-                                        if (smp > 32767) smp = 32767;
-                                        else if (smp < -32768) smp = -32768;
+//                                        if (smp > 32767) smp = 32767;
+//                                        else if (smp < -32768) smp = -32768;
                                         *outL++ = smp;
-
 
 //					*outL++ += val * gainLeft;
 //					*outL++ += val * gainRight;
@@ -2161,13 +2167,20 @@ TSFDEF void tsf_render_float(tsf* f, float* buffer, int samples, int flag_mixing
 			tsf_voice_render(f, v, buffer, samples);
 }
 #else
-TSFDEF void tsf_render_short(tsf* f, short* buffer, int samples, int flag_mixing)
+TSFDEF void tsf_render_short_2x(tsf* f, short* buffer, int samples, int flag_mixing)
 {
         struct tsf_voice *v = f->voices, *vEnd = v + f->voiceNum;
-        if (!flag_mixing) TSF_MEMSET(buffer, 0, (f->outputmode == TSF_MONO ? 1 : 2) * sizeof(short) * samples);
+        int32_t *buffer32 = (int32_t *)buffer;
+        if (!flag_mixing) TSF_MEMSET(buffer, 0, (f->outputmode == TSF_MONO ? 1 : 2) * sizeof(short) * samples * 2 /* We sum in 32bs then downsample here to 16b to minimized saturation calcs */);
         for (; v != vEnd; v++)
                 if (v->playingPreset != -1)
-                        tsf_voice_render_short(f, v, buffer, samples);
+                        tsf_voice_render_short(f, v, buffer32, samples);
+        for (int i = 0; i < samples * 2; i++) {
+            int32_t t = buffer32[i];
+            if (t > 32767) buffer[i] = 32767;
+            else if (t < -32768) buffer[i] = -32768;
+            else buffer[i] = t;
+        }
 }
 #endif
 

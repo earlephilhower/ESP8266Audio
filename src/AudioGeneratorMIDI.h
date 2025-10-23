@@ -186,7 +186,7 @@ protected:
     bool sawEOF;
     int numSamplesRendered;
     int sentSamplesRendered ;
-    short samplesRendered[256 * 2];
+    short samplesRendered[256 * 2 * 2];
 
     tsf *_tsf = nullptr;
 };

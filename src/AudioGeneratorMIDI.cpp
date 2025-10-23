@@ -559,11 +559,11 @@ bool AudioGeneratorMIDI::loop() {
                 break;
             }
         } else if (samplesToPlay) {
-            numSamplesRendered = (sizeof(samplesRendered) / sizeof(samplesRendered[0])) / 2;
-            if ((int)samplesToPlay < (int)(sizeof(samplesRendered) / sizeof(samplesRendered[0])) / 2) {
+            numSamplesRendered = (sizeof(samplesRendered) / sizeof(samplesRendered[0])) / 4;
+            if ((int)samplesToPlay < (int)(sizeof(samplesRendered) / sizeof(samplesRendered[0])) / 4) {
                 numSamplesRendered = samplesToPlay;
             }
-            tsf_render_short(g_tsf, samplesRendered, numSamplesRendered, 0);
+            tsf_render_short_2x(g_tsf, samplesRendered, numSamplesRendered, 0);
             samplesToPlay -= numSamplesRendered;
             sentSamplesRendered = 0;
         } else {
