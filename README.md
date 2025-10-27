@@ -51,6 +51,23 @@ Create an AudioInputXXX source pointing to your input file, an AudioOutputXXX si
 
 After creation, you need to call the AudioGeneratorXXX::loop() routine from inside your own main loop() one or more times.  This will automatically read as much of the file as needed and fill up the I2S buffers and immediately return.  Since this is not interrupt driven, if you have large delay()s in your code, you may end up with hiccups in playback.  Either break large delays into very small ones with calls to AudioGenerator::loop(), or reduce the sampling rate to require fewer samples per second.
 
+## ESP32 and Platform.IO
+
+It seems that Espressif discontinued official Platform.IO integration of their Arduino several
+releases ago.  The `platformio/framework-arduinoespressif32` package available is much older
+than the latest Espressif Arduino core and at IDF 4.x.  This library needs IDF 5.x and the new
+I2S APIs to function, so if you attempt to build using ``platformio/framework-arduinoespressif32``
+you will get errors like, `cannot open source file "driver/i2s_std.h"`.
+
+The solution is to move to @Jason2866's community
+[pioarduino](https://github.com/pioarduino/platform-espressif32) core which is built from the
+current Espressif Arduino with IDF 5.x.  Simply change `platform` in your `platform.ini` as below:
+
+```ini
+; Pioarduino Arduino-ESP32 3.2.0
+platform = https://github.com/pioarduino/platform-espressif32/releases/download/54.03.20/platform-espressif32.zip
+```
+
 ## Example
 See the examples directory for some simple examples, but the following snippet can play an MP3 file over the simulated I2S DAC:
 ```cpp
