@@ -64,8 +64,8 @@ The solution is to move to @Jason2866's community
 current Espressif Arduino with IDF 5.x.  Simply change `platform` in your `platform.ini` as below:
 
 ```ini
-; Pioarduino Arduino-ESP32 3.2.0
-platform = https://github.com/pioarduino/platform-espressif32/releases/download/54.03.20/platform-espressif32.zip
+; Pioarduino Arduino-ESP32 Latest
+platform = https://github.com/pioarduino/platform-espressif32/releases/download/stable/platform-espressif32.zip
 ```
 
 ## Example
