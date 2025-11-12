@@ -148,6 +148,7 @@ bool AudioOutputSPDIF::begin() {
     std_cfg.clk_cfg.clk_src = i2s_clock_src_t::I2S_CLK_SRC_APLL;
 #endif
     assert(ESP_OK == i2s_channel_init_std_mode(_tx_handle, &std_cfg));
+    assert(ESP_OK == i2s_channel_enable(_tx_handle));
 #else
     if (!I2SDriver.begin(_buffers, _bufferWords)) {
         audioLogger->println(F("ERROR: Unable to start I2S driver"));
