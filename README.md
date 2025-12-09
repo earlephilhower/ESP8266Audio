@@ -26,7 +26,8 @@ If you have a neat use for this library, [I'd love to hear about it](mailto:earl
 * A neat MQTT-driven ESP8266 light-and-sound device (alarm? toy? who can say!) was built by @CosmicMac, available at https://github.com/CosmicMac/ESParkle
 * A very interesting "linear clock" with a stepper motor, NTP time keeping, and configurable recorded chimes with schematics, 3D printer plans, and source code, is now available https://janderogee.com/projects/linear_clock/linear_clock.htm
 * Source and instructions for a gorgeous wooden MP3-playing clock, FM radio and a walkie-talkie using the ESP8266 and AVR microcontrollers is available https://github.com/zduka/mp3-player
-
+* Automate your negativity with a speaking, automatic rejection project at https://www.hackster.io/abouhatab/getting-rejected-by-wemos-d1-mini-f8be9c
+ 
 ## Prerequisites
 First, make sure you are running the 2.6.3/later or GIT head version of the Arduino libraries for ESP8266, or the latest ESP32 SDK from Espressif.
 
