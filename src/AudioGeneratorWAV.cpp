@@ -87,22 +87,21 @@ bool AudioGeneratorWAV::loop() {
     // Try and stuff the buffer one sample at a time
     do {
         if (bitsPerSample == 8) {
-            uint8_t l, r;
-            if (!GetBufferedData(1, &l)) {
+            uint8_t u8s; // For read u8 sample
+            if (!GetBufferedData(1, &u8s)) {
                 stop();
             }
+            // Upsample from unsigned 8 bits to signed 16 bits
+            lastSample[AudioOutput::LEFTCHANNEL] = ((int16_t)u8s - 128) << 8;
             if (channels == 2) {
-                if (!GetBufferedData(1, &r)) {
+                if (!GetBufferedData(1, &u8s)) {
                     stop();
                 }
+                // Upsample from unsigned 8 bits to signed 16 bits
+                lastSample[AudioOutput::RIGHTCHANNEL] = ((int16_t)u8s - 128) << 8;
             } else {
-                r = 0;
+                lastSample[AudioOutput::RIGHTCHANNEL] = lastSample[AudioOutput::LEFTCHANNEL];
             }
-
-            // Upsample from unsigned 8 bits to signed 16 bits
-            lastSample[AudioOutput::LEFTCHANNEL] = (((int16_t)(lastSample[AudioOutput::LEFTCHANNEL] & 0xff)) - 128) << 8;
-            lastSample[AudioOutput::RIGHTCHANNEL] = (((int16_t)(lastSample[AudioOutput::RIGHTCHANNEL] & 0xff)) - 128) << 8;
-
         } else if (bitsPerSample == 16) {
             if (!GetBufferedData(2, &lastSample[AudioOutput::LEFTCHANNEL])) {
                 stop();
@@ -112,7 +111,7 @@ bool AudioGeneratorWAV::loop() {
                     stop();
                 }
             } else {
-                lastSample[AudioOutput::RIGHTCHANNEL] = 0;
+                lastSample[AudioOutput::RIGHTCHANNEL] = lastSample[AudioOutput::LEFTCHANNEL];
             }
         }
     } while (running && output->ConsumeSample(lastSample));
