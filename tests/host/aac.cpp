@@ -12,8 +12,8 @@ int main(int argc, char **argv)
     AudioFileSourceSTDIO *in = new AudioFileSourceSTDIO(AAC);
     AudioOutputSTDIO *out = new AudioOutputSTDIO();
     out->SetFilename("out.aac.wav");
-    void *space = malloc(28000+60000);
-    AudioGeneratorAAC *aac = new AudioGeneratorAAC(space, 28000+60000);
+    void *space = malloc(28000+60000+2048);
+    AudioGeneratorAAC *aac = new AudioGeneratorAAC(space, 28000+60000+2048);
 
     aac->begin(in, out);
     while (aac->loop()) { /*noop*/ }
