@@ -49,7 +49,12 @@ protected:
     bool FillBufferWithValidFrame(); // Read until we get a valid syncword and min(feof, 2048) butes in the buffer
 
     // Output buffering
-    int16_t *outSample; //[1024 * 2]; // Interleaved L/R
+#ifdef ESP8266
+    const int outSampleLen = 1024 * 2;  // SBR disabled
+#else
+    const int outSampleLen = 2048 * 2;  // SBR enabled
+#endif
+    int16_t *outSample; //[1024 * 2] or [2048 * 2]; // Interleaved L/R
     int16_t validSamples;
     int16_t curSample;
 

@@ -31,7 +31,7 @@ AudioGeneratorAAC::AudioGeneratorAAC() {
     output = NULL;
 
     buff = (uint8_t*)malloc(buffLen);
-    outSample = (int16_t*)malloc(1024 * 2 * sizeof(uint16_t));
+    outSample = (int16_t*)malloc(outSampleLen * sizeof(uint16_t));
     if (!buff || !outSample) {
         audioLogger->printf_P(PSTR("ERROR: Out of memory in AAC\n"));
         Serial.flush();
@@ -63,7 +63,7 @@ AudioGeneratorAAC::AudioGeneratorAAC(void *preallocateData, int preallocateSz) {
     buff = (uint8_t*) p;
     p += (buffLen + 7) & ~7;
     outSample = (int16_t*) p;
-    p += (1024 * 2 * sizeof(int16_t) + 7) & ~7;
+    p += (outSampleLen * sizeof(int16_t) + 7) & ~7;
     int used = p - (uint8_t*)preallocateSpace;
     int availSpace = preallocateSize - used;
     if (availSpace < 0) {
@@ -212,7 +212,7 @@ bool AudioGeneratorAAC::begin(AudioFileSource *source, AudioOutput *output) {
     output->begin();
 
     memset(buff, 0, buffLen);
-    memset(outSample, 0, 1024 * 2 * sizeof(int16_t));
+    memset(outSample, 0, outSampleLen * sizeof(int16_t));
 
 
     running = true;
