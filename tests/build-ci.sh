@@ -20,8 +20,8 @@ while [ $(echo $sketches | wc -w) -gt 0 ]; do
     echo "::group::Compiling $(basename $sketch) for $fqbn into $outdir"
     if [ 0"$werror" -gt 0 ]; then
         ./arduino-cli compile -b "$fqbn" -v --warnings all \
-            --build-property "compiler.c.extra_flags=-Wall -Wextra -Werror -Wno-ignored-qualifiers" \
-            --build-property "compiler.cpp.extra_flags=-Wall -Wextra -Werror -Wno-ignored-qualifiers -Wno-overloaded-virtual" \
+            --build-property "compiler.c.extra_flags=-Wall -Wextra -Werror -Wno-ignored-qualifiers -Wno-unused-parameter" \
+            --build-property "compiler.cpp.extra_flags=-Wall -Wextra -Werror -Wno-ignored-qualifiers -Wno-overloaded-virtual -Wno-unused-parameter" \
             --build-path "$outdir" "$sketch" || exit 255
    else
        ./arduino-cli compile -b "$fqbn" -v --warnings all --build-path "$outdir" "$sketch" || exit 255
