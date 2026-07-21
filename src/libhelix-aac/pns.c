@@ -276,6 +276,7 @@ int PNS(AACDecInfo *aacDecInfo, int ch) {
     const /*short*/ int *sfbTab;
     unsigned char *sfbCodeBook;
     short *scaleFactors;
+    (void) scaleFactors;
     int msMaskOffset, checkCorr, genNew;
     unsigned char msMask;
     unsigned char *msMaskPtr;
