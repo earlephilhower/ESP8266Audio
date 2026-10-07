@@ -324,7 +324,7 @@ void DecodeSpectrumLong(PSInfoBase *psi, BitStreamInfo *bsi, int ch);
 void DecodeSpectrumShort(PSInfoBase *psi, BitStreamInfo *bsi, int ch);
 
 /* noiseless.c */
-void DecodeICSInfo(BitStreamInfo *bsi, ICSInfo *icsInfo, int sampRateIdx);
+int DecodeICSInfo(BitStreamInfo *bsi, ICSInfo *icsInfo, int sampRateIdx);
 
 /* dct4.c */
 void DCT4(int tabidx, int *coef, int gb);
