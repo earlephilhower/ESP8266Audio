@@ -36,7 +36,7 @@ CPPOPTS=-g -Wunused-parameter -Wall -std=c++11 -m32 -Wstack-usage=300 -include A
 
 .phony: all
 
-all: mp3 aac wav midi opus flac mod
+all: mp3 aac wav midi opus flac mod id3
 
 # Native build (no -m32). Parses only the ID3 filter against synthetic files.
 id3: FORCE
@@ -44,8 +44,7 @@ id3: FORCE
 	g++ -g -Wall -std=c++11 -include Arduino.h -o id3 id3.cpp Serial.cpp \
 		../../src/AudioFileSourceSTDIO.cpp ../../src/AudioFileSourceID3.cpp ../../src/AudioLogger.cpp \
 		-I ../../src/ -I.
-	./id3
-	rm -rf id3 id3.dSYM
+	echo valgrind --leak-check=full --track-origins=yes -v --error-limit=no --show-leak-kinds=all ./id3
 
 mp3: FORCE
 	rm -f *.o
