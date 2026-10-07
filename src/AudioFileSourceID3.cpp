@@ -184,7 +184,7 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len) {
 
     if (exthdr) {
         int ehsz = (id3.getByte() << 24) | (id3.getByte() << 16) | (id3.getByte() << 8) | (id3.getByte());
-        for (int j = 0; j < ehsz - 4; j++) {
+        for (int j = 0; j < ehsz - 4 && !id3.eof(); j++) {
             id3.getByte();    // Throw it away
         }
     }
@@ -212,16 +212,20 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len) {
             if (rev == 2) {
                 framesize = (id3.getByte() << 16) | (id3.getByte() << 8) | (id3.getByte());
                 compressed = false;
-            } else {
+            } else if (rev == 3) {
                 framesize = (id3.getByte() << 24) | (id3.getByte() << 16) | (id3.getByte() << 8) | (id3.getByte());
                 id3.getByte(); // skip 1st flag
                 compressed = id3.getByte() & 0x80;
+            } else { // rev 4: frame sizes are synchsafe (7 bits per byte), compression is bit 0x08
+                framesize = (id3.getByte() << 21) | (id3.getByte() << 14) | (id3.getByte() << 7) | id3.getByte();
+                id3.getByte(); // skip 1st flag
+                compressed = id3.getByte() & 0x08;
             }
             if (compressed) {
                 int decompsize = (id3.getByte() << 24) | (id3.getByte() << 16) | (id3.getByte() << 8) | (id3.getByte());
                 // TODO - add libz decompression, for now ignore this one...
                 (void)decompsize;
-                for (int j = 0; j < framesize; j++) {
+                for (int j = 0; j < framesize && !id3.eof(); j++) {
                     id3.getByte();
                 }
             }
@@ -230,7 +234,7 @@ uint32_t AudioFileSourceID3::read(void *data, uint32_t len) {
             char value[64];
             uint32_t i;
             bool isUnicode = (id3.getByte() == 1) ? true : false;
-            for (i = 0; i < (uint32_t)framesize - 1; i++) {
+            for (i = 0; i < (uint32_t)framesize - 1 && !id3.eof(); i++) {
                 if (i < sizeof(value) - 1) {
                     value[i] = id3.getByte();
                 } else {
