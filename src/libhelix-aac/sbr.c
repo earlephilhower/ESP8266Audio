@@ -219,7 +219,12 @@ int DecodeSBRBitstream(AACDecInfo *aacDecInfo, int chBase) {
 
         /* first valid SBR header should always trigger CalcFreqTables(), since psi->reset was set in InitSBR() */
         if (psi->sbrChan[chBase].reset) {
-            CalcFreqTables(&(psi->sbrHdr[chBase + 0]), &(psi->sbrFreq[chBase]), psi->sampRateIdx);
+            if (CalcFreqTables(&(psi->sbrHdr[chBase + 0]), &(psi->sbrFreq[chBase]), psi->sampRateIdx)) {
+                /*  no usable header: upsample only until a valid one arrives
+                    (DecodeSBRData sees count == 0 and skips the freq tables) */
+                psi->sbrHdr[chBase].count = 0;
+                return ERR_AAC_NONE;
+            }
         }
 
         /* copy and reset state to right channel for CPE */

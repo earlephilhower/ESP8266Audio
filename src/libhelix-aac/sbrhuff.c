@@ -379,7 +379,7 @@ void DecodeSBRNoise(BitStreamInfo *bsi, PSInfoSBR *psi, SBRGrid *sbrGrid, SBRFre
             lastNoiseFloor = 0;    /* first frame */
         }
 
-        ASSERT(sbrFreq->numNoiseFloorBands <= MAX_QMF_BANDS);
+        ASSERT(sbrFreq->numNoiseFloorBands <= MAX_NUM_NOISE_FLOOR_BANDS);
 
         if (sbrChan->deltaFlagNoise[noiseFloor] == 0) {
             /* delta coding in freq */

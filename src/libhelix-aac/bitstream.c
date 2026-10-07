@@ -63,7 +63,8 @@ void SetBitstreamPointer(BitStreamInfo *bsi, int nBytes, unsigned char *buf) {
     bsi->bytePtr = buf;
     bsi->iCache = 0;		/* 4-byte unsigned int */
     bsi->cachedBits = 0;	/* i.e. zero bits in cache */
-    bsi->nBytes = nBytes;
+    /* a frame that overran its element leaves a negative count */
+    bsi->nBytes = nBytes < 0 ? 0 : nBytes;
 }
 
 /**************************************************************************************

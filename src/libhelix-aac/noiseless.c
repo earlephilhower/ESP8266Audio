@@ -62,9 +62,10 @@
 
     Outputs:     updated icsInfo struct
 
-    Return:      none
+    Return:      0 if successful, -1 if max_sfb exceeds the scalefactor bands of this
+                 sample rate (the later band-table lookups would run off the table)
  **************************************************************************************/
-/* __attribute__ ((section (".data"))) */ void DecodeICSInfo(BitStreamInfo *bsi, ICSInfo *icsInfo, int sampRateIdx) {
+/* __attribute__ ((section (".data"))) */ int DecodeICSInfo(BitStreamInfo *bsi, ICSInfo *icsInfo, int sampRateIdx) {
     int sfb, g, mask;
 
     icsInfo->icsResBit =      GetBits(bsi, 1);
@@ -73,6 +74,10 @@
     if (icsInfo->winSequence == 2) {
         /* short block */
         icsInfo->maxSFB =     GetBits(bsi, 4);
+        if (icsInfo->maxSFB > sfBandTotalShort[sampRateIdx]) {
+            icsInfo->maxSFB = 0;
+            return -1;
+        }
         icsInfo->sfGroup =    GetBits(bsi, 7);
         icsInfo->numWinGroup =    1;
         icsInfo->winGroupLen[0] = 1;
@@ -89,6 +94,10 @@
     } else {
         /* long block */
         icsInfo->maxSFB =               GetBits(bsi, 6);
+        if (icsInfo->maxSFB > sfBandTotalLong[sampRateIdx]) {
+            icsInfo->maxSFB = 0;
+            return -1;
+        }
         icsInfo->predictorDataPresent = GetBits(bsi, 1);
         if (icsInfo->predictorDataPresent) {
             icsInfo->predictorReset =   GetBits(bsi, 1);
@@ -102,6 +111,7 @@
         icsInfo->numWinGroup = 1;
         icsInfo->winGroupLen[0] = 1;
     }
+    return 0;
 }
 
 /**************************************************************************************
@@ -138,6 +148,14 @@
                 sectLenIncr = GetBits(bsi, sectLenBits);
                 sectLen += sectLenIncr;
             } while (sectLenIncr == sectEscapeVal);
+
+            /*  a section covers at least one band and ends within the group;
+                past the end of the data every read is zero, so without this a
+                zero length repeats forever and a long one overruns sfbCodeBook */
+            if (sectLen < 1 || sectLen > maxSFB - sfb) {
+                sectLen = maxSFB - sfb;
+                cb = 0;
+            }
 
             sfb += sectLen;
             while (sectLen--) {
@@ -397,9 +415,9 @@ static void DecodeGainControlInfo(BitStreamInfo *bsi, int winSequence, GainContr
     Outputs:     updated section data, scale factor data, pulse data, TNS data,
                   and gain control data
 
-    Return:      none
+    Return:      0 if successful, error code (< 0) if the ICS info is invalid
  **************************************************************************************/
-static void DecodeICS(PSInfoBase *psi, BitStreamInfo *bsi, int ch) {
+static int DecodeICS(PSInfoBase *psi, BitStreamInfo *bsi, int ch) {
     int globalGain;
     ICSInfo *icsInfo;
     PulseInfo *pi;
@@ -410,7 +428,9 @@ static void DecodeICS(PSInfoBase *psi, BitStreamInfo *bsi, int ch) {
 
     globalGain = GetBits(bsi, 8);
     if (!psi->commonWin) {
-        DecodeICSInfo(bsi, icsInfo, psi->sampRateIdx);
+        if (DecodeICSInfo(bsi, icsInfo, psi->sampRateIdx) < 0) {
+            return ERR_AAC_INVALID_FRAME;
+        }
     }
 
     DecodeSectionData(bsi, icsInfo->winSequence, icsInfo->numWinGroup, icsInfo->maxSFB, psi->sfbCodeBook[ch]);
@@ -434,6 +454,7 @@ static void DecodeICS(PSInfoBase *psi, BitStreamInfo *bsi, int ch) {
     if (gi->gainControlDataPresent) {
         DecodeGainControlInfo(bsi, icsInfo->winSequence, gi);
     }
+    return 0;
 }
 
 /**************************************************************************************
@@ -469,7 +490,9 @@ int DecodeNoiselessData(AACDecInfo *aacDecInfo, unsigned char **buf, int *bitOff
     SetBitstreamPointer(&bsi, (*bitsAvail + 7) >> 3, *buf);
     GetBits(&bsi, *bitOffset);
 
-    DecodeICS(psi, &bsi, ch);
+    if (DecodeICS(psi, &bsi, ch) < 0) {
+        return ERR_AAC_INVALID_FRAME;
+    }
 
     if (icsInfo->winSequence == 2) {
         DecodeSpectrumShort(psi, &bsi, ch);
