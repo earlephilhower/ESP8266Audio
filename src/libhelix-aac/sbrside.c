@@ -139,6 +139,24 @@ int UnpackSBRHeader(BitStreamInfo *bsi, SBRHeader *sbrHdr) {
 static const unsigned char cLog2[9] = {0, 0, 1, 2, 2, 3, 3, 3, 3};
 
 /**************************************************************************************
+    Function:    SetDefaultSBRGrid
+
+    Description: one envelope spanning the frame, used when a corrupt grid
+                 cannot be built into valid time borders
+
+    Return:      none
+ **************************************************************************************/
+static void SetDefaultSBRGrid(SBRGrid *sbrGrid) {
+    sbrGrid->numEnv = 1;
+    sbrGrid->freqRes[0] = 0;
+    sbrGrid->envTimeBorder[0] = 0;
+    sbrGrid->envTimeBorder[1] = NUM_TIME_SLOTS * SAMPLES_PER_SLOT;
+    sbrGrid->numNoiseFloors = 1;
+    sbrGrid->noiseTimeBorder[0] = 0;
+    sbrGrid->noiseTimeBorder[1] = NUM_TIME_SLOTS * SAMPLES_PER_SLOT;
+}
+
+/**************************************************************************************
     Function:    UnpackSBRGrid
 
     Description: unpack SBR grid (table 4.62)
@@ -151,7 +169,7 @@ static const unsigned char cLog2[9] = {0, 0, 1, 2, 2, 3, 3, 3, 3};
     Return:      none
  **************************************************************************************/
 static void UnpackSBRGrid(BitStreamInfo *bsi, SBRHeader *sbrHdr, SBRGrid *sbrGrid) {
-    int numEnvRaw, env, rel, pBits, border, middleBorder = 0;
+    int numEnvRaw, env, rel, pBits, border, middleBorder = 0, freqRes;
     unsigned char relBordLead[MAX_NUM_ENV], relBordTrail[MAX_NUM_ENV];
     unsigned char relBorder0[3], relBorder1[3], relBorder[3];
     unsigned char numRelBorder0, numRelBorder1, numRelBorder, numRelLead = 0, numRelTrail;
@@ -163,6 +181,10 @@ static void UnpackSBRGrid(BitStreamInfo *bsi, SBRHeader *sbrHdr, SBRGrid *sbrGri
 
     case SBR_GRID_FIXFIX:
         numEnvRaw = GetBits(bsi, 2);
+        /* 3 would give 8 envelopes; the format allows at most 4 */
+        if (numEnvRaw > 2) {
+            numEnvRaw = 2;
+        }
         sbrGrid->numEnv = (1 << numEnvRaw);
         if (sbrGrid->numEnv == 1) {
             sbrGrid->ampResFrame = 0;
@@ -189,7 +211,7 @@ static void UnpackSBRGrid(BitStreamInfo *bsi, SBRHeader *sbrHdr, SBRGrid *sbrGri
             border = NUM_TIME_SLOTS / 4;
         }
 
-        for (rel = 0; rel < numRelLead; rel++) {
+        for (rel = 0; rel < numRelLead && rel < MAX_NUM_ENV; rel++) {
             relBordLead[rel] = border;
         }
 
@@ -240,8 +262,12 @@ static void UnpackSBRGrid(BitStreamInfo *bsi, SBRHeader *sbrHdr, SBRGrid *sbrGri
         pBits = cLog2[sbrGrid->numEnv + 1];
         sbrGrid->pointer = GetBits(bsi, pBits);
 
-        for (env = 0; env < sbrGrid->numEnv && env < MAX_NUM_ENV; env++) {
-            sbrGrid->freqRes[env] = GetBits(bsi, 1);
+        /* numEnv can exceed the destination array: consume all bits but only store what fits. */
+        for (env = 0; env < sbrGrid->numEnv; env++) {
+            freqRes = GetBits(bsi, 1);
+            if (env < MAX_NUM_ENV) {
+                sbrGrid->freqRes[env] = freqRes;
+            }
         }
 
         absBordLead =  absBorder;
@@ -307,6 +333,13 @@ static void UnpackSBRGrid(BitStreamInfo *bsi, SBRHeader *sbrHdr, SBRGrid *sbrGri
         break;
     }
 
+    /*  the field widths allow more envelopes (VARVAR: up to 7) than the
+        per-envelope arrays hold, and a middle border past the last one */
+    if (sbrGrid->numEnv > MAX_NUM_ENV || middleBorder < 0 || middleBorder > sbrGrid->numEnv) {
+        SetDefaultSBRGrid(sbrGrid);
+        return;
+    }
+
     /* build time border vector */
     sbrGrid->envTimeBorder[0] = absBordLead * SAMPLES_PER_SLOT;
 
@@ -325,6 +358,15 @@ static void UnpackSBRGrid(BitStreamInfo *bsi, SBRHeader *sbrHdr, SBRGrid *sbrGri
     }
 
     sbrGrid->envTimeBorder[sbrGrid->numEnv] = absBordTrail * SAMPLES_PER_SLOT;
+
+    /*  relative borders can overlap or run backwards; every envelope must
+        span at least one time slot (4.6.18.3.3) */
+    for (env = 0; env < sbrGrid->numEnv; env++) {
+        if (sbrGrid->envTimeBorder[env + 1] <= sbrGrid->envTimeBorder[env]) {
+            SetDefaultSBRGrid(sbrGrid);
+            return;
+        }
+    }
 
     if (sbrGrid->numEnv > 1) {
         sbrGrid->numNoiseFloors = 2;

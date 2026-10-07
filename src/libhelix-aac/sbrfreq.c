@@ -383,7 +383,10 @@ static int CalcFreqNoise(unsigned char *freqNoise, unsigned char *freqLow, int n
         nQ = 1;
     }
 
-    ASSERT(nQ <= MAX_NUM_NOISE_FLOOR_BANDS);	/* required from 4.6.18.3.6 */
+    /* Corrupt frequency headers can exceed the fixed per-band arrays; clamp (4.6.18.3.6). */
+    if (nQ > MAX_NUM_NOISE_FLOOR_BANDS) {
+        nQ = MAX_NUM_NOISE_FLOOR_BANDS;
+    }
 
     iLast = 0;
     freqNoise[0] = freqLow[0];
@@ -416,7 +419,7 @@ static int CalcFreqNoise(unsigned char *freqNoise, unsigned char *freqLow, int n
 static int BuildPatches(unsigned char *patchNumSubbands, unsigned char *patchStartSubband, unsigned char *freqMaster,
                         int nMaster, int k0, int kStart, int numQMFBands, int sampRateIdx) {
     int i, j, k;
-    int msb, sb, usb, numPatches, goalSB, oddFlag;
+    int msb, sb, usb, numPatches, goalSB, oddFlag, iter;
 
     msb = k0;
     usb = kStart;
@@ -438,13 +441,19 @@ static int BuildPatches(unsigned char *patchNumSubbands, unsigned char *patchSta
         k = nMaster;
     }
 
+    /*  a conforming header finishes in a few passes; corrupt band limits can
+        leave every pass with zero subbands and the same state, forever */
+    iter = 0;
     do {
+        if (++iter > 4 * (MAX_NUM_PATCHES + 1)) {
+            break;
+        }
         j = k + 1;
         do {
             j--;
             sb = freqMaster[j];
             oddFlag = (sb - 2 + k0) & 0x01;
-        } while (sb > k0 - 1 + msb - oddFlag);
+        } while (sb > k0 - 1 + msb - oddFlag && j > 0);
 
         patchNumSubbands[numPatches] = MAX(sb - usb, 0);
         patchStartSubband[numPatches] = k0 - oddFlag - patchNumSubbands[numPatches];
@@ -468,7 +477,9 @@ static int BuildPatches(unsigned char *patchNumSubbands, unsigned char *patchSta
 
     } while (sb != (kStart + numQMFBands) && numPatches <= MAX_NUM_PATCHES);
 
-    return numPatches;
+    /*  the loop test lets a corrupt header add one patch past the limit; the
+        per-patch tables downstream hold exactly MAX_NUM_PATCHES */
+    return MIN(numPatches, MAX_NUM_PATCHES);
 }
 
 /**************************************************************************************
@@ -611,7 +622,7 @@ static int CalcFreqLimiter(unsigned char *freqLimiter, unsigned char *patchNumSu
     Return:      non-zero if error, zero otherwise
  **************************************************************************************/
 int CalcFreqTables(SBRHeader *sbrHdr, SBRFreq *sbrFreq, int sampRateIdx) {
-    int k0, k2;
+    int k, k0, k2;
 
     k0 = k0Tab[sampRateIdx][sbrHdr->startFreq];
 
@@ -626,6 +637,12 @@ int CalcFreqTables(SBRHeader *sbrHdr, SBRFreq *sbrFreq, int sampRateIdx) {
         k2 = 64;
     }
 
+    /*  the header fields are untrusted: every table below is sized for the
+        ranges the spec allows (4.6.18.3.6) */
+    if (k2 <= k0 || k2 - k0 > MAX_QMF_BANDS) {
+        return -1;
+    }
+
     /* calculate master frequency table */
     if (sbrHdr->freqScale == 0) {
         sbrFreq->nMaster = CalcFreqMasterScaleZero(sbrFreq->freqMaster, sbrHdr->alterScale, k0, k2);
@@ -633,10 +650,24 @@ int CalcFreqTables(SBRHeader *sbrHdr, SBRFreq *sbrFreq, int sampRateIdx) {
         sbrFreq->nMaster = CalcFreqMaster(sbrFreq->freqMaster, sbrHdr->freqScale, sbrHdr->alterScale, k0, k2);
     }
 
+    if (sbrFreq->nMaster < 1 || sbrFreq->nMaster > MAX_QMF_BANDS || sbrHdr->crossOverBand >= sbrFreq->nMaster) {
+        return -1;
+    }
+
+    /* band widths index tables of 1/width, so each band needs at least one subband */
+    for (k = 0; k < sbrFreq->nMaster; k++) {
+        if (sbrFreq->freqMaster[k + 1] <= sbrFreq->freqMaster[k]) {
+            return -1;
+        }
+    }
+
     /* calculate high frequency table and related parameters */
     sbrFreq->nHigh = CalcFreqHigh(sbrFreq->freqHigh, sbrFreq->freqMaster, sbrFreq->nMaster, sbrHdr->crossOverBand);
     sbrFreq->numQMFBands = sbrFreq->freqHigh[sbrFreq->nHigh] - sbrFreq->freqHigh[0];
     sbrFreq->kStart = sbrFreq->freqHigh[0];
+    if (sbrFreq->numQMFBands < 1 || sbrFreq->kStart > 32 || sbrFreq->kStart + sbrFreq->numQMFBands > 64) {
+        return -1;
+    }
 
     /* calculate low frequency table */
     sbrFreq->nLow = CalcFreqLow(sbrFreq->freqLow, sbrFreq->freqHigh, sbrFreq->nHigh);
