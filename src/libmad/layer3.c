@@ -375,10 +375,10 @@ static inline mad_fixed_t root_table(int i) {
 */
 static mad_fixed_t const cs_val[8] PROGMEM = {
     +MAD_F(0x0db84a81) /* +0.857492926 */, +MAD_F(0x0e1b9d7f) /* +0.881741997 */,
-        +MAD_F(0x0f31adcf) /* +0.949628649 */, +MAD_F(0x0fbba815) /* +0.983314592 */,
-        +MAD_F(0x0feda417) /* +0.995517816 */, +MAD_F(0x0ffc8fc8) /* +0.999160558 */,
-        +MAD_F(0x0fff964c) /* +0.999899195 */, +MAD_F(0x0ffff8d3) /* +0.999993155 */
-    };
+    +MAD_F(0x0f31adcf) /* +0.949628649 */, +MAD_F(0x0fbba815) /* +0.983314592 */,
+    +MAD_F(0x0feda417) /* +0.995517816 */, +MAD_F(0x0ffc8fc8) /* +0.999160558 */,
+    +MAD_F(0x0fff964c) /* +0.999899195 */, +MAD_F(0x0ffff8d3) /* +0.999993155 */
+};
 static inline mad_fixed_t cs(int i) {
     volatile mad_fixed_t a = cs_val[i];
     return a;
@@ -386,10 +386,10 @@ static inline mad_fixed_t cs(int i) {
 
 static mad_fixed_t const ca_val[8] PROGMEM = {
     -MAD_F(0x083b5fe7) /* -0.514495755 */, -MAD_F(0x078c36d2) /* -0.471731969 */,
-        -MAD_F(0x05039814) /* -0.313377454 */, -MAD_F(0x02e91dd1) /* -0.181913200 */,
-        -MAD_F(0x0183603a) /* -0.094574193 */, -MAD_F(0x00a7cb87) /* -0.040965583 */,
-        -MAD_F(0x003a2847) /* -0.014198569 */, -MAD_F(0x000f27b4) /* -0.003699975 */
-    };
+    -MAD_F(0x05039814) /* -0.313377454 */, -MAD_F(0x02e91dd1) /* -0.181913200 */,
+    -MAD_F(0x0183603a) /* -0.094574193 */, -MAD_F(0x00a7cb87) /* -0.040965583 */,
+    -MAD_F(0x003a2847) /* -0.014198569 */, -MAD_F(0x000f27b4) /* -0.003699975 */
+};
 static inline mad_fixed_t ca(int i) {
     volatile mad_fixed_t a = ca_val[i];
     return a;
@@ -1226,7 +1226,7 @@ y_final:
                 cachesz -= 4;
 
                 quad = &table[quad->ptr.offset +
-                                               MASK(bitcache, cachesz, quad->ptr.bits)];
+                              MASK(bitcache, cachesz, quad->ptr.bits)];
             }
 
             cachesz -= quad->value.hlen;

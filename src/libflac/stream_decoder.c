@@ -1860,7 +1860,7 @@ FLAC__bool read_metadata_cuesheet_(FLAC__StreamDecoder *decoder, FLAC__StreamMet
     memset(obj, 0, sizeof(FLAC__StreamMetadata_CueSheet));
 
     FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN % 8 == 0);
-    if (!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, (FLAC__byte*)obj->media_catalog_number, FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN / 8)) {
+    if (!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, (FLAC__byte *)obj->media_catalog_number, FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN / 8)) {
         return false;    /* read_callback_ sets the state for us */
     }
 
@@ -1899,7 +1899,7 @@ FLAC__bool read_metadata_cuesheet_(FLAC__StreamDecoder *decoder, FLAC__StreamMet
             track->number = (FLAC__byte)x;
 
             FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN % 8 == 0);
-            if (!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, (FLAC__byte*)track->isrc, FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN / 8)) {
+            if (!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, (FLAC__byte *)track->isrc, FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN / 8)) {
                 return false;    /* read_callback_ sets the state for us */
             }
 
@@ -1969,7 +1969,7 @@ FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMeta
         return false;
     }
     if (x > 0) {
-        if (!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, (FLAC__byte*)obj->mime_type, x)) {
+        if (!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, (FLAC__byte *)obj->mime_type, x)) {
             return false;    /* read_callback_ sets the state for us */
         }
     }
@@ -3387,7 +3387,7 @@ FLAC__bool seek_to_absolute_sample_ogg_(FLAC__StreamDecoder *decoder, FLAC__uint
             }
 
             /* physical seek */
-            if (decoder->private_->seek_callback((FLAC__StreamDecoder*)decoder, (FLAC__uint64)pos, decoder->private_->client_data) != FLAC__STREAM_DECODER_SEEK_STATUS_OK) {
+            if (decoder->private_->seek_callback((FLAC__StreamDecoder *)decoder, (FLAC__uint64)pos, decoder->private_->client_data) != FLAC__STREAM_DECODER_SEEK_STATUS_OK) {
                 decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
                 return false;
             }

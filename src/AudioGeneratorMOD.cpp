@@ -228,7 +228,7 @@ bool AudioGeneratorMOD::LoadHeader() {
             return false;
         }
         Mod.samples[i].length = MakeWord(temp[0], temp[1]) * 2;
-        if (1 != file->read(reinterpret_cast<uint8_t*>(&Mod.samples[i].fineTune), 1)) {
+        if (1 != file->read(reinterpret_cast<uint8_t * >(&Mod.samples[i].fineTune), 1)) {
             return false;
         }
         if (Mod.samples[i].fineTune > 7) {
@@ -272,9 +272,9 @@ bool AudioGeneratorMOD::LoadHeader() {
     if (4 != file->read(temp, 4)) {
         return false;
     };
-    if (!strncmp(reinterpret_cast<const char*>(temp + 1), "CHN", 3)) {
+    if (!strncmp(reinterpret_cast<const char * >(temp + 1), "CHN", 3)) {
         Mod.numberOfChannels = temp[0] - '0';
-    } else if (!strncmp(reinterpret_cast<const char*>(temp + 2), "CH", 2)) {
+    } else if (!strncmp(reinterpret_cast<const char * >(temp + 2), "CH", 2)) {
         Mod.numberOfChannels = (temp[0] - '0') * 10 + temp[1] - '0';
     } else {
         Mod.numberOfChannels = 4;
