@@ -197,8 +197,8 @@ typedef enum {
         4-bit Rice parameter. */
 
     FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 = 1
-            /** < Residual is coded by partitioning into contexts, each with it's own
-                5-bit Rice parameter. */
+        /** < Residual is coded by partitioning into contexts, each with it's own
+            5-bit Rice parameter. */
 } FLAC__EntropyCodingMethodType;
 
 /** Maps a FLAC__EntropyCodingMethodType to a C string.

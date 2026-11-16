@@ -59,7 +59,7 @@ const int predSFBMax[NUM_SAMPLE_RATES] PROGMEM = {
 /* channel mapping (table 1.6.3.4) (-1 = unknown, so need to determine mapping based on rules in 8.5.1) */
 const int channelMapTab[NUM_DEF_CHAN_MAPS] PROGMEM = {
     -1, 1, 2, 3, 4, 5, 6, 8
-    };
+};
 
 /*  number of channels in each element (SCE, CPE, etc.)
     see AACElementID in aaccommon.h

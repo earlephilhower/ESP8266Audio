@@ -387,7 +387,7 @@ FLAC__bool FLAC__bitreader_read_raw_uint32(FLAC__BitReader *br, FLAC__uint32 *va
         return true;
     }
 
-    while ((br->words - br->consumed_words)*FLAC__BITS_PER_WORD + br->bytes * 8 - br->consumed_bits < bits) {
+    while ((br->words - br->consumed_words) * FLAC__BITS_PER_WORD + br->bytes * 8 - br->consumed_bits < bits) {
         if (!bitreader_read_from_client_(br)) {
             return false;
         }
